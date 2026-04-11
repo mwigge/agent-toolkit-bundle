@@ -1,3 +1,8 @@
+---
+name: ai-developer
+description: LLM integration patterns: Anthropic and OpenAI APIs, RAG pipelines, MCP server development, prompt engineering, and evaluation frameworks. Use when building AI-powered features or designing agentic workflows.
+---
+
 # Skill: AI Developer
 
 **Version**: 1.0.0 | **Updated**: 2026-04-05

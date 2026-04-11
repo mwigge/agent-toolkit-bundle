@@ -1,0 +1,80 @@
+# mempalace.conf.example — BYO MemPalace integration config.
+#
+# ============================================================================
+# DO NOT COMMIT YOUR REAL CONFIG. The MCP_TOKEN field holds a bearer token.
+# Copy this file to one of the paths below, fill it in, and make sure the
+# copy is listed in your global .gitignore (or lives outside any repo):
+#
+#     ~/.agents/mempalace/config/mempalace.conf       (default)
+#     $MEMPALACE_CONFIG                                (override)
+#
+# Permissions: chmod 0600 after filling in MCP_TOKEN.
+# ============================================================================
+#
+# Format: key=value, one per line. Comments start with '#'. Blank lines are
+# ignored. Values may be wrapped in single or double quotes — the quotes are
+# stripped during parse. NO shell interpolation. NO arbitrary keys — anything
+# outside the whitelist below is silently dropped. Tampering with the file
+# cannot execute shell code.
+#
+# Environment variables override this file. The resolution order is:
+#
+#     1. MEMPALACE_MCP_URL / MEMPALACE_MCP_TOKEN / MEMPALACE_CLI / MEMPALACE_CONFIG
+#     2. this config file
+#     3. built-in defaults
+
+# ----------------------------------------------------------------------------
+# SCAN_PATHS — comma-separated list of directories to walk during ingestion.
+#
+# Each entry is either absolute or interpreted relative to the current
+# project directory (CLAUDE_PROJECT_DIR, or cwd if unset). Directories that
+# do not exist are silently skipped.
+#
+# Default: docs_local,docs_local/openspec
+#
+# The defaults match the generic per-project convention of a docs_local/
+# subdirectory at the repo root, plus any openspec/ subtree inside it.
+# Adjust to match your own layout.
+# ----------------------------------------------------------------------------
+SCAN_PATHS=docs_local,docs_local/openspec
+
+# ----------------------------------------------------------------------------
+# EXTRA_PATHS — comma-separated list of additional directories to walk on
+# top of SCAN_PATHS. Same absolute-or-relative rules. Use this for one-off
+# additions (e.g. a shared team notes dir) without modifying SCAN_PATHS.
+#
+# Default: (empty)
+# ----------------------------------------------------------------------------
+EXTRA_PATHS=
+
+# ----------------------------------------------------------------------------
+# INGEST_GLOBS — comma-separated list of filename globs to match during the
+# walk. Globs are passed to `find -name`, not to a full glob expander, so
+# only simple `*.ext` patterns are supported.
+#
+# Default: *.md,*.yaml,*.yml
+# ----------------------------------------------------------------------------
+INGEST_GLOBS=*.md,*.yaml,*.yml
+
+# ----------------------------------------------------------------------------
+# MCP_URL — base URL of the BYO MCP server. The hooks POST to
+# $MCP_URL/tools/call with a JSON body of {"tool":"...","arguments":{...}}.
+#
+# Required unless MEMPALACE_CLI is set to an in-process wrapper binary.
+# If both env var MEMPALACE_MCP_URL and this key are set, env wins.
+#
+# Recommended: keep the server bound to localhost or a private network.
+# See docs/install.md for security considerations.
+# ----------------------------------------------------------------------------
+MCP_URL=http://localhost:8765
+
+# ----------------------------------------------------------------------------
+# MCP_TOKEN — bearer token for the MCP server. Sent as
+# `Authorization: Bearer $MCP_TOKEN`. Leave empty if your server does not
+# require auth (but consider binding to localhost if you do that).
+#
+# NEVER commit this file with a real token. The hooks never log the token
+# and never echo it to stdout, but a leaked config file is still a leaked
+# token.
+# ----------------------------------------------------------------------------
+MCP_TOKEN=

@@ -2,6 +2,8 @@
 description: API design and review — REST, OpenAPI 3.1, versioning, error handling. Invoke as @api when designing or reviewing HTTP APIs.
 mode: subagent
 model: ollama/gemma4:e4b
+tools:
+  skill: true
 ---
 
 # @api — API Design Agent

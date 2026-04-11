@@ -1,3 +1,8 @@
+---
+name: data-engineer
+description: Data pipeline patterns: dbt, Airflow, Spark, data quality checks, and warehouse modeling. Use when designing or reviewing ETL, data warehouses, or streaming pipelines.
+---
+
 # Skill: Data Engineer
 
 **Version**: 1.0.0 | **Updated**: 2026-04-05

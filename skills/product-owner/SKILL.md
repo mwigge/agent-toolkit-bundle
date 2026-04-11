@@ -1,3 +1,8 @@
+---
+name: product-owner
+description: Product owner discipline: user story INVEST criteria, Gherkin acceptance criteria, RICE prioritisation, and OKR alignment. Use when writing stories or grooming the backlog.
+---
+
 # Skill: Product Owner
 
 **Version**: 1.0.0 | **Updated**: 2026-04-05

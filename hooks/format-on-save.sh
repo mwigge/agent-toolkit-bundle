@@ -3,8 +3,9 @@
 #
 # format-on-save.sh — PostToolUse hook for Edit|Write.
 # Auto-formats files after every Edit or Write tool call.
-# Runs ruff+black for Python, prettier for TS/JS/JSON/YAML, sqlfluff for SQL.
-# Exit 0 always — formatting is never a blocker.
+# Runs ruff+black for Python, prettier for TS/JS/JSON/YAML, sqlfluff for SQL,
+# shfmt+shellcheck for shell scripts. Exit 0 always — formatting/linting is
+# never a blocker.
 
 set -euo pipefail
 INPUT=$(cat)
@@ -45,6 +46,17 @@ case "$EXT" in
   sql)
     if command -v sqlfluff &>/dev/null; then
       sqlfluff fix --dialect postgres --quiet "$FILE_PATH" 2>/dev/null || true
+    fi
+    ;;
+  sh | bash)
+    # shfmt first (auto-fix formatting), then shellcheck (advisory only).
+    # shfmt writes its output back to the file; shellcheck just reports.
+    if command -v shfmt &>/dev/null; then
+      shfmt -w -i 2 -ci "$FILE_PATH" 2>/dev/null || true
+    fi
+    if command -v shellcheck &>/dev/null; then
+      # Advisory only — print findings to stderr but never block.
+      shellcheck "$FILE_PATH" >&2 2>/dev/null || true
     fi
     ;;
 esac

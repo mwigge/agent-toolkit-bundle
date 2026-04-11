@@ -1,3 +1,8 @@
+---
+name: verification-loop
+description: Pre-merge verification checklist: test coverage, lint, type-check, security scan, and functional validation. Use before declaring implementation work done.
+---
+
 # 驗證循環技能
 
 Claude Code 工作階段的完整驗證系統。

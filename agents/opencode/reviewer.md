@@ -2,6 +2,8 @@
 description: Adversarial code review using four lenses. Invoke as @reviewer after implementation is complete, before MR creation.
 mode: subagent
 model: github-copilot/claude-sonnet-4.6
+tools:
+  skill: true
 ---
 
 # @reviewer — Adversarial Code Review Agent

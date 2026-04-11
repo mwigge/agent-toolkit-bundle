@@ -2,6 +2,8 @@
 description: Data analysis, statistical testing, and visualisation. Invoke as @data-analyst for exploratory analysis, experiment result interpretation, or resilience score calculation.
 mode: subagent
 model: ollama/gemma4:e4b
+tools:
+  skill: true
 ---
 
 # @data-analyst — Data Analysis Agent

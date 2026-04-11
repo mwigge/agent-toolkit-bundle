@@ -1,3 +1,8 @@
+---
+name: documentation
+description: Documentation discipline: identify the doc type (reference, tutorial, how-to, explanation) before writing. Use when authoring or reviewing any technical documentation.
+---
+
 # Skill: Documentation
 
 ## Diátaxis Framework — Mandatory

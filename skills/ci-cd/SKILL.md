@@ -1,3 +1,8 @@
+---
+name: ci-cd
+description: CI/CD pipeline patterns for GitLab CI, GitHub Actions, and container build/release flows. Use when designing pipelines, stages, artifacts, deployment gates, or debugging failed jobs.
+---
+
 # Skill: CI/CD — Pipelines, Containers, and Deployment
 
 ## GitLab CI Structure

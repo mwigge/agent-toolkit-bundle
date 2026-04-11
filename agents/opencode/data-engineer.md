@@ -2,6 +2,8 @@
 description: Data pipeline design and implementation — dbt, Airflow, Spark, Snowflake. Invoke as @data-engineer for pipeline architecture, ETL implementation, or data quality setup.
 mode: subagent
 model: ollama/gemma4:e4b
+tools:
+  skill: true
 ---
 
 # @data-engineer — Data Pipeline Agent

@@ -2,6 +2,8 @@
 description: Full test strategy — unit, integration, contract, chaos validation. Invoke as @tester for test planning, TDD red phase, coverage analysis, or test architecture decisions.
 mode: subagent
 model: ollama/gemma4:e4b
+tools:
+  skill: true
 ---
 
 # @tester — Test Strategy Agent

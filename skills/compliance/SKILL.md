@@ -1,3 +1,8 @@
+---
+name: compliance
+description: Compliance essentials for engineers: GDPR, ISO 27001, SOC 2. Lawful basis, data subject rights, control mapping, and audit evidence. Use when adding features that touch PII or regulated data.
+---
+
 # Skill: Compliance — GDPR, ISO 27001, SOC 2
 
 ## GDPR Essentials for Engineers

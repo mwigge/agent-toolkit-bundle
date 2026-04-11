@@ -81,6 +81,20 @@ export const FormatOnSavePlugin: Plugin = async () => {
             tryFormat("sqlfluff", ["fix", "--dialect", "postgres", "--quiet", filePath])
           }
           break
+
+        case "sh":
+        case "bash":
+          // shfmt first (auto-fix formatting), then shellcheck (advisory).
+          // shellcheck cannot auto-fix but reports findings via stdout/stderr,
+          // which tryFormat swallows — callers opt in by running shellcheck
+          // directly if they want to see findings.
+          if (hasCmd("shfmt")) {
+            tryFormat("shfmt", ["-w", "-i", "2", "-ci", filePath])
+          }
+          if (hasCmd("shellcheck")) {
+            tryFormat("shellcheck", [filePath])
+          }
+          break
       }
 
       // Always exit cleanly — format-on-save never blocks.

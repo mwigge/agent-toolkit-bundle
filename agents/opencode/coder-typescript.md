@@ -3,6 +3,8 @@ name: coder-typescript
 description: TypeScript implementation agent. Use for writing new TypeScript/JavaScript features, fixing bugs, or refactoring TS code. Requires a spec or story. Always uses strict TDD with Vitest. Invoke as @coder-typescript with the story reference or spec text.
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 model: ollama/gemma4:e4b
+tools:
+  skill: true
 ---
 
 # @coder-typescript — TypeScript Implementation Agent

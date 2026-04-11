@@ -1,3 +1,8 @@
+---
+name: nodejs
+description: Node.js 22 LTS patterns: ES Modules, Fastify v5, NestJS v10+, async context, structured logging, and OpenTelemetry integration. Use when writing or reviewing Node.js services.
+---
+
 # Skill: Node.js
 
 **Runtime**: Node 22 LTS | **Modules**: ES Modules only | **Frameworks**: Fastify v5, NestJS v10+

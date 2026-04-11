@@ -1,3 +1,8 @@
+---
+name: incident-response
+description: Incident response framework: severity definitions, response SLAs, incident commander duties, postmortem templates, and blameless review. Use during active incidents or postmortem authoring.
+---
+
 # Skill: Incident Response
 
 ## Severity Classification

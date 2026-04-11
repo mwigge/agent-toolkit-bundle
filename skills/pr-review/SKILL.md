@@ -1,3 +1,8 @@
+---
+name: pr-review
+description: Four-lens PR/MR review discipline: correctness, security, maintainability, and test rigour. Use when reviewing pull or merge requests.
+---
+
 # Skill: PR / MR Review
 
 ## The Four Reviewer Lenses
