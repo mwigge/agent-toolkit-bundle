@@ -1,0 +1,258 @@
+# ─── Global defaults ──────────────────────────────────────────────────────────
+default:
+  image: python:3.10-slim
+  interruptible: true
+  retry:
+    max: 1
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+  before_script:
+    - pip install pdm --quiet
+    - pdm install --dev --quiet
+
+# ─── Stages (ordered; jobs in the same stage run in parallel) ─────────────────
+stages:
+  - lint
+  - test
+  - security
+  - build
+  - deploy
+
+# ─── Variables ────────────────────────────────────────────────────────────────
+variables:
+  PYTHON_VERSION: "3.10"
+  NODE_VERSION: "22"
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+  IMAGE_NAME_LATEST: "$CI_REGISTRY_IMAGE:latest"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+# ─── Cache templates ──────────────────────────────────────────────────────────
+.python-cache:
+  cache:
+    key:
+      files:
+        - pdm.lock
+    paths:
+      - .venv/
+      - .cache/pip/
+    policy: pull-push
+
+.node-cache:
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - node_modules/
+      - .pnpm-store/
+    policy: pull-push
+
+# ─── LINT STAGE ───────────────────────────────────────────────────────────────
+python-lint:
+  stage: lint
+  extends: .python-cache
+  script:
+    - pdm run ruff check src/ tests/
+    - pdm run ruff format --check src/ tests/
+    - pdm run mypy src/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+node-lint:
+  stage: lint
+  image: node:22-slim
+  extends: .node-cache
+  before_script:
+    - npm install -g pnpm --quiet
+    - pnpm install --frozen-lockfile --quiet
+  script:
+    - pnpm run lint
+    - pnpm run typecheck
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "**/*.ts"
+        - "**/*.tsx"
+        - pnpm-lock.yaml
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ─── TEST STAGE ───────────────────────────────────────────────────────────────
+python-test:
+  stage: test
+  needs: [python-lint]
+  extends: .python-cache
+  script:
+    - pdm run pytest
+        --cov=src
+        --cov-report=term-missing
+        --cov-report=xml:coverage.xml
+        --cov-fail-under=95
+        --junitxml=report.xml
+        -v
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    when: always
+    reports:
+      junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    expire_in: 7 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+node-test:
+  stage: test
+  image: node:22-slim
+  needs: [node-lint]
+  extends: .node-cache
+  before_script:
+    - npm install -g pnpm --quiet
+    - pnpm install --frozen-lockfile --quiet
+  script:
+    - pnpm run test --reporter=junit --outputFile=junit.xml --coverage
+  artifacts:
+    when: always
+    reports:
+      junit: junit.xml
+    expire_in: 7 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "**/*.ts"
+        - "**/*.tsx"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ─── SECURITY STAGE ───────────────────────────────────────────────────────────
+sast-python:
+  stage: security
+  needs: [python-lint]
+  image: python:3.10-slim
+  before_script:
+    - pip install bandit pip-audit --quiet
+  script:
+    - bandit -r src/ -ll -ii --exit-zero --format json -o bandit-report.json
+    - bandit -r src/ -ll -ii   # fail on HIGH severity
+    - pip-audit --requirement requirements.txt --format json --output pip-audit-report.json || true
+    - pip-audit --requirement requirements.txt  # fail on any CVE
+  artifacts:
+    when: always
+    paths:
+      - bandit-report.json
+      - pip-audit-report.json
+    expire_in: 30 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+sca-node:
+  stage: security
+  image: node:22-slim
+  needs: [node-lint]
+  before_script:
+    - npm install -g pnpm --quiet
+    - pnpm install --frozen-lockfile --quiet
+  script:
+    - pnpm audit --audit-level=high
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "**/*.ts"
+        - pnpm-lock.yaml
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+secret-scan:
+  stage: security
+  needs: []  # run immediately — don't wait for lint
+  image: python:3.10-slim
+  before_script:
+    - pip install detect-secrets --quiet
+  script:
+    - detect-secrets scan --baseline .secrets.baseline
+    - detect-secrets audit .secrets.baseline --report
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+container-scan:
+  stage: security
+  needs: [build-image]
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  script:
+    - trivy image
+        --exit-code 1
+        --severity CRITICAL,HIGH
+        --no-progress
+        --format json
+        --output trivy-report.json
+        "$IMAGE_NAME"
+  artifacts:
+    when: always
+    paths:
+      - trivy-report.json
+    expire_in: 30 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ─── BUILD STAGE ──────────────────────────────────────────────────────────────
+build-image:
+  stage: build
+  needs:
+    - python-test
+    - sast-python
+    - secret-scan
+  image: docker:24-cli
+  services:
+    - docker:24-dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - docker build
+        --label "org.opencontainers.image.revision=$CI_COMMIT_SHA"
+        --label "org.opencontainers.image.source=$CI_PROJECT_URL"
+        --cache-from "$IMAGE_NAME_LATEST"
+        --tag "$IMAGE_NAME"
+        --tag "$IMAGE_NAME_LATEST"
+        .
+    - docker push "$IMAGE_NAME"
+    - docker push "$IMAGE_NAME_LATEST"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ─── DEPLOY STAGE ─────────────────────────────────────────────────────────────
+deploy-staging:
+  stage: deploy
+  needs: [container-scan]
+  image: bitnami/kubectl:latest
+  environment:
+    name: staging
+    url: https://staging.example.com
+  script:
+    - kubectl set image deployment/app app="$IMAGE_NAME" --namespace=staging
+    - kubectl rollout status deployment/app --namespace=staging --timeout=5m
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+deploy-production:
+  stage: deploy
+  needs: [deploy-staging]
+  image: bitnami/kubectl:latest
+  environment:
+    name: production
+    url: https://app.example.com
+  when: manual          # requires a human to click "play" in the GitLab UI
+  allow_failure: false
+  script:
+    - kubectl set image deployment/app app="$IMAGE_NAME" --namespace=production
+    - kubectl rollout status deployment/app --namespace=production --timeout=10m
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

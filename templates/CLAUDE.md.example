@@ -1,0 +1,147 @@
+<!-- CUSTOMISE: replace placeholders below with your project details, then delete this line. -->
+# <your-project> — Claude Code Setup
+
+**Version**: 1.0.0 | **Updated**: <date>
+
+> **Design principle**: `CLAUDE.md` is advisory context. Hooks are deterministic enforcement.
+> Rules that must *always* run belong in `~/.claude/settings.json`, not here.
+
+---
+
+## Project
+
+<!-- CUSTOMISE: one-paragraph description of what this project is and what it does. -->
+<your-project> is <one-sentence purpose>. Primary language: <python|typescript|rust|go>. Primary runtime: <runtime>.
+
+<!-- CUSTOMISE: optional — table of the repos or packages that make up this project. -->
+| Repo / package | Purpose |
+|----------------|---------|
+| <repo-1> | <role> |
+| <repo-2> | <role> |
+
+---
+
+## Stack Defaults
+
+Adjust to match what this project actually uses; delete rows that don't apply.
+
+| Concern | Python | TypeScript | Rust |
+|---------|--------|------------|------|
+| Runtime | Python 3.10+ | Node 22 LTS | stable toolchain |
+| Packages | PDM + `pdm.lock` | pnpm 9 | Cargo |
+| Lint / format | ruff + black | ESLint 9 flat + Prettier | `cargo fmt` + `cargo clippy -D warnings -W clippy::pedantic` |
+| Types | mypy strict | tsc strict | native |
+| Security | bandit (HIGH=block) | npm audit | `cargo audit` |
+| Tests | pytest + pytest-cov (≥95%) | Vitest (≥80%) | `cargo test --workspace` |
+| Observability | OpenTelemetry SDK | OpenTelemetry SDK | OpenTelemetry SDK |
+
+---
+
+## Non-Negotiable Rules
+
+These are enforced by hooks where possible — the bullets below are advisory reminders, not primary enforcement.
+
+- **No AI attribution anywhere** — never mention AI, Claude, OpenAI, agent names, or TDD phases in commits, PR descriptions, code comments, documentation, or any project artifact. No `Co-Authored-By: Claude`, no `Generated with` footers, no references to AI tools. Enforced by the `no-ai-attribution.sh` hook.
+- **No hardcoded secrets** — environment variables only; fail-fast at startup if a required variable is absent; never log secrets. Enforced by the `security-guard.sh` hook.
+- **No `print()` in library code** (Python) / **no `console.log` in `src/`** (TypeScript) — structured logging only.
+- **No bare `except:`** (Python) — catch specific exceptions.
+- **No deprecated `typing.Dict` / `typing.List`** (Python 3.10+) — use `dict`, `list`, `X | None`.
+- **No `any` without justification** (TypeScript) — strict mode enforced by `tsc`.
+- **Parameterised SQL only** — no string interpolation, no f-strings, no template literals with user input.
+- **Coverage floors** — ≥95% for Python, ≥80% for TypeScript, on all changed files.
+- **ESLint flat config must exist** in every TypeScript repo. The Stop hook blocks completion when an `eslint.config.*` exists and changed files have lint errors.
+
+---
+
+## Commit Standard (Conventional Commits)
+
+Format: `{type}({scope}): {description}` — types: `feat` `fix` `refactor` `test` `docs` `chore`.
+Breaking change: add `!` before `:`.
+
+- **Never** mention TDD phases, agent names, or AI in commit messages.
+- **Never** add AI attribution (`Co-Authored-By: Claude`, `Generated with`, etc.).
+- **Never** reference planning artefacts or internal labels in PR descriptions.
+
+---
+
+## Branch Rules
+
+**NEVER commit directly to `main` / `master`. Always use a feature branch.**
+
+- One branch per logical unit of work.
+- Branch must be pushed to `origin` and a PR opened before merging.
+- PR must pass all CI status checks before merge.
+- Delete the branch locally and remotely after merge.
+
+<!-- CUSTOMISE: optional — if you use a ticketing system, add a branch-naming rule here. -->
+<!-- Example: `{type}/<PROJ>-{N}/{short-description}` — one ticket per branch. -->
+
+---
+
+## Observability Standards
+
+Every new action, probe, or service endpoint must:
+
+- Emit an OTel span with appropriate attributes (no PII, no secrets).
+- Use structured logging only — no `print()`, no credentials in output.
+- Follow a consistent metric naming convention (`<service>_<component>_<metric>_<unit>`).
+
+---
+
+## Skills Reference
+
+Invoke with `/skill-name`. Skills live in `~/.claude/skills/`. Key skills (short list — delete rows that don't apply):
+
+| Skill | When |
+|-------|------|
+| `/python` | Python language, TDD, testing, architecture |
+| `/typescript` | TypeScript language, TDD, testing, architecture |
+| `/rust` | Rust language, ownership, error handling, OTel |
+| `/golang-patterns` | Go idioms and patterns |
+| `/nodejs` | Node.js runtime |
+| `/database` | SQL, schema design, query optimisation |
+| `/api-designer` | REST / GraphQL API design, OpenAPI |
+| `/data-analyst` `/data-engineer` `/statistical-analysis` `/time-series` `/data-visualisation` | Data workflows |
+| `/ai-developer` | LLM, RAG, MCP servers, evals |
+| `/sre` `/observability` `/ci-cd` `/incident-response` | Platform & reliability |
+| `/security-review` `/compliance` `/oauth` | Security |
+| `/pr-review` `/documentation` `/presentation` | Quality & comms |
+| `/product-owner` | Stories, backlog, OKRs |
+| `/tdd-workflow` `/verification-loop` | Quality gates |
+| `/opsx:propose` `/opsx:apply` `/opsx:explore` `/opsx:archive` | OpenSpec workflow |
+
+---
+
+## Agents Reference
+
+Invoke with `@agent-name`. Agents live in `~/.claude/agents/`. All agents are leaf agents — they do not spawn subagents.
+
+| Agent | Role |
+|-------|------|
+| `@architect` | Design review, interface specs, ADRs |
+| `@coder-python` | Python feature implementation (TDD) |
+| `@coder-typescript` | TypeScript feature implementation (TDD) |
+| `@coder-sql` | SQL / database implementation |
+| `@coder-tdd` | TDD cycle facilitation (Red phase) |
+| `@tester` | Test strategy, red phase, coverage analysis |
+| `@reviewer` | Adversarial multi-lens code review |
+| `@sre` | Deployment safety, OTel, runbooks |
+| `@security` | Security review, OWASP, secrets audit |
+| `@observability` | OTel instrumentation |
+| `@api` | API design, OpenAPI 3.1 |
+| `@data-analyst` | Data analysis, stats, visualisation |
+| `@data-engineer` | Pipelines, dbt, Airflow, Spark |
+| `@product-owner` | Stories, INVEST, RICE, OKRs |
+| `@ai-developer` | LLM, RAG, MCP servers, evals |
+
+---
+
+## Session Memory
+
+If you use a cross-session memory layer, save session state on a regular cadence — typically every ~15 minutes and after every commit. At minimum record: active branch, what was done, what is pending, key decisions.
+
+---
+
+## Project-Specific Rules
+
+<!-- CUSTOMISE: add your project-specific rules here. Anything that applies to this project and not to the defaults above goes in this section. Examples: domain-specific conventions, score methodology requirements, migration hygiene, external-system integration quirks. -->

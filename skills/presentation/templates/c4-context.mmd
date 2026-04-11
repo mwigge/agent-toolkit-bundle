@@ -1,0 +1,33 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#e8f4fd', 'secondaryColor': '#f0f9e8', 'tertiaryColor': '#fdf6e8'}}}%%
+C4Context
+  title System Context — [Your System Name]
+
+  %% ─── People / Personas ───────────────────────────────────────────────
+  Person(customerUser, "End User", "A user of [System Name] who [primary goal]")
+  Person_Ext(adminUser, "Platform Admin", "Internal operator who configures and monitors the system")
+
+  %% ─── The System Under Description ───────────────────────────────────
+  System_Boundary(systemBoundary, "[System Name]") {
+    System(coreSystem, "[System Name]", "Provides [primary capability]. Owned by [team].")
+  }
+
+  %% ─── External Systems ────────────────────────────────────────────────
+  System_Ext(identityProvider, "Identity Provider", "Handles authentication and issues JWTs (e.g. Keycloak / Auth0)")
+  System_Ext(notificationSystem, "Notification Service", "Sends email / SMS alerts to users")
+  System_Ext(dataStore, "External Data Store", "Stores [type] data; managed by [team/vendor]")
+  System_Ext(monitoringPlatform, "Observability Platform", "Collects metrics, traces, and logs (e.g. Grafana / Datadog)")
+
+  %% ─── Relationships ───────────────────────────────────────────────────
+  Rel(customerUser, coreSystem, "Uses", "HTTPS/REST")
+  Rel(adminUser, coreSystem, "Administers", "HTTPS/Web UI")
+  Rel(coreSystem, identityProvider, "Authenticates via", "HTTPS/OIDC")
+  Rel(coreSystem, notificationSystem, "Sends notifications via", "HTTPS/REST")
+  Rel(coreSystem, dataStore, "Reads and writes", "TLS/PostgreSQL wire protocol")
+  Rel(coreSystem, monitoringPlatform, "Emits telemetry to", "OTLP/gRPC")
+
+  UpdateRelStyle(customerUser, coreSystem, $textColor="black", $lineColor="#0066cc")
+  UpdateRelStyle(adminUser, coreSystem, $textColor="black", $lineColor="#0066cc")
+  UpdateRelStyle(coreSystem, identityProvider, $textColor="black", $lineColor="#cc6600")
+  UpdateRelStyle(coreSystem, notificationSystem, $textColor="black", $lineColor="#cc6600")
+  UpdateRelStyle(coreSystem, dataStore, $textColor="black", $lineColor="#cc6600")
+  UpdateRelStyle(coreSystem, monitoringPlatform, $textColor="black", $lineColor="#009900")

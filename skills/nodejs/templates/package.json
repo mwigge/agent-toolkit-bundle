@@ -1,0 +1,42 @@
+{
+  "name": "my-app",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./utils": {
+      "import": "./src/utils/index.js",
+      "types": "./dist/utils/index.d.ts"
+    }
+  },
+  "main": "./src/index.js",
+  "scripts": {
+    "start": "node --env-file=.env src/index.js",
+    "start:dev": "node --env-file=.env --watch src/index.js",
+    "test": "node --test --experimental-test-coverage src/**/*.test.js",
+    "test:watch": "node --test --watch src/**/*.test.js",
+    "lint": "eslint src --max-warnings=0",
+    "lint:fix": "eslint src --fix",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "check": "bash scripts/check.sh"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.5.0",
+    "tsx": "^4.0.0"
+  },
+  "pnpm": {
+    "auditLevel": "moderate"
+  }
+}

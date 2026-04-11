@@ -1,0 +1,160 @@
+# =============================================================================
+# Deployment Template — Production-Ready Configuration
+# Replace all <placeholders> before use.
+# =============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <app-name>
+  namespace: <namespace>
+  labels:
+    app.kubernetes.io/name: <app-name>
+    app.kubernetes.io/version: <version>
+    app.kubernetes.io/component: <component>       # e.g., api, worker, frontend
+    app.kubernetes.io/part-of: <system-name>
+    app.kubernetes.io/managed-by: <tool>            # e.g., kustomize, helm
+spec:
+  replicas: 2                                       # Minimum 2 for HA
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0                             # Zero-downtime deployment
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: <app-name>
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: <app-name>
+        app.kubernetes.io/version: <version>
+      annotations:
+        # Force rollout on config change (if using ConfigMap hash)
+        # checksum/config: {{ include (print .Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: <app-name>                # Never use default SA
+      automountServiceAccountToken: false            # Opt-in only if needed
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+
+      terminationGracePeriodSeconds: 30
+
+      # Pod anti-affinity: spread replicas across nodes
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - <app-name>
+                topologyKey: kubernetes.io/hostname
+
+      containers:
+        - name: <app-name>
+          image: <registry>/<app-name>:<version>    # Never use :latest
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+
+          env:
+            - name: APP_ENV
+              value: <environment>
+            # Reference secrets from external secret store
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: <app-name>-db
+                  key: url
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 30               # 30 * 5s = 150s max startup
+
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            failureThreshold: 2
+
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp                  # Writable tmp for readOnlyRootFilesystem
+
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+
+---
+# Pod Disruption Budget — protect availability during node drains
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: <app-name>
+  namespace: <namespace>
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: <app-name>
+
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: <app-name>
+  namespace: <namespace>
+  labels:
+    app.kubernetes.io/name: <app-name>
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: <app-name>

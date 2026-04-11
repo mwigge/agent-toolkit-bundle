@@ -1,0 +1,61 @@
+{
+  "title": "{EXPERIMENT_TITLE}",
+  "description": "{EXPERIMENT_DESCRIPTION}",
+  "tags": ["{TAG_1}", "{TAG_2}"],
+  "contributions": {
+    "availability": "medium",
+    "reliability": "high",
+    "safety": "none"
+  },
+  "steady-state-hypothesis": {
+    "title": "{HYPOTHESIS_TITLE}",
+    "probes": [
+      {
+        "name": "{PROBE_NAME}",
+        "type": "probe",
+        "tolerance": true,
+        "provider": {
+          "type": "python",
+          "module": "{MODULE_PATH}",
+          "func": "{FUNCTION_NAME}",
+          "arguments": {
+            "url": "${TARGET_URL}",
+            "timeout": 5
+          }
+        }
+      }
+    ]
+  },
+  "method": [
+    {
+      "name": "{ACTION_NAME}",
+      "type": "action",
+      "provider": {
+        "type": "python",
+        "module": "{MODULE_PATH}",
+        "func": "{ACTION_FUNCTION}",
+        "arguments": {
+          "target": "{TARGET_SERVICE}",
+          "duration_s": 120
+        }
+      },
+      "pauses": {
+        "after": 5
+      }
+    }
+  ],
+  "rollbacks": [
+    {
+      "name": "{ROLLBACK_NAME}",
+      "type": "action",
+      "provider": {
+        "type": "python",
+        "module": "{MODULE_PATH}",
+        "func": "{ROLLBACK_FUNCTION}",
+        "arguments": {
+          "target": "{TARGET_SERVICE}"
+        }
+      }
+    }
+  ]
+}

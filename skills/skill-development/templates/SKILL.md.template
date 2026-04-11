@@ -1,0 +1,50 @@
+---
+name: TODO-skill-name
+description: >
+  TODO: Write a third-person description with trigger phrases. Example:
+  "This skill should be used when the user wants to 'do X', 'create Y',
+  'review Z', or needs guidance on [topic]."
+version: 1.0.0
+---
+
+# TODO: Skill Title
+
+TODO: One-line summary of what this skill does.
+
+## When to Activate
+
+- TODO: First activation scenario
+- TODO: Second activation scenario
+- TODO: Third activation scenario
+
+---
+
+## TODO: First Core Section
+
+TODO: Add actionable patterns, tables, or workflows here.
+Use imperative style (verb-first). Keep code blocks copy-paste ready.
+
+```
+TODO: Add a code example
+```
+
+---
+
+## TODO: Second Core Section
+
+TODO: Add more content. Move anything over 30 lines to refs/.
+
+---
+
+## TODO: Third Core Section (if needed)
+
+TODO: Add more content or remove this section.
+
+---
+
+## Related
+
+- TODO: List related skills, agents, and resource files
+- Reference: `refs/REFERENCES.md` — TODO: add if applicable
+- Template: `templates/TODO.md` — TODO: add if applicable
+- Script: `scripts/TODO.sh` — TODO: add if applicable

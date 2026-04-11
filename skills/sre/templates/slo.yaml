@@ -1,0 +1,216 @@
+# OpenSLO SLO Definition — Chaos Platform API Service
+# Spec: https://github.com/OpenSLO/OpenSLO/blob/main/spec/openslo.md
+# Version: openslo/v1
+
+---
+# ---------------------------------------------------------------------------
+# Availability SLO (99.9%)
+# ---------------------------------------------------------------------------
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: chaos-api-availability
+  displayName: Chaos API Availability SLO
+  labels:
+    service: chaos-platform
+    team: platform
+spec:
+  description: >
+    The Chaos Platform API must be available 99.9% of the time, measured as
+    the ratio of successful HTTP responses (non-5xx) to total requests,
+    excluding health check endpoints.
+
+  service: chaos-platform-api
+
+  indicator:
+    metadata:
+      name: chaos-api-availability-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: >
+                sum(rate(http_requests_total{
+                  service="chaos-platform-api",
+                  status!~"5..",
+                  path!="/health"
+                }[{{.Window}}]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: >
+                sum(rate(http_requests_total{
+                  service="chaos-platform-api",
+                  path!="/health"
+                }[{{.Window}}]))
+
+  objectives:
+    - displayName: "99.9% availability"
+      target: 0.999
+      timeWindow:
+        duration: 28d
+        isRolling: true
+
+  alertPolicies:
+    - metadata:
+        name: chaos-api-availability-alerts
+      spec:
+        description: >
+          Multi-window, multi-burn-rate alerting for the availability SLO.
+          See: https://sre.google/workbook/implementing-slos/#multiwindow-multi-burn-rate-alert
+        alertWhenNoData: false
+        alertWhenResolved: true
+        conditions:
+          # Fast burn: 2% of monthly budget consumed in 1 hour = page immediately
+          - kind: SLOBurnRate
+            metadata:
+              name: fast-burn-1h
+            spec:
+              burnRateThreshold: 14.4  # 14.4× = 1h window depletes 2% of 28d budget
+              lookbackWindow: 1h
+              alertAfter: 5m
+              severity: critical
+
+          # Slow burn: 5% of monthly budget consumed in 6 hours = ticket
+          - kind: SLOBurnRate
+            metadata:
+              name: slow-burn-6h
+            spec:
+              burnRateThreshold: 6.0
+              lookbackWindow: 6h
+              alertAfter: 15m
+              severity: warning
+
+---
+# ---------------------------------------------------------------------------
+# Latency SLO (p99 < 500ms)
+# ---------------------------------------------------------------------------
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: chaos-api-latency-p99
+  displayName: Chaos API p99 Latency SLO
+  labels:
+    service: chaos-platform
+    team: platform
+spec:
+  description: >
+    99th percentile of API response latency must be below 500ms for all
+    non-health-check endpoints.
+
+  service: chaos-platform-api
+
+  indicator:
+    metadata:
+      name: chaos-api-latency-sli
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              # Requests completing within 500ms threshold
+              query: >
+                sum(rate(http_request_duration_seconds_bucket{
+                  service="chaos-platform-api",
+                  le="0.5",
+                  path!="/health"
+                }[{{.Window}}]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: >
+                sum(rate(http_request_duration_seconds_count{
+                  service="chaos-platform-api",
+                  path!="/health"
+                }[{{.Window}}]))
+
+  objectives:
+    - displayName: "99% of requests < 500ms"
+      target: 0.99
+      timeWindow:
+        duration: 28d
+        isRolling: true
+
+  alertPolicies:
+    - metadata:
+        name: chaos-api-latency-alerts
+      spec:
+        conditions:
+          - kind: SLOBurnRate
+            metadata:
+              name: latency-fast-burn
+            spec:
+              burnRateThreshold: 14.4
+              lookbackWindow: 1h
+              alertAfter: 5m
+              severity: critical
+          - kind: SLOBurnRate
+            metadata:
+              name: latency-slow-burn
+            spec:
+              burnRateThreshold: 3.0
+              lookbackWindow: 6h
+              alertAfter: 30m
+              severity: warning
+
+---
+# ---------------------------------------------------------------------------
+# Error Budget Policy
+# ---------------------------------------------------------------------------
+apiVersion: openslo/v1
+kind: ErrorBudgetPolicy
+metadata:
+  name: chaos-platform-error-budget-policy
+  displayName: Chaos Platform Error Budget Policy
+spec:
+  rules:
+    - condition:
+        kind: Threshold
+        op: gt
+        threshold: 0.0    # Any error budget burn at all
+      steps:
+        - name: monitor
+          duration: 1d
+          message: >
+            Error budget is burning. Monitor dashboards:
+            https://grafana.chaos.internal/d/slo-overview
+
+    - condition:
+        kind: Threshold
+        op: gt
+        threshold: 0.25   # 25% burned: reduce risky experiments
+      steps:
+        - name: reduce-blast-radius
+          duration: 1d
+          message: >
+            25% of error budget burned. Reduce experiment blast radius.
+            Suspend experiments in production tier.
+
+    - condition:
+        kind: Threshold
+        op: gt
+        threshold: 0.5    # 50% burned: freeze new experiments
+      steps:
+        - name: freeze-experiments
+          duration: 2d
+          message: >
+            50% of error budget burned. Freeze all new chaos experiments.
+            Focus on reliability improvements only.
+
+    - condition:
+        kind: Threshold
+        op: gt
+        threshold: 0.9    # 90% burned: emergency freeze
+      steps:
+        - name: emergency-stop
+          duration: 7d
+          message: >
+            CRITICAL: 90% of error budget consumed. Emergency stop on all
+            non-critical changes. Incident review required before resuming.

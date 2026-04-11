@@ -1,0 +1,75 @@
+# Error Budget Policy Template
+# Customise per-service. See SRE SKILL.md for full framework.
+#
+# OpenSLO format: https://github.com/OpenSLO/OpenSLO
+
+---
+apiVersion: openslo/v1
+kind: ErrorBudgetPolicy
+metadata:
+  name: "{SERVICE_NAME}-error-budget-policy"
+  displayName: "{SERVICE_DISPLAY_NAME} Error Budget Policy"
+spec:
+  description: >
+    Error budget policy for {SERVICE_NAME}. Defines escalation actions
+    based on the fraction of error budget consumed within the SLO window.
+
+  rules:
+    # --- 0-25%: Normal operations ---
+    - condition:
+        kind: Threshold
+        op: gt
+        threshold: 0.0
+      steps:
+        - name: monitor
+          duration: 1d
+          message: >
+            Error budget is burning. Monitor dashboards.
+
+    # --- 25%: Reduce blast radius ---
+    - condition:
+        kind: Threshold
+        op: gt
+        threshold: 0.25
+      steps:
+        - name: reduce-blast-radius
+          duration: 1d
+          message: >
+            25% of error budget burned. Reduce experiment blast radius.
+            Suspend experiments targeting production-tier services.
+
+    # --- 50%: Freeze experiments ---
+    - condition:
+        kind: Threshold
+        op: gt
+        threshold: 0.5
+      steps:
+        - name: freeze-experiments
+          duration: 2d
+          message: >
+            50% of error budget burned. Freeze all new chaos experiments.
+            Focus exclusively on reliability improvements.
+
+    # --- 75%: Freeze non-critical changes ---
+    - condition:
+        kind: Threshold
+        op: gt
+        threshold: 0.75
+      steps:
+        - name: reliability-sprint
+          duration: 5d
+          message: >
+            75% of error budget burned. All development effort shifts to
+            reliability-only work. No feature development until budget recovers.
+
+    # --- 90%: Emergency stop ---
+    - condition:
+        kind: Threshold
+        op: gt
+        threshold: 0.9
+      steps:
+        - name: emergency-stop
+          duration: 7d
+          message: >
+            CRITICAL: 90% of error budget consumed. Emergency stop on all
+            non-critical changes. Incident review required before resuming.

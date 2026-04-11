@@ -1,0 +1,9 @@
+node_modules/
+package-lock.json
+*.bak
+.DS_Store
+.vscode/
+.idea/
+
+# Internal working documents — not published
+SPEC.md

@@ -1,0 +1,105 @@
+# =============================================================================
+# Network Policy Template — Default Deny + Explicit Allow
+# Replace all <placeholders> before use.
+# =============================================================================
+
+# Step 1: Default deny all traffic in the namespace
+# Apply this FIRST, then add allow rules below.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: <namespace>
+spec:
+  podSelector: {}                          # Matches all pods in namespace
+  policyTypes:
+    - Ingress
+    - Egress
+
+---
+# Step 2: Allow DNS egress (required for service name resolution)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: <namespace>
+spec:
+  podSelector: {}                          # All pods need DNS
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+---
+# Step 3: Allow ingress to the application from specific sources
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-<app-name>-ingress
+  namespace: <namespace>
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: <app-name>
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow traffic from the ingress controller namespace
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-system
+      ports:
+        - protocol: TCP
+          port: 8080
+    # Allow traffic from other apps in the same namespace
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: <allowed-caller>
+      ports:
+        - protocol: TCP
+          port: 8080
+
+---
+# Step 4: Allow egress from the application to specific destinations
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-<app-name>-egress
+  namespace: <namespace>
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: <app-name>
+  policyTypes:
+    - Egress
+  egress:
+    # Allow egress to the database
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: <database>
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow egress to another service in a different namespace
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: <target-namespace>
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: <target-service>
+      ports:
+        - protocol: TCP
+          port: 8080

@@ -1,0 +1,55 @@
+# Multi-stage Python Dockerfile template
+# Adjust Python version, package manager, and entrypoint as needed.
+
+# --- Stage 1: Build ---
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+# Install system build dependencies (if needed for native extensions)
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     gcc libpq-dev && rm -rf /var/lib/apt/lists/*
+
+# Install PDM
+RUN pip install --no-cache-dir pdm==2.20.1
+
+# Copy dependency files first (layer caching)
+COPY pyproject.toml pdm.lock ./
+
+# Install production dependencies into .venv
+RUN pdm install --prod --no-self --no-editable
+
+# --- Stage 2: Runtime ---
+FROM python:3.12-slim AS runtime
+
+# Security: create non-root user
+RUN groupadd --gid 1000 app && \
+    useradd --uid 1000 --gid 1000 --shell /bin/false --create-home app
+
+# Install runtime-only system dependencies (if needed)
+# RUN apt-get update && apt-get install -y --no-install-recommends \
+#     libpq5 && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy virtual environment from builder
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy application source
+COPY src/ ./src/
+
+# Environment
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD python -c "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"
+
+# Run as non-root
+USER app
+
+EXPOSE 8000
+
+ENTRYPOINT ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
