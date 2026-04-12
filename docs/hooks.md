@@ -64,6 +64,11 @@ PostToolUse on Edit|Write:
 
 PostToolUse on all tools:
   3. observe.sh          (async)        -- audit trail
+
+Stop:
+  1. quality-gate.sh     (120s timeout) -- blocking quality sweep
+  2. model-usage-summary.sh (10s)       -- advisory: prints tier table to stderr
+  3. observe.sh          (async)        -- audit trail
 ```
 
 ---
@@ -154,6 +159,32 @@ Detects changed files via `git diff --name-only HEAD`, then runs language-specif
 **ESLint**: If `eslint.config.*` exists and changed files have errors.
 
 Has an infinite-loop guard: checks `stop_hook_active` flag to prevent the Stop hook from triggering another Stop event.
+
+---
+
+### model-usage-summary.sh (Stop, advisory)
+
+**Event**: Stop (after Claude finishes a response block)
+**Timeout**: 10 seconds
+**Purpose**: Prints a compact tiered model usage table to stderr after every Stop event.
+
+Reads `.claude/logs/model-usage.ndjson` (written by the `model-usage.ts` OpenCode plugin),
+runs `model-report.py`, and prints a tier breakdown (utility / primary / sign-off) with
+token counts, cost in USD, and a routing health signal.
+
+Also emits an `additionalContext` one-liner to stdout so the model is aware of its current
+token and cost profile for the session.
+
+Has an infinite-loop guard: skips silently if `stop_hook_active` is `true`.
+Skips silently if the log file does not exist yet (first response block) or if Python / the
+report script is unavailable.
+
+**Depends on**:
+- `tools/model-report.py` (installed to `~/.config/opencode/scripts/model-report.py`)
+- `.claude/logs/model-usage.ndjson` (written by `model-usage.ts` plugin in OpenCode)
+
+See [model-tier.md](model-tier.md) for full routing and instrumentation details.
+
 
 ---
 
@@ -313,6 +344,9 @@ tool.execute.after:
   2. inline-quality.ts      advisory quality hints (console.warn to model)
   3. quality-gate.ts        blocking checks: print(), bare except, tsc, ESLint
   4. observe.ts             NDJSON audit event
+
+event (model-usage.ts):
+  1. model-usage.ts         record per-message tier/token/cost; flush session summary
 ```
 
 ### opencode.json plugin registration
