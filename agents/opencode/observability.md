@@ -1,6 +1,6 @@
 ---
 description: OTel instrumentation review and implementation. Invoke as @observability when adding new chaos actions, probes, or services that need tracing/metrics/logging.
-mode: subagent
+mode: primary
 model: ollama/gemma4:e4b
 tools:
   skill: true

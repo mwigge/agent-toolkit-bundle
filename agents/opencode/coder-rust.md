@@ -1,6 +1,6 @@
 ---
 description: Rust implementation agent. Use for writing new Rust features, fixing Rust bugs, or refactoring Rust code. Requires a spec or story. Always uses strict TDD. Invoke as @coder-rust with the story reference or spec text.
-mode: subagent
+mode: primary
 model: ollama/gemma4:e4b
 permission:
   "*": allow

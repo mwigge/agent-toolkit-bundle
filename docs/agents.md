@@ -274,6 +274,13 @@ architectural decision (autonomous vs human-gated dispatch) depends on the task:
 **Do NOT use the `task` tool for coder agents.** The `task` tool runs the subagent as a
 single-shot inference call — devstral:24b responds with text but does not execute tools.
 
+**All agents in this bundle use `mode: primary`**, not `mode: subagent`. This is intentional:
+OpenCode only allows `mode: primary` agents to be invoked as top-level sessions via
+`opencode run --agent <name>` (which is what `delegate.sh` does). Setting `mode: subagent`
+blocks direct invocation and causes `opencode run` to fall back to the default model,
+discarding the agent's system prompt entirely. `mode: primary` agents still work correctly
+when called via `@agent-name` inside an existing session.
+
 Instead, use `delegate.sh`, which fires `opencode run --agent <name>` and gives the
 subagent the full native iterative tool-call loop:
 

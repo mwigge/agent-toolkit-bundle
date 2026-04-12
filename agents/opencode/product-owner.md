@@ -1,6 +1,6 @@
 ---
 description: Story writing, backlog prioritisation, OKR management. Invoke as @product-owner to write user stories, prioritise backlog, or define acceptance criteria.
-mode: subagent
+mode: primary
 model: ollama/gemma4:e4b
 tools:
   skill: true

@@ -1,6 +1,6 @@
 ---
 description: Security review — OWASP, secrets, auth, input validation, dependency audit. Invoke as @security for security-sensitive changes, auth implementation, or dependency updates.
-mode: subagent
+mode: primary
 model: github-copilot/claude-sonnet-4.6
 tools:
   skill: true

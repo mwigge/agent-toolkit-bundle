@@ -1,6 +1,6 @@
 ---
 description: LLM integration, RAG, MCP server development, prompt engineering, evals. Invoke as @ai-developer for AI feature implementation, prompt design, or eval framework setup.
-mode: subagent
+mode: primary
 model: ollama/gemma4:e4b
 tools:
   skill: true

@@ -1,6 +1,6 @@
 ---
 description: SRE review — deployment safety, OTel instrumentation, runbooks, rollback. Invoke as @sre for infrastructure, CI/CD, observability, or incident response tasks.
-mode: subagent
+mode: primary
 model: ollama/gemma4:e4b
 tools:
   skill: true

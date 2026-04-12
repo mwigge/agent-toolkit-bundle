@@ -1,6 +1,6 @@
 ---
 description: Code refactoring specialist. Use for reducing complexity, extracting abstractions, renaming, migrating patterns, or paying down technical debt — across Python, TypeScript, and SQL. Invoke as @refactor with the file(s) and smell/goal description.
-mode: subagent
+mode: primary
 model: ollama/gemma4:e4b
 tools:
   skill: true

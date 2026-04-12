@@ -1,6 +1,6 @@
 ---
 description: SQL and database implementation agent. Use for writing migrations, schema changes, query optimisation, RLS policies, and stored procedures. Always parameterised SQL. Invoke as @coder-sql with the schema change or query requirement.
-mode: subagent
+mode: primary
 model: ollama/gemma4:e4b
 permission:
   "*": allow
