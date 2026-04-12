@@ -62,8 +62,11 @@ PostToolUse on Edit|Write:
   1. format-on-save.sh   (30s timeout)  -- auto-format
   2. inline-quality.sh   (15s timeout)  -- immediate feedback
 
+PostToolUse on Bash:
+  3. codegraph-sync.sh   (15s, async)   -- sync code knowledge graph on git add
+
 PostToolUse on all tools:
-  3. observe.sh          (async)        -- audit trail
+  4. observe.sh          (async)        -- audit trail
 
 Stop:
   1. quality-gate.sh     (120s timeout) -- blocking quality sweep
@@ -141,6 +144,18 @@ Emits additionalContext (not a block) for:
 **Python**: `print()` in library code, bare `except:`, deprecated `typing.Dict/List/Optional`, hardcoded secrets, non-parameterised SQL.
 
 **TypeScript**: `console.log` in src/, untyped `any` without justification comment.
+
+---
+
+### codegraph-sync.sh (PostToolUse, async)
+
+**Event**: PostToolUse on Bash
+**Timeout**: 15 seconds (async, non-blocking)
+**Purpose**: Keep the CodeGraph knowledge graph in sync with staged changes.
+
+Detects `git add` commands in Bash tool calls. When found, runs `codegraph sync` to incrementally update the code index (only changed files, typically under 2 seconds). Requires `codegraph` to be installed (`npm install -g codegraph`) and the repo to be initialized (`codegraph init`).
+
+Fails silently — sync is never a blocker. Skips if `codegraph` is not on PATH or if the repo has no `.codegraph/` directory.
 
 ---
 
@@ -342,8 +357,9 @@ tool.execute.before:
 tool.execute.after:
   1. format-on-save.ts      ruff/black/prettier/sqlfluff
   2. inline-quality.ts      advisory quality hints (console.warn to model)
-  3. quality-gate.ts        blocking checks: print(), bare except, tsc, ESLint
-  4. observe.ts             NDJSON audit event
+  3. codegraph-sync.ts      codegraph sync on git add (non-blocking)
+  4. quality-gate.ts        blocking checks: print(), bare except, tsc, ESLint
+  5. observe.ts             NDJSON audit event
 
 event (model-usage.ts):
   1. model-usage.ts         record per-message tier/token/cost; flush session summary

@@ -24,8 +24,8 @@ This bundle is opinionated. If you want a pick-and-choose library of loose files
 | Agents    | 15 Claude / 16 OpenCode | both (dual copies; OpenCode has one extra) |
 | Commands  | 10   | both (dual copies) |
 | Skills    | ~40  | both (native skill support on Claude Code and OpenCode v1.0.110+) |
-| Hooks     | 11   | Claude Code only (shell) |
-| Plugins   | 7    | OpenCode only (TypeScript lifecycle modules) |
+| Hooks     | 12   | Claude Code only (shell) |
+| Plugins   | 8    | OpenCode only (TypeScript lifecycle modules) |
 | Custom tools | 2 | OpenCode only (LLM-callable TypeScript functions) |
 | Scripts   | 1    | OpenCode only (`delegate.sh` — orchestrator → subagent dispatch) |
 | Templates | 3    | both (user-owned) |
@@ -35,9 +35,9 @@ Agents include architecture review, per-language coders (Python / TypeScript / S
 
 Skills cover Python, TypeScript, Rust, Go, Node, Docker, Kubernetes, Terraform, Postgres, OAuth, OTel, SRE, security, chaos engineering, data analysis, presentation, PR review, OpenSpec workflow, and ~25 more. Skills are native in both Claude Code and OpenCode and install once at the tool-neutral `~/.agents/skills/` path — see [`docs/skills.md`](docs/skills.md).
 
-Hooks enforce: format-on-save, inline quality gates, no-AI-attribution in commits, a security guard, a setup init, a permission auto-approver, structured observability, transcript backup, skill activation, and a post-Stop quality gate.
+Hooks enforce: format-on-save, inline quality gates, no-AI-attribution in commits, a security guard, a setup init, a permission auto-approver, structured observability, transcript backup, skill activation, codegraph sync on `git add`, and a post-Stop quality gate.
 
-Plugins mirror the hook surface for OpenCode where the semantics translate: format-on-save, inline quality, no-AI-attribution, observability, quality gate, security guard, session init. See [`docs/plugins.md`](docs/plugins.md).
+Plugins mirror the hook surface for OpenCode where the semantics translate: format-on-save, inline quality, no-AI-attribution, observability, codegraph sync, quality gate, security guard, session init. See [`docs/plugins.md`](docs/plugins.md).
 
 Custom tools are OpenCode-only, LLM-callable TypeScript functions that bridge a specific gap: OpenCode's built-in `skill` tool loads `SKILL.md` but not the skill's `refs/`, `scripts/`, or `templates/` subdirectories. The bundle's `skill_ref` and `skill_list_refs` custom tools restore progressive-disclosure skill loading on OpenCode. See [`docs/tools.md`](docs/tools.md).
 
@@ -139,6 +139,12 @@ The installer does **not** edit `~/.claude/settings.json`. Merge the following b
         "hooks": [
           { "type": "command", "command": "bash ~/.claude/hooks/format-on-save.sh" },
           { "type": "command", "command": "bash ~/.claude/hooks/inline-quality.sh" }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "bash ~/.claude/hooks/codegraph-sync.sh", "async": true, "timeout": 15 }
         ]
       }
     ],
