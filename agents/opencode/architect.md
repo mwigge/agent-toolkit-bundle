@@ -1,7 +1,7 @@
 ---
 description: Architecture design agent. Use before writing any code that touches module boundaries, introduces a new abstraction, adds a dependency, or spans more than two files. Produces a design decision or spec. Does NOT spawn other agents — outputs a handoff message telling the user which agent to invoke next.
 mode: primary
-model: ollama/gemma4:e4b
+model: github-copilot/claude-sonnet-4.6
 tools:
   skill: true
 permission:

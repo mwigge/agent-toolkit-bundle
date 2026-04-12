@@ -1,7 +1,7 @@
 ---
 description: Full test strategy — unit, integration, contract, chaos validation. Invoke as @tester for test planning, TDD red phase, coverage analysis, or test architecture decisions.
 mode: primary
-model: ollama/gemma4:e4b
+model: github-copilot/claude-sonnet-4.6
 tools:
   skill: true
 ---

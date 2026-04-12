@@ -1,7 +1,7 @@
 ---
 description: OTel instrumentation review and implementation. Invoke as @observability when adding new chaos actions, probes, or services that need tracing/metrics/logging.
 mode: primary
-model: ollama/gemma4:e4b
+model: github-copilot/claude-sonnet-4.6
 tools:
   skill: true
 ---
