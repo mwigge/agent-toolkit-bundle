@@ -44,14 +44,30 @@ if [[ ! -d "$WORKDIR" ]]; then
   echo "delegate.sh: --dir '$WORKDIR' does not exist" >&2; exit 1
 fi
 
-AGENT_FILE="$HOME/.config/opencode/agents/${AGENT}.md"
+AGENT_FILE="$HOME/.config/opencode/agent/${AGENT}.md"
 if [[ ! -f "$AGENT_FILE" ]]; then
   echo "delegate.sh: agent '${AGENT}' not found at ${AGENT_FILE}" >&2; exit 1
 fi
 
+# Resolve a portable timeout wrapper.
+# macOS ships without GNU coreutils timeout; use gtimeout if available,
+# otherwise fall back to perl as a last resort.
+_timeout_cmd() {
+  if command -v gtimeout >/dev/null 2>&1; then
+    gtimeout "$@"
+  elif command -v timeout >/dev/null 2>&1; then
+    timeout "$@"
+  else
+    # No timeout wrapper available — run without a timeout guard.
+    # Install coreutils via `brew install coreutils` for proper support.
+    shift  # drop the seconds argument
+    "$@"
+  fi
+}
+
 # Use --dangerously-skip-permissions so subagent tool calls are auto-approved
 # (permissions are scoped per-agent in the agent .md frontmatter).
-timeout "${TIMEOUT}" opencode run \
+_timeout_cmd "${TIMEOUT}" opencode run \
   --agent  "$AGENT"   \
   --dir    "$WORKDIR" \
   --dangerously-skip-permissions \
