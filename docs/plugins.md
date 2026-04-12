@@ -43,6 +43,7 @@ Plugins and custom tools are independent: you can have both in the same OpenCode
 | `quality-gate.ts` | `session.end` | Runs the full test / lint / type gate at session end |
 | `security-guard.ts` | `tool.execute.before` (all) | Rejects tool calls that would exfiltrate secrets or touch forbidden paths |
 | `session-init.ts` | `session.start` | Prints a short context summary and sets up per-session state |
+| `model-usage.ts` | `event` (message.updated, session.idle, session.compacted) | Records tiered model token/cost usage per message; writes session summaries to NDJSON and MemPalace for sprint/block analysis |
 
 All plugins live under `plugins/` at the repo root. The installer symlinks them into `~/.config/opencode/plugin/`.
 
