@@ -44,9 +44,17 @@ if [[ ! -d "$WORKDIR" ]]; then
   echo "delegate.sh: --dir '$WORKDIR' does not exist" >&2; exit 1
 fi
 
-AGENT_FILE="$HOME/.config/opencode/agent/${AGENT}.md"
-if [[ ! -f "$AGENT_FILE" ]]; then
-  echo "delegate.sh: agent '${AGENT}' not found at ${AGENT_FILE}" >&2; exit 1
+# OpenCode uses either agent/ (canonical) or agents/ (older layout) — check both.
+AGENT_FILE=""
+for _dir in "agent" "agents"; do
+  _candidate="$HOME/.config/opencode/${_dir}/${AGENT}.md"
+  if [[ -f "$_candidate" ]]; then
+    AGENT_FILE="$_candidate"
+    break
+  fi
+done
+if [[ -z "$AGENT_FILE" ]]; then
+  echo "delegate.sh: agent '${AGENT}' not found in ~/.config/opencode/agent/ or ~/.config/opencode/agents/" >&2; exit 1
 fi
 
 # Resolve a portable timeout wrapper.
