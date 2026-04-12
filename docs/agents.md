@@ -259,8 +259,8 @@ System prompt content...
 **Claude Code**: Agents are leaf nodes. All dispatch is human-triggered. The model outputs
 a handoff message and waits for the user to invoke the next agent.
 
-**OpenCode**: The model CAN spawn subagents autonomously using the `task` tool. `mode: subagent`
-agents are spawned directly by the orchestrator without human intervention.
+**OpenCode**: The model CAN spawn subagents autonomously. `mode: subagent` agents are
+spawned by the orchestrator without human intervention.
 
 The no-subagent rule in `agents.md` is **Claude Code-specific**. In OpenCode, the correct
 architectural decision (autonomous vs human-gated dispatch) depends on the task:
@@ -268,6 +268,25 @@ architectural decision (autonomous vs human-gated dispatch) depends on the task:
 - **Simple, well-scoped tasks**: autonomous spawn is appropriate (e.g. `@coder-python` after `@architect` completes a design)
 - **Ambiguous tasks requiring human review**: output a handoff message as in Claude Code
 - **High-risk tasks** (deploys, database changes): always human-gated regardless of platform
+
+### How to spawn subagents correctly (OpenCode)
+
+**Do NOT use the `task` tool for coder agents.** The `task` tool runs the subagent as a
+single-shot inference call — devstral:24b responds with text but does not execute tools.
+
+Instead, use `delegate.sh`, which fires `opencode run --agent <name>` and gives the
+subagent the full native iterative tool-call loop:
+
+```bash
+bash ~/.config/opencode/scripts/delegate.sh \
+  --agent  coder-rust \
+  --dir    /path/to/repo \
+  --prompt "Your full task description here..."
+```
+
+The script ships in `scripts/delegate.sh` and installs to `~/.config/opencode/scripts/`
+after running `./install.sh`. Timeout defaults to 600 s; override with
+`--timeout <seconds>` or the `DELEGATE_TIMEOUT` env var.
 
 ### How to add a new agent (OpenCode)
 

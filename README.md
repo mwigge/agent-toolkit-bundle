@@ -27,6 +27,7 @@ This bundle is opinionated. If you want a pick-and-choose library of loose files
 | Hooks     | 11   | Claude Code only (shell) |
 | Plugins   | 7    | OpenCode only (TypeScript lifecycle modules) |
 | Custom tools | 2 | OpenCode only (LLM-callable TypeScript functions) |
+| Scripts   | 1    | OpenCode only (`delegate.sh` — orchestrator → subagent dispatch) |
 | Templates | 3    | both (user-owned) |
 | MemPalace | sub-package | opt-in integration for the upstream `milla-jovovich/mempalace` server |
 
@@ -176,6 +177,7 @@ This symlinks:
 - `commands/opencode/**/*.md` → `~/.config/opencode/command/`
 - `plugins/*.ts` → `~/.config/opencode/plugin/`
 - `tools/*.ts` → `~/.config/opencode/tools/`
+- `scripts/delegate.sh` → `~/.config/opencode/scripts/delegate.sh`
 - `skills/**` → `~/.agents/skills/` (OpenCode reads this natively)
 
 OpenCode auto-loads plugins and tools from those directories at startup — no settings file to edit. Restart OpenCode after the install so the plugins and tools take effect.
@@ -261,6 +263,9 @@ agent-toolkit-bundle/
 │   ├── package.json
 │   └── tsconfig.json
 │
+├── scripts/                      # OpenCode only (shell helpers, e.g. delegate.sh)
+│   └── delegate.sh
+│
 ├── commands/                     # Slash commands (both tools)
 │   ├── claude/
 │   └── opencode/
@@ -312,6 +317,7 @@ The per-tool subdirs under `agents/` and `commands/` are intentional: even if 80
 find ~/.claude/agents ~/.claude/commands ~/.claude/hooks \
      ~/.config/opencode/agent ~/.config/opencode/command \
      ~/.config/opencode/plugin ~/.config/opencode/tools \
+     ~/.config/opencode/scripts \
      ~/.agents/skills ~/.claude/skills \
      -maxdepth 1 -type l -delete 2>/dev/null
 
