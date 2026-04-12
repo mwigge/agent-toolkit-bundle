@@ -20,31 +20,27 @@ PROMPT=$(echo "$INPUT" | jq -r '.prompt // ""' 2>/dev/null || true)
 RULES_FILE="${CLAUDE_PROJECT_DIR:-$(pwd)}/.claude/skill-rules.json"
 [[ ! -f "$RULES_FILE" ]] && exit 0
 
-ACTIVATED=()
+ACTIVATED=""
 
 # Read each rule: pattern -> skill name
 while IFS= read -r line; do
-  PATTERN=$(echo "$line" | jq -r '.pattern' 2>/dev/null || true)
-  SKILL=$(echo "$line" | jq -r '.skill' 2>/dev/null || true)
+  PATTERN=$(printf '%s' "$line" | jq -r '.pattern' 2>/dev/null || true)
+  SKILL=$(printf '%s' "$line" | jq -r '.skill' 2>/dev/null || true)
   [[ -z "$PATTERN" || -z "$SKILL" ]] && continue
 
-  if echo "$PROMPT" | grep -qiE "$PATTERN" 2>/dev/null; then
-    ACTIVATED+=("$SKILL")
+  if printf '%s' "$PROMPT" | grep -qiE "$PATTERN" 2>/dev/null; then
+    ACTIVATED="${ACTIVATED:+$ACTIVATED$'\n'}$SKILL"
   fi
 done < <(jq -c '.[]' "$RULES_FILE" 2>/dev/null || true)
 
-# Deduplicate
-if [[ ${#ACTIVATED[@]} -gt 0 ]]; then
-  mapfile -t UNIQUE < <(printf '%s\n' "${ACTIVATED[@]}" | sort -u)
-else
-  UNIQUE=()
-fi
+[[ -z "$ACTIVATED" ]] && exit 0
 
-if [[ ${#UNIQUE[@]} -gt 0 ]]; then
-  NAMES=$(printf '%s, ' "${UNIQUE[@]}" | sed 's/, $//')
-  MSG="SKILL ACTIVATION: The following skills are relevant to this prompt - load them before responding: ${NAMES}. "
-  MSG+="Skills live in \${CLAUDE_PROJECT_DIR}/skills/. Read the SKILL.md for each activated skill."
-  jq -n --arg ctx "$MSG" '{"additionalContext": $ctx}'
-fi
+# Deduplicate (portable — no mapfile, no array expansion, works on bash 3.2+)
+UNIQUE=$(printf '%s\n' "$ACTIVATED" | sort -u)
+NAMES=$(printf '%s\n' "$UNIQUE" | paste -sd ',' - | sed 's/,/, /g')
+
+MSG="SKILL ACTIVATION: The following skills are relevant to this prompt - load them before responding: ${NAMES}. "
+MSG+="Skills live in \${CLAUDE_PROJECT_DIR}/skills/. Read the SKILL.md for each activated skill."
+jq -n --arg ctx "$MSG" '{"additionalContext": $ctx}'
 
 exit 0
