@@ -42,25 +42,29 @@ interface TierEntry {
 }
 
 const TIER_MAP: Record<string, TierEntry> = {
-  // Utility tier — fast single-shot, no reasoning needed
-  "qwen2.5-coder:14b":  { tier: "utility",  costPer1MOut: 0 },
-  "qwen2.5-coder:7b":   { tier: "utility",  costPer1MOut: 0 },
-  // Primary tier — thinking-capable local workhorse
-  "gemma4:e4b":         { tier: "primary",  costPer1MOut: 0 },
-  "gemma4:27b":         { tier: "primary",  costPer1MOut: 0 },
-  "llama3.3:70b":       { tier: "primary",  costPer1MOut: 0 },
-  // Sign-off tier — cloud frontier, adversarial quality
-  "claude-sonnet-4.6":  { tier: "sign-off", costPer1MOut: 15 },
-  "claude-sonnet-4-5":  { tier: "sign-off", costPer1MOut: 15 },
-  "claude-opus-4-5":    { tier: "sign-off", costPer1MOut: 75 },
-  "gpt-4o":             { tier: "sign-off", costPer1MOut: 15 },
-  "o3":                 { tier: "sign-off", costPer1MOut: 60 },
-  "gemini-2.5-pro":     { tier: "sign-off", costPer1MOut: 10 },
+  // ── Local / primary tier — zero cost ────────────────────────────────────────
+  "devstral":              { tier: "primary",  costPer1MOut: 0 },
+  "llama3.3":              { tier: "primary",  costPer1MOut: 0 },
+  "gemma4":                { tier: "primary",  costPer1MOut: 0 },
+  "qwen2.5-coder":         { tier: "utility",  costPer1MOut: 0 },
+  // ── Cloud / sign-off tier — prefix-matched, newest first ────────────────────
+  // Claude Opus (most expensive)
+  "claude-opus-4":         { tier: "sign-off", costPer1MOut: 75 },
+  "claude-opus-3":         { tier: "sign-off", costPer1MOut: 75 },
+  // Claude Sonnet
+  "claude-sonnet-4":       { tier: "sign-off", costPer1MOut: 15 },
+  "claude-sonnet-3":       { tier: "sign-off", costPer1MOut: 15 },
+  // Claude Haiku (cheap cloud)
+  "claude-haiku-4":        { tier: "sign-off", costPer1MOut: 1.25 },
+  "claude-haiku-3":        { tier: "sign-off", costPer1MOut: 1.25 },
+  // Other cloud
+  "gpt-4o":                { tier: "sign-off", costPer1MOut: 15 },
+  "o3":                    { tier: "sign-off", costPer1MOut: 60 },
+  "gemini-2.5-pro":        { tier: "sign-off", costPer1MOut: 10 },
 }
 
 function resolveTier(modelID: string): TierEntry {
-  if (TIER_MAP[modelID]) return TIER_MAP[modelID]
-  // Prefix-match only: known key is a prefix of modelID (e.g. "claude-sonnet-4.6:latest")
+  // Prefix-match: "claude-opus-4" matches "claude-opus-4-6", "claude-opus-4-5", etc.
   for (const [key, entry] of Object.entries(TIER_MAP)) {
     if (modelID.startsWith(key)) return entry
   }

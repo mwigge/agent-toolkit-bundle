@@ -29,7 +29,26 @@ SCOPE_DAYS: dict[str, int] = {
     "block": 30,
 }
 
-# Assumed cloud rate for savings estimate — matches TIER_MAP in model-usage.ts
+# Tier cost map — must stay in sync with TIER_MAP in model-usage.ts and model-usage-summary.sh
+# Keys are prefix-matched against modelID (longest prefix wins).
+# Cost is per 1M output tokens in USD. 0 = local.
+TIER_COST_MAP: dict[str, tuple[str, float]] = {
+    "devstral":          ("primary",  0.0),
+    "llama3.3":          ("primary",  0.0),
+    "gemma4":            ("primary",  0.0),
+    "qwen2.5-coder":     ("utility",  0.0),
+    "claude-opus-4":     ("sign-off", 75.0),
+    "claude-opus-3":     ("sign-off", 75.0),
+    "claude-sonnet-4":   ("sign-off", 15.0),
+    "claude-sonnet-3":   ("sign-off", 15.0),
+    "claude-haiku-4":    ("sign-off", 1.25),
+    "claude-haiku-3":    ("sign-off", 1.25),
+    "gpt-4o":            ("sign-off", 15.0),
+    "o3":                ("sign-off", 60.0),
+    "gemini-2.5-pro":    ("sign-off", 10.0),
+}
+
+# Default assumed cloud rate for savings estimate (used when tier is unknown)
 ASSUMED_CLOUD_RATE_USD_PER_1M: float = 15.0
 
 
