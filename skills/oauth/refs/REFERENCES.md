@@ -40,7 +40,8 @@
 
 ## Security Research
 
-- **OAuth vulnerability labs** — Lab-based learning for OAuth vulnerabilities (open redirect, CSRF, token leakage, account takeover). Search for current OAuth security training resources.
+- **PortSwigger OAuth Security** — Lab-based learning for OAuth vulnerabilities (open redirect, CSRF, token leakage, account takeover)
+  https://portswigger.net/web-security/oauth
 
 ## Additional Reading
 

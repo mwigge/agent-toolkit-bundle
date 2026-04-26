@@ -52,7 +52,7 @@ so that **[benefit — business value delivered]**.
 - [ ] UI mockup linked: [URL or "N/A"]
 - [ ] API contract defined: [link or "N/A"]
 - [ ] PII / security implications reviewed
-- [ ] Linked to epic: [<PROJ>-123 / <PROJ>-123]
+- [ ] Linked to epic: [CLS-23 / CLS-20]
 
 ---
 
@@ -101,10 +101,10 @@ so that **[benefit — business value delivered]**.
 
 ## Jira
 
-- **Project**: <PROJ>
-- **Epic**: [<PROJ>-123 (<your-project>) / <PROJ>-123 (cap-backbone)]
+- **Project**: CLS
+- **Epic**: [CLS-23 (cap-resilience) / CLS-20 (cap-backbone)]
 - **Story ID**: [assigned after creation]
 - **Sprint**: [assigned at planning]
 - **Assignee**: [assigned when work begins]
 - **Reporter**: [assigned when work begins]
-- **Labels**: [<your-project> / cap-backbone]
+- **Labels**: [cap-resilience / cap-backbone]

@@ -1,9 +1,10 @@
----
-name: compliance
-description: Compliance essentials for engineers: GDPR, ISO 27001, SOC 2. Lawful basis, data subject rights, control mapping, and audit evidence. Use when adding features that touch PII or regulated data.
----
+# Skill: Compliance — GDPR, DORA, PCI-DSS, ISO 27001, SOC 2
 
-# Skill: Compliance — GDPR, ISO 27001, SOC 2
+**Coverage**: GDPR (data protection) · DORA (operational resilience, EU financial sector) · PCI-DSS 4.0 (payment card security) · ISO 27001 (information security) · SOC 2 (trust services)
+
+**See also**: `refs/dora.md` (DORA article-to-control mapping) · `refs/pci-dss.md` (PCI-DSS requirement-to-hook mapping) · `refs/REFERENCES.md` (external links)
+
+---
 
 ## GDPR Essentials for Engineers
 

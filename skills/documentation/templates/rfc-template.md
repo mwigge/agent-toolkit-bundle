@@ -164,7 +164,7 @@ Use measurable criteria. These will be used to evaluate the outcome after implem
 
 ## References
 
-- [<PROJ>-NNN: Jira ticket]
+- [CLS-NNN: Jira ticket]
 - [Link to related ADRs]
 - [Link to benchmarks, spikes, or prior art]
 - [External references]

@@ -26,6 +26,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+
 @dataclass
 class Issue:
     path: str
@@ -41,9 +42,11 @@ class Issue:
             loc += f":line {self.line}"
         return f"[{self.severity}] {self.path} {loc}: [{self.code}] {self.message}"
 
+
 _ITERROWS_RE = re.compile(r"\biterrows\s*\(\s*\)")
 _HARDCODED_PATH_RE = re.compile(r"""['"](/(?:home|Users|var|tmp|data|mnt)/[^\s'"]+)""")
 _PRINT_RE = re.compile(r"^\s*print\s*\(", re.MULTILINE)
+
 
 def check_notebook(path: Path) -> list[Issue]:
     try:
@@ -143,6 +146,7 @@ def check_notebook(path: Path) -> list[Issue]:
 
     return issues
 
+
 def main() -> int:
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} notebook.ipynb [...]", file=sys.stderr)
@@ -175,6 +179,7 @@ def main() -> int:
 
     print("No notebook issues found.")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

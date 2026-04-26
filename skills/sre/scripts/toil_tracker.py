@@ -27,6 +27,7 @@ import sys
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
+
 @dataclass
 class ToilItem:
     name: str
@@ -52,6 +53,7 @@ class ToilItem:
     def annual_savings_hours(self) -> float:
         return self.weekly_cost_hours * 52
 
+
 def load_from_csv(path: Path) -> list[ToilItem]:
     items: list[ToilItem] = []
     with path.open(encoding="utf-8") as f:
@@ -67,6 +69,7 @@ def load_from_csv(path: Path) -> list[ToilItem]:
             )
     return items
 
+
 def demo_items() -> list[ToilItem]:
     return [
         ToilItem("manual-deploy", 5, 30, 16),
@@ -76,6 +79,7 @@ def demo_items() -> list[ToilItem]:
         ToilItem("experiment-cleanup", 7, 10, 6),
         ToilItem("alert-triage", 10, 5, 20),
     ]
+
 
 def report(items: list[ToilItem], output_json: bool = False) -> None:
     sorted_items = sorted(items, key=lambda t: t.payback_weeks)
@@ -121,6 +125,7 @@ def report(items: list[ToilItem], output_json: bool = False) -> None:
     print()
     print("Recommendation: automate items with payback < 4 weeks first.")
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Toil reduction tracker")
     parser.add_argument("--csv", type=Path, help="CSV file with toil items")
@@ -141,6 +146,7 @@ def main() -> int:
 
     report(items, output_json=args.json)
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

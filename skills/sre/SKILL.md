@@ -45,6 +45,7 @@ Every service must measure:
 from dataclasses import dataclass
 from enum import Enum
 
+
 class SLICategory(str, Enum):
     AVAILABILITY = "availability"
     LATENCY = "latency"
@@ -53,6 +54,7 @@ class SLICategory(str, Enum):
     FRESHNESS = "freshness"
     CORRECTNESS = "correctness"
     THROUGHPUT = "throughput"
+
 
 @dataclass(frozen=True)
 class SLISpec:
@@ -81,6 +83,7 @@ SLO_DEFAULTS = {
     "recovery_time_s":   30,      # MTTR under 30s after chaos
     "saturation_ratio":  0.80,    # < 80% resource saturation
 }
+
 
 def evaluate_slo(metric_name: str, value: float) -> bool:
     threshold = SLO_DEFAULTS.get(metric_name)
@@ -111,6 +114,7 @@ Every new service must have an SLO document covering:
 
 ```python
 from dataclasses import dataclass
+
 
 @dataclass
 class ErrorBudget:
@@ -181,6 +185,7 @@ class ErrorBudget:
 
 ```python
 from dataclasses import dataclass
+
 
 @dataclass
 class CapacityModel:
@@ -353,6 +358,7 @@ from typing import TypeVar, Callable
 
 T = TypeVar("T")
 
+
 def retry_with_backoff(
     fn: Callable[[], T],
     max_retries: int = 3,
@@ -379,10 +385,12 @@ from enum import Enum
 import time
 from threading import Lock
 
+
 class CircuitState(Enum):
     CLOSED   = "closed"    # normal operation
     OPEN     = "open"      # blocking calls
     HALF_OPEN = "half_open" # testing recovery
+
 
 class CircuitBreaker:
     def __init__(
@@ -427,6 +435,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
+
 class Bulkhead:
     """
     Limits concurrent access to a resource to prevent cascading failure.
@@ -462,6 +471,7 @@ from typing import TypeVar, Callable, Awaitable
 
 T = TypeVar("T")
 
+
 async def with_timeout(
     coro: Awaitable[T],
     timeout_seconds: float,
@@ -485,6 +495,7 @@ async def with_timeout(
 ```python
 from dataclasses import dataclass
 
+
 @dataclass
 class HealthStatus:
     status: str               # "healthy", "degraded", "unhealthy"
@@ -498,9 +509,11 @@ class HealthStatus:
         """Ready to serve traffic (all critical deps available)."""
         return all(self.checks.values())
 
+
 def liveness_check() -> dict:
     """GET /health — is the process alive?"""
     return {"status": "ok"}
+
 
 def readiness_check(deps: dict[str, Callable[[], bool]]) -> dict:
     """GET /ready — can we serve traffic?"""
@@ -530,6 +543,7 @@ Prioritise core functionality when dependencies fail:
 
 ```python
 from dataclasses import dataclass
+
 
 @dataclass(frozen=True)
 class FeatureFlag:
@@ -569,11 +583,13 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
+
 class ProbeStatus(str, Enum):
     OK      = "ok"
     FAILED  = "failed"
     TIMEOUT = "timeout"
     UNKNOWN = "unknown"
+
 
 @dataclass
 class ProbeResult:
@@ -594,6 +610,7 @@ class ProbeResult:
 import httpx
 import time
 from chaoslib.types import Configuration, Secrets
+
 
 def probe_http_healthy(
     url: str,
@@ -673,6 +690,7 @@ Before any chaos experiment:
 from contextlib import contextmanager
 from typing import Callable
 
+
 @contextmanager
 def chaos_scope(rollback_fn: Callable[[], None], abort_threshold: float = 0.05):
     """
@@ -696,6 +714,7 @@ def chaos_scope(rollback_fn: Callable[[], None], abort_threshold: float = 0.05):
 ```python
 import logging
 import structlog
+
 
 def configure_structlog() -> None:
     structlog.configure(

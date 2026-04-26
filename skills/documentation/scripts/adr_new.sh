@@ -144,7 +144,7 @@ We will [state the decision].
 ## Related
 
 - ADR-NNN: [Related decision, if any]
-- [<PROJ>-NNN]: [Jira ticket that drove this decision]
+- [CLS-NNN]: [Jira ticket that drove this decision]
 - [Link to RFC or design doc, if applicable]
 EOF
 

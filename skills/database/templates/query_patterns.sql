@@ -28,6 +28,7 @@ FROM experiments
 WHERE id = $1            -- PostgreSQL native param; psycopg uses %s
   AND created_by = $2;
 
+
 -- ---------------------------------------------------------------------------
 -- 2. CTE with readable structure
 -- ---------------------------------------------------------------------------
@@ -68,6 +69,7 @@ ORDER BY weighted_score DESC
 LIMIT 20;
 
 -- To analyse: prepend EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
+
 
 -- ---------------------------------------------------------------------------
 -- 3. Window Functions — running totals, ranking, lag/lead
@@ -113,6 +115,7 @@ FROM experiments
 WHERE status = 'completed'
 ORDER BY created_at DESC;
 
+
 -- ---------------------------------------------------------------------------
 -- 4. UPSERT — INSERT ... ON CONFLICT DO UPDATE
 -- ---------------------------------------------------------------------------
@@ -134,6 +137,7 @@ ON CONFLICT (id) DO UPDATE
     WHERE experiments.status = 'pending'  -- Only update if still pending
 RETURNING id, created_at;
 
+
 -- ---------------------------------------------------------------------------
 -- 5. Row-Level Security — set app context for RLS policies
 -- ---------------------------------------------------------------------------
@@ -147,6 +151,7 @@ SELECT current_setting('app.current_user_id');
 -- In a transaction block (Python):
 -- cursor.execute("SET LOCAL app.current_user_id = %s", (user_id,))
 -- cursor.execute("SELECT * FROM experiments")  -- RLS filters automatically
+
 
 -- ---------------------------------------------------------------------------
 -- 6. Partial Index Usage — index only active experiments
@@ -165,6 +170,7 @@ LIMIT 50;
 
 -- Verify with: EXPLAIN (ANALYZE, BUFFERS) SELECT ...
 -- Look for "Index Scan using idx_experiments_status"
+
 
 -- ---------------------------------------------------------------------------
 -- 7. JSONB Queries
@@ -188,6 +194,7 @@ SELECT
 FROM experiments
 WHERE config ? 'database';
 
+
 -- ---------------------------------------------------------------------------
 -- 8. Keyset Pagination (cursor-based) — more efficient than OFFSET
 -- ---------------------------------------------------------------------------
@@ -206,6 +213,7 @@ WHERE status = 'completed'
   AND (created_at, id) < ($1, $2)  -- cursor values from previous page
 ORDER BY created_at DESC, id DESC
 LIMIT 20;
+
 
 -- ---------------------------------------------------------------------------
 -- 9. Aggregate with FILTER — conditional aggregation
@@ -226,6 +234,7 @@ FROM experiments
 WHERE created_at >= now() - INTERVAL '30 days'
 GROUP BY DATE_TRUNC('day', created_at)
 ORDER BY day DESC;
+
 
 -- ---------------------------------------------------------------------------
 -- 10. Advisory Locks — coordinate across connections without table locks

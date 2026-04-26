@@ -34,6 +34,7 @@ export const TOKENS = {
   Config: Symbol.for("Config"),
 } as const;
 
+
 // ---------------------------------------------------------------------------
 // 2. Domain Interfaces (in real code these live in domain/)
 // ---------------------------------------------------------------------------
@@ -61,6 +62,7 @@ export interface AppConfig {
   readonly apiBaseUrl: string;
   readonly timeoutMs: number;
 }
+
 
 // ---------------------------------------------------------------------------
 // 3. Concrete implementations (in real code these live in infrastructure/)
@@ -112,6 +114,7 @@ class PostgresExperimentRepository implements ExperimentRepository {
   }
 }
 
+
 @injectable()
 class ExperimentServiceImpl implements ExperimentService {
   constructor(
@@ -141,6 +144,7 @@ class ExperimentServiceImpl implements ExperimentService {
     return Math.round((passed / all.length) * 100);
   }
 }
+
 
 // ---------------------------------------------------------------------------
 // 4. Container Modules — group related bindings
@@ -174,6 +178,7 @@ export const applicationModule = new ContainerModule(
   },
 );
 
+
 // ---------------------------------------------------------------------------
 // 5. Container factory — compose modules, inject config
 // ---------------------------------------------------------------------------
@@ -186,6 +191,7 @@ export function createContainer(config: AppConfig): Container {
 
   return container;
 }
+
 
 // ---------------------------------------------------------------------------
 // 6. Usage

@@ -279,7 +279,7 @@ const oauthFastifyPlugin: FastifyPluginAsync = async (fastify) => {
 
       // Rotate the refresh token (issue new, invalidate old)
       const newRefreshToken = crypto.randomBytes(32).toString("hex");
-      // TODO: <PROJ>-XXX — persist newRefreshToken in DB, mark old token as used
+      // TODO: CLS-XXX — persist newRefreshToken in DB, mark old token as used
       reply.setCookie(REFRESH_COOKIE_NAME, newRefreshToken, {
         httpOnly: true,
         secure: true,
@@ -299,7 +299,7 @@ const oauthFastifyPlugin: FastifyPluginAsync = async (fastify) => {
   // ─── Logout endpoint ───────────────────────────────────────────────────────
 
   fastify.post("/auth/logout", async (_request: FastifyRequest, reply: FastifyReply) => {
-    // TODO: <PROJ>-XXX — revoke refresh token in DB
+    // TODO: CLS-XXX — revoke refresh token in DB
     reply.clearCookie(REFRESH_COOKIE_NAME, {
       path: "/auth/refresh",
       httpOnly: true,

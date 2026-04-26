@@ -1,12 +1,10 @@
 ---
 description: Architecture design agent. Use before writing any code that touches module boundaries, introduces a new abstraction, adds a dependency, or spans more than two files. Produces a design decision or spec. Does NOT spawn other agents — outputs a handoff message telling the user which agent to invoke next.
 mode: primary
-model: github-copilot/claude-sonnet-4.6
-tools:
-  skill: true
 permission:
   bash: deny
 ---
+
 
 # @architect — System Design Agent
 
@@ -139,7 +137,7 @@ What changes, what is now easier, what is now harder.
 
 ### 5. Score methodology rule
 If the design changes any scoring formula, threshold, or ranking algorithm:
-- Write `<your-docs-dir>/<score-name>-methodology.md` **before** delegating to @coder
+- Write `docs_local/<score-name>-methodology.md` **before** delegating to @coder
 - No exceptions. Implementation must reference the methodology doc.
 
 ### 6. Handoff message

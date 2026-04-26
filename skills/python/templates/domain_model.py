@@ -21,6 +21,7 @@ from datetime import datetime, timezone
 from enum import Enum, auto
 from typing import Protocol
 
+
 # ---------------------------------------------------------------------------
 # Value Objects — immutable, equality by value, no identity
 # ---------------------------------------------------------------------------
@@ -44,6 +45,7 @@ class ExperimentId:
     def __str__(self) -> str:
         return self.value
 
+
 @dataclass(frozen=True, slots=True)
 class BlastRadius:
     """Fraction of the system affected by an experiment (0.0 – 1.0)."""
@@ -62,6 +64,7 @@ class BlastRadius:
     def full(cls) -> BlastRadius:
         return cls(value=1.0)
 
+
 # ---------------------------------------------------------------------------
 # Domain Enumerations
 # ---------------------------------------------------------------------------
@@ -72,6 +75,7 @@ class ExperimentStatus(Enum):
     COMPLETED = auto()
     FAILED = auto()
     ABORTED = auto()
+
 
 # ---------------------------------------------------------------------------
 # Domain Entity — has identity, mutable lifecycle
@@ -136,6 +140,7 @@ class Experiment:
             blast_radius=BlastRadius(value=blast_radius),
         )
 
+
 # ---------------------------------------------------------------------------
 # Domain Events — plain dataclasses, serialisable, no side effects
 # ---------------------------------------------------------------------------
@@ -145,17 +150,21 @@ class DomainEvent:
     experiment_id: ExperimentId
     occurred_at: datetime
 
+
 @dataclass(frozen=True, slots=True)
 class ExperimentStarted(DomainEvent):
     pass
+
 
 @dataclass(frozen=True, slots=True)
 class ExperimentCompleted(DomainEvent):
     success: bool
 
+
 @dataclass(frozen=True, slots=True)
 class ExperimentAborted(DomainEvent):
     pass
+
 
 # ---------------------------------------------------------------------------
 # Repository Protocol — the port; infrastructure provides the adapter
@@ -172,6 +181,7 @@ class ExperimentRepository(Protocol):
 
     @abstractmethod
     def list_by_status(self, status: ExperimentStatus) -> Sequence[Experiment]: ...
+
 
 # ---------------------------------------------------------------------------
 # Domain Service — orchestrates multi-entity logic, no persistence concerns
@@ -202,6 +212,7 @@ def calculate_resilience_score(experiments: Sequence[Experiment]) -> float:
     # Combine raw success rate and weighted score
     final = (success_rate * 0.4 + weighted_score * 0.6) * 100
     return round(final, 2)
+
 
 # ---------------------------------------------------------------------------
 # Application Service — coordinates use case, depends only on domain + ports

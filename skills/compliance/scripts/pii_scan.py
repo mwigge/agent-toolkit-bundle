@@ -31,6 +31,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+
 # ─── PII patterns ─────────────────────────────────────────────────────────────
 
 @dataclass
@@ -40,6 +41,7 @@ class PiiPattern:
     description: str
     # Some patterns need post-processing validation (e.g. Luhn for credit cards)
     validator: "None | callable" = None  # type: ignore[type-arg]
+
 
 def luhn_valid(number_str: str) -> bool:
     """Return True if the digit string passes the Luhn algorithm."""
@@ -55,9 +57,11 @@ def luhn_valid(number_str: str) -> bool:
             total += digit
     return total % 10 == 0
 
+
 def extract_cc_candidate(match: re.Match[str]) -> str:
     """Strip spaces/dashes from a credit card candidate match."""
     return re.sub(r"[\s\-]", "", match.group(0))
+
 
 PII_PATTERNS: list[PiiPattern] = [
     PiiPattern(
@@ -122,6 +126,7 @@ PII_PATTERNS: list[PiiPattern] = [
     ),
 ]
 
+
 # ─── File filtering ───────────────────────────────────────────────────────────
 
 BINARY_EXTENSIONS = {
@@ -136,6 +141,7 @@ DEFAULT_SOURCE_EXTENSIONS = {
     ".md", ".txt", ".html", ".jinja", ".j2", ".sh", ".bash",
 }
 
+
 def should_scan(path: Path, include_extensions: set[str] | None, exclude_dirs: set[str]) -> bool:
     if path.suffix in BINARY_EXTENSIONS:
         return False
@@ -146,6 +152,7 @@ def should_scan(path: Path, include_extensions: set[str] | None, exclude_dirs: s
         return path.suffix in include_extensions
     return path.suffix in DEFAULT_SOURCE_EXTENSIONS
 
+
 # ─── Scanning ─────────────────────────────────────────────────────────────────
 
 @dataclass
@@ -155,6 +162,7 @@ class Finding:
     pattern_name: str
     description: str
     matched_text: str
+
 
 def scan_file(path: Path) -> list[Finding]:
     findings: list[Finding] = []
@@ -181,6 +189,7 @@ def scan_file(path: Path) -> list[Finding]:
                 ))
     return findings
 
+
 def scan_directory(
     root: Path,
     include_extensions: set[str] | None,
@@ -191,6 +200,7 @@ def scan_directory(
         if path.is_file() and should_scan(path, include_extensions, exclude_dirs):
             all_findings.extend(scan_file(path))
     return all_findings
+
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
@@ -263,6 +273,7 @@ def main() -> None:
 
     print(f"\nTotal: {len(findings)} match(es)")
     sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

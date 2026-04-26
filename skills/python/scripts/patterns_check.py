@@ -25,9 +25,11 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+
 DEPRECATED_TYPING = {"Dict", "List", "Optional", "Tuple", "Union", "Set", "FrozenSet", "Type", "Deque"}
 
 MUTABLE_DEFAULTS = {"list", "dict", "set"}
+
 
 @dataclass
 class Issue:
@@ -39,6 +41,7 @@ class Issue:
 
     def __str__(self) -> str:
         return f"{self.path}:{self.line}:{self.col}: [{self.code}] {self.message}"
+
 
 @dataclass
 class Checker(ast.NodeVisitor):
@@ -156,6 +159,7 @@ class Checker(ast.NodeVisitor):
                     f"Public function `{node.name}` — parameter `{arg.arg}` missing type annotation",
                 )
 
+
 def check_file(path: Path) -> list[Issue]:
     try:
         source = path.read_text(encoding="utf-8")
@@ -172,6 +176,7 @@ def check_file(path: Path) -> list[Issue]:
     checker = Checker(path=str(path))
     checker.visit(tree)
     return checker.issues
+
 
 def main() -> int:
     if len(sys.argv) < 2:
@@ -199,6 +204,7 @@ def main() -> int:
 
     print("No issues found.")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

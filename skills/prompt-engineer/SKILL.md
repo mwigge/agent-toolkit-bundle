@@ -232,6 +232,7 @@ Respond with the extracted fields in JSON format.
 ```python
 from dataclasses import dataclass
 
+
 @dataclass
 class PromptTestCase:
     input_text: str
@@ -239,6 +240,7 @@ class PromptTestCase:
     expected_contains: list[str] | None = None  # must contain these strings
     expected_format: str | None = None       # "json", "markdown", etc.
     max_tokens: int | None = None            # output should not exceed this
+
 
 @dataclass
 class EvalResult:
@@ -248,6 +250,7 @@ class EvalResult:
     failure_reason: str | None = None
     latency_ms: float = 0.0
     token_count: int = 0
+
 
 def evaluate_prompt(
     test_cases: list[PromptTestCase],
@@ -459,6 +462,7 @@ class PromptVariant:
     prompt_text: str
     version: str
 
+
 @dataclass
 class ABTestResult:
     variant_a: str
@@ -474,6 +478,7 @@ class ABTestResult:
         if not self.significant:
             return None
         return self.variant_a if self.a_score > self.b_score else self.variant_b
+
 
 def ab_test_prompts(
     variant_a: PromptVariant,

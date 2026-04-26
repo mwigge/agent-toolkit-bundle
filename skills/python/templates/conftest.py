@@ -37,6 +37,7 @@ try:
 except ImportError:
     RESPX_AVAILABLE = False
 
+
 # ---------------------------------------------------------------------------
 # 1. tmp_path-based fixture (built-in, shown for documentation)
 # ---------------------------------------------------------------------------
@@ -47,6 +48,7 @@ def sample_config_file(tmp_path: Any) -> Any:
     config = tmp_path / "experiment.json"
     config.write_text('{"id": "exp-001", "enabled": true}')
     return config
+
 
 # ---------------------------------------------------------------------------
 # 2. monkeypatch — environment variable injection
@@ -59,6 +61,7 @@ def clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CHAOS_ENV", "test")
     monkeypatch.delenv("SENTRY_DSN", raising=False)
 
+
 @pytest.fixture()
 def no_external_calls(monkeypatch: pytest.MonkeyPatch) -> None:
     """Block all socket connections to prevent accidental external calls."""
@@ -68,6 +71,7 @@ def no_external_calls(monkeypatch: pytest.MonkeyPatch) -> None:
         raise RuntimeError("External network calls are not allowed in unit tests")
 
     monkeypatch.setattr(socket, "socket", _block)
+
 
 # ---------------------------------------------------------------------------
 # 3. HTTPX mock via respx (falls back to MagicMock if respx not installed)
@@ -90,6 +94,7 @@ def mock_http() -> Generator[Any, None, None]:
         client.post.return_value = MagicMock(status_code=201, json=lambda: {"id": "exp-002"})
         yield client
 
+
 # ---------------------------------------------------------------------------
 # 4. Async fixtures (requires pytest-asyncio)
 # ---------------------------------------------------------------------------
@@ -107,12 +112,14 @@ async def async_db_session() -> AsyncGenerator[Any, None]:
     finally:
         await session.close()
 
+
 @pytest.fixture()
 def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     """Provide a fresh event loop per test (pytest-asyncio mode=strict)."""
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()
+
 
 # ---------------------------------------------------------------------------
 # 5. factory_boy factory (conditional on installation)
@@ -152,6 +159,7 @@ else:
             base.update(kwargs)
             return base
         return _factory
+
 
 # ---------------------------------------------------------------------------
 # 6. Parametrize IDs helper — used via indirect parametrize

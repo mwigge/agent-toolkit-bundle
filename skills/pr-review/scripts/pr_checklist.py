@@ -25,6 +25,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
+
 # ─── Pattern definitions ───────────────────────────────────────────────────────
 
 SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -58,6 +59,7 @@ TEST_FILE_PATTERNS = [
     re.compile(r'spec/'),
 ]
 
+
 # ─── Data model ────────────────────────────────────────────────────────────────
 
 @dataclass
@@ -68,6 +70,7 @@ class Issue:
     line_content: str
     description: str
     blocking: bool = True
+
 
 @dataclass
 class ReviewReport:
@@ -84,6 +87,7 @@ class ReviewReport:
     def nonblocking_count(self) -> int:
         return sum(1 for i in self.issues if not i.blocking)
 
+
 # ─── Diff parsing ──────────────────────────────────────────────────────────────
 
 @dataclass
@@ -91,6 +95,7 @@ class DiffLine:
     filepath: str
     line_number: int   # line number in the new file (+ lines only)
     content: str       # the raw diff line (including the leading +)
+
 
 def parse_diff(text: str) -> tuple[list[DiffLine], set[str]]:
     """
@@ -134,10 +139,12 @@ def parse_diff(text: str) -> tuple[list[DiffLine], set[str]]:
 
     return lines, changed_files
 
+
 # ─── Checks ────────────────────────────────────────────────────────────────────
 
 def is_test_file(filepath: str) -> bool:
     return any(p.search(filepath) for p in TEST_FILE_PATTERNS)
+
 
 def check_secrets(diff_lines: list[DiffLine], report: ReviewReport) -> None:
     for dl in diff_lines:
@@ -152,6 +159,7 @@ def check_secrets(diff_lines: list[DiffLine], report: ReviewReport) -> None:
                     description=f"Possible hardcoded secret — {name}. Use environment variables.",
                     blocking=True,
                 ))
+
 
 def check_print_statements(diff_lines: list[DiffLine], report: ReviewReport) -> None:
     for dl in diff_lines:
@@ -168,6 +176,7 @@ def check_print_statements(diff_lines: list[DiffLine], report: ReviewReport) -> 
                 blocking=True,
             ))
 
+
 def check_todos(diff_lines: list[DiffLine], report: ReviewReport) -> None:
     for dl in diff_lines:
         code = dl.content[1:]
@@ -179,10 +188,11 @@ def check_todos(diff_lines: list[DiffLine], report: ReviewReport) -> None:
                 line_content=code.strip(),
                 description=(
                     "TODO/FIXME without a Jira ticket reference. "
-                    "Add a ticket: # TODO: <PROJ>-123 — description"
+                    "Add a ticket: # TODO: CLS-123 — description"
                 ),
                 blocking=False,
             ))
+
 
 def check_test_coverage(changed_files: set[str], report: ReviewReport) -> None:
     """
@@ -213,6 +223,7 @@ def check_test_coverage(changed_files: set[str], report: ReviewReport) -> None:
                 blocking=False,
             ))
 
+
 # ─── Rendering ────────────────────────────────────────────────────────────────
 
 CATEGORY_LABEL = {
@@ -221,6 +232,7 @@ CATEGORY_LABEL = {
     "TODO":     "nit — TODO WITHOUT TICKET",
     "COVERAGE": "nit — UNTESTED FILE",
 }
+
 
 def render_report(report: ReviewReport) -> str:
     if not report.issues:
@@ -247,6 +259,7 @@ def render_report(report: ReviewReport) -> str:
             lines.append("")
 
     return "\n".join(lines)
+
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
@@ -292,6 +305,7 @@ def main() -> None:
 
     print(render_report(report))
     sys.exit(1 if report.blocking_count > 0 else 0)
+
 
 if __name__ == "__main__":
     main()

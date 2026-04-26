@@ -89,6 +89,7 @@ def plot_success_rate_over_time(
     plt.close(fig)
     logger.info("chart_saved", extra={"path": str(output_path)})
 
+
 # ---------------------------------------------------------------------------
 # 2. Heatmap (seaborn)
 # ---------------------------------------------------------------------------
@@ -145,6 +146,7 @@ def plot_failure_heatmap(
     fig.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     logger.info("chart_saved", extra={"path": str(output_path)})
+
 
 # ---------------------------------------------------------------------------
 # 3. Interactive Scatter (plotly)
@@ -231,6 +233,7 @@ def plot_resilience_scatter(
 
     fig.write_html(str(output_path), include_plotlyjs="cdn")
     logger.info("chart_saved", extra={"path": str(output_path)})
+
 
 # ---------------------------------------------------------------------------
 # Demo entry point

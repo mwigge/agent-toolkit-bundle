@@ -31,6 +31,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+
 @dataclass
 class Issue:
     path: str
@@ -42,6 +43,7 @@ class Issue:
     def __str__(self) -> str:
         return f"[{self.severity}] {self.path}:{self.line}: [{self.code}] {self.message}"
 
+
 # ---------------------------------------------------------------------------
 # SQL File Checks
 # ---------------------------------------------------------------------------
@@ -50,6 +52,7 @@ _SELECT_STAR = re.compile(r"\bSELECT\s+\*", re.IGNORECASE)
 _UPDATE_NO_WHERE = re.compile(r"\bUPDATE\b(?:(?!\bWHERE\b).)*;", re.IGNORECASE | re.DOTALL)
 _DELETE_NO_WHERE = re.compile(r"\bDELETE\b(?:(?!\bWHERE\b).)*;", re.IGNORECASE | re.DOTALL)
 _SELECT_WITHOUT_LIMIT = re.compile(r"\bSELECT\b(?:(?!\bLIMIT\b).)*;", re.IGNORECASE | re.DOTALL)
+
 
 def check_sql_file(path: Path) -> list[Issue]:
     try:
@@ -115,6 +118,7 @@ def check_sql_file(path: Path) -> list[Issue]:
 
     return issues
 
+
 # ---------------------------------------------------------------------------
 # Python File Checks — SQL injection patterns
 # ---------------------------------------------------------------------------
@@ -168,6 +172,7 @@ class SqlInjectionVisitor(ast.NodeVisitor):
             self._check_execute_call(node)
         self.generic_visit(node)
 
+
 def check_python_file(path: Path) -> list[Issue]:
     try:
         source = path.read_text(encoding="utf-8")
@@ -185,6 +190,7 @@ def check_python_file(path: Path) -> list[Issue]:
     visitor = SqlInjectionVisitor(path=str(path))
     visitor.visit(tree)
     return visitor.issues
+
 
 # ---------------------------------------------------------------------------
 # Main
@@ -223,6 +229,7 @@ def main() -> int:
 
     print("No SQL issues found.")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

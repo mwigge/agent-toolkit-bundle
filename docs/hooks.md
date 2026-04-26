@@ -52,8 +52,9 @@ Hooks within the same event fire **in order** (array order in `settings.json`). 
 
 ```
 PreToolUse on Bash|Edit|Write:
-  1. no-ai-attribution.sh (5s timeout)  -- blocks AI mentions in commits
-  2. security-guard.sh   (10s timeout)  -- blocks destructive commands
+  1. mode-guard.sh      (5s timeout)    -- company/private path guard
+  2. no-ai-attribution.sh (5s timeout)  -- blocks AI mentions in commits
+  3. security-guard.sh   (10s timeout)  -- blocks destructive commands
 
 PreToolUse on all tools:
   4. observe.sh          (async)        -- audit trail, never blocks
@@ -77,6 +78,18 @@ Stop:
 ---
 
 ## Hook Reference
+
+### mode-guard.sh (PreToolUse, blocking)
+
+**Event**: PreToolUse on Bash, Edit, Write
+**Timeout**: 5 seconds
+**Purpose**: Company/private path separation circuit breaker.
+
+Reads `~/.claude/mode`, checks the target path against company and private regex patterns. Blocks with exit 2 if the path belongs to the wrong mode.
+
+See [circuit-breaker.md](circuit-breaker.md) for full details.
+
+---
 
 ### no-ai-attribution.sh (PreToolUse, blocking)
 
@@ -153,7 +166,7 @@ Emits additionalContext (not a block) for:
 **Timeout**: 15 seconds (async, non-blocking)
 **Purpose**: Keep the CodeGraph knowledge graph in sync with staged changes.
 
-Detects `git add` commands in Bash tool calls. When found, runs `codegraph sync` to incrementally update the code index (only changed files, typically under 2 seconds). Requires `codegraph` to be installed (`npm install -g codegraph`) and the repo to be initialized (`codegraph init`).
+Detects `git add` commands in Bash tool calls. When found, runs `codegraph sync` to incrementally update the code index (only changed files, typically under 2 seconds). Requires `codegraph` to be installed and the repo to be initialized (`codegraph init`).
 
 Fails silently — sync is never a blocker. Skips if `codegraph` is not on PATH or if the repo has no `.codegraph/` directory.
 
@@ -191,11 +204,11 @@ Also emits an `additionalContext` one-liner to stdout so the model is aware of i
 token and cost profile for the session.
 
 Has an infinite-loop guard: skips silently if `stop_hook_active` is `true`.
-Skips silently if the log file does not exist yet (first response block) or if Python / the
+Skips silently if the log file does not exist yet (first response block) or if Python/the
 report script is unavailable.
 
 **Depends on**:
-- `tools/model-report.py` (installed to `~/.config/opencode/scripts/model-report.py`)
+- `~/.config/opencode/scripts/model-report.py` (aggregation script)
 - `.claude/logs/model-usage.ndjson` (written by `model-usage.ts` plugin in OpenCode)
 
 See [model-tier.md](model-tier.md) for full routing and instrumentation details.
@@ -247,7 +260,7 @@ Writes one NDJSON line to `.claude/logs/events.ndjson` per event:
 | **RED** | `rm -rf /`, `git push --force main`, `DROP TABLE`, writing `.env` | Deny with explanation |
 | **Unmatched** | SSH to remote, production docker-compose, unknown egress | Escalate to human |
 
-The tier rules are defined inline at the top of the script — edit them there to adjust policy. There is no external policy file.
+See [permission-policy.md](../permission-policy.md) for the full policy definition.
 
 ---
 
@@ -258,6 +271,26 @@ The tier rules are defined inline at the top of the script — edit them there t
 **Purpose**: Saves conversation transcript before context compaction.
 
 Writes to `.claude/backups/transcript-<session_id>-<timestamp>.jsonl`. Keeps only the 10 most recent backups.
+
+---
+
+### mempalace-wake-up.sh (SessionStart, blocking)
+
+**Event**: SessionStart
+**Timeout**: 10 seconds
+**Purpose**: Injects MemPalace L0+L1 context at session start.
+
+Detects active OpenSpec changes from memory.md and recently modified directories, maps change names to domain wings using keyword matching, then calls `mempalace wake-up --wing <primary_wing>` to load top-scored drawers.
+
+---
+
+### mempalace-ingest.sh (PreCompact, async)
+
+**Event**: PreCompact
+**Timeout**: 30 seconds (async)
+**Purpose**: Mines recently modified OpenSpec artifacts into MemPalace before context compaction.
+
+Scans `openspec/changes/` for directories modified in the last 7 days, mines `proposal.md`, `design.md`, `delivery.md`, and `tasks.md` (if under 150 lines). Also mines `memory.md`.
 
 ---
 
@@ -282,8 +315,8 @@ Hooks are wired in `.claude/settings.json` under the `hooks` key. Each event map
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/hooks/security-guard.sh",
-            "timeout": 10
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/mode-guard.sh",
+            "timeout": 5
           }
         ]
       }
@@ -303,7 +336,7 @@ Hooks are wired in `.claude/settings.json` under the `hooks` key. Each event map
 
 ## Adding a New Hook
 
-1. Create the script in `agent-toolkit-bundle/.claude/hooks/my-hook.sh`
+1. Create the script in `ai_local/.claude/hooks/my-hook.sh`
 2. Make it executable: `chmod +x .claude/hooks/my-hook.sh`
 3. Add the wiring to `settings.json` under the appropriate event
 4. Test: `echo '{"tool_name":"Bash","tool_input":{"command":"echo test"}}' | .claude/hooks/my-hook.sh`
@@ -329,8 +362,8 @@ exit 0  # allow
 ## OpenCode Plugin System
 
 OpenCode replaces the shell hook system with a TypeScript plugin API.
-Plugins live in `plugins/*.ts` in this bundle and install to `~/.config/opencode/plugin/`.
-See [plugins.md](plugins.md) for the OpenCode-specific plugin authoring guide.
+Plugins live in `ai_local/opencode/plugins/` — symlinked to `~/.config/opencode/plugins/`.
+Edit files in `ai_local/opencode/plugins/`; the change is live immediately via symlink.
 
 ### Plugin events vs Claude Code hooks
 
@@ -349,25 +382,46 @@ See [plugins.md](plugins.md) for the OpenCode-specific plugin authoring guide.
 
 ```
 tool.execute.before:
-  1. session-init.ts        once per process — dirs, audit.log
-  2. no-ai-attribution.ts   blocks AI attribution in commits/PRs
-  3. security-guard.ts      destructive commands, protected files, secret detection
-  4. observe.ts             NDJSON audit event (risk 0-3)
+  1. session-init.ts     once per process — dirs, audit.log, wake-up hint
+  2. mode-guard.ts       company/private path guard
+  3. no-ai-attribution.ts  blocks AI attribution in commits/PRs
+  4. security-guard.ts   destructive commands, protected files, secret detection
+  5. observe.ts          NDJSON audit event (risk 0-3)
 
 tool.execute.after:
-  1. format-on-save.ts      ruff/black/prettier/sqlfluff
-  2. inline-quality.ts      advisory quality hints (console.warn to model)
-  3. codegraph-sync.ts      codegraph sync on git add (non-blocking)
-  4. quality-gate.ts        blocking checks: print(), bare except, tsc, ESLint
-  5. observe.ts             NDJSON audit event
+  1. format-on-save.ts   ruff/black/prettier/sqlfluff
+  2. inline-quality.ts   advisory quality hints (console.warn to model)
+  3. codegraph-sync.ts   codegraph sync on git add (non-blocking)
+  4. quality-gate.ts     blocking checks: print(), bare except, tsc, ESLint
+  5. observe.ts          NDJSON audit event
 
 event (model-usage.ts):
-  1. model-usage.ts         record per-message tier/token/cost; flush session summary
+  1. model-usage.ts      record per-message tier/token/cost; flush session summary
+
+experimental.session.compacting:
+  1. mempalace-ingest.ts  mine OpenSpec artifacts into MemPalace
+  2. observe.ts           backup transcript payload to .claude/backups/
 ```
 
 ### opencode.json plugin registration
 
-OpenCode auto-loads any `.ts` file in `~/.config/opencode/plugin/` on startup. There is no manual registration required — placing a plugin file in that directory is enough. Restart OpenCode after installing a new plugin so the runtime picks it up.
+```json
+{
+  "plugin": [
+    "~/.config/opencode/plugins/session-init.ts",
+    "~/.config/opencode/plugins/mode-guard.ts",
+    "~/.config/opencode/plugins/no-ai-attribution.ts",
+    "~/.config/opencode/plugins/security-guard.ts",
+    "~/.config/opencode/plugins/format-on-save.ts",
+    "~/.config/opencode/plugins/inline-quality.ts",
+    "~/.config/opencode/plugins/codegraph-sync.ts",
+    "~/.config/opencode/plugins/quality-gate.ts",
+    "~/.config/opencode/plugins/observe.ts",
+    "~/.config/opencode/plugins/mempalace-ingest.ts",
+    "~/.config/opencode/plugins/model-usage.ts"
+  ]
+}
+```
 
 ### Plugin template (TypeScript)
 
@@ -400,16 +454,13 @@ export const MyPlugin: Plugin = async () => {
 
 ### How to add a new plugin
 
-1. Create a new `.ts` file under `plugins/` in this bundle.
-2. Export a `Plugin` (default or named export).
-3. Install: copy to `~/.config/opencode/plugin/` (or re-run `install.sh --profile opencode`).
-4. Restart OpenCode.
+1. Create `ai_local/opencode/plugins/my-plugin.ts` (canonical location — symlinked to `~/.config/opencode/plugins/`)
+2. Export a `Plugin` (named export, any name)
+3. Register the path in `ai_local/opencode/opencode.json` under `"plugin"`
+4. Restart OpenCode
 
-The plugin SDK is in `@opencode-ai/plugin`. Import with:
-
-```typescript
-import type { Plugin } from "@opencode-ai/plugin";
-```
+The plugin SDK is in `~/.config/opencode/node_modules/@opencode-ai/plugin`.
+Type: `import type { Plugin } from "@opencode-ai/plugin"`
 
 ### Key behavioural differences from Claude Code hooks
 

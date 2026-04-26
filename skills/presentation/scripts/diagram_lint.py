@@ -14,6 +14,7 @@ import sys
 import re
 from pathlib import Path
 
+
 DIRECTION_KEYWORDS = {"LR", "RL", "TB", "TD", "BT"}
 
 DIAGRAM_TYPES_REQUIRING_DIRECTION = {
@@ -34,6 +35,7 @@ def _has_unterminated_string(line: str) -> bool:
 TITLE_RE = re.compile(r"^\s*title\s+\S", re.MULTILINE)
 INIT_TITLE_RE = re.compile(r'"title"\s*:\s*"[^"]+"')
 
+
 def load_file(path: str) -> list[str]:
     p = Path(path)
     if not p.exists():
@@ -43,6 +45,7 @@ def load_file(path: str) -> list[str]:
         print(f"WARNING: expected .mmd extension, got {p.suffix}", file=sys.stderr)
     return p.read_text(encoding="utf-8").splitlines()
 
+
 def check_title(lines: list[str]) -> list[str]:
     """Return error messages if no title directive is found."""
     full_text = "\n".join(lines)
@@ -51,6 +54,7 @@ def check_title(lines: list[str]) -> list[str]:
     if INIT_TITLE_RE.search(full_text):
         return []
     return ["MISSING TITLE: add `title Your Diagram Title` after the diagram type declaration"]
+
 
 def detect_diagram_type(lines: list[str]) -> str | None:
     """Return the primary diagram type keyword from the first non-comment line."""
@@ -64,6 +68,7 @@ def detect_diagram_type(lines: list[str]) -> str | None:
         token = stripped.split()[0].lower()
         return token
     return None
+
 
 def check_direction(lines: list[str]) -> list[str]:
     """Return error messages if a graph/flowchart has no direction keyword."""
@@ -85,6 +90,7 @@ def check_direction(lines: list[str]) -> list[str]:
         f"Example: `{diagram_type} LR`"
     ]
 
+
 def check_unterminated_strings(lines: list[str]) -> list[str]:
     """Return error messages for lines that appear to have unterminated quoted strings."""
     errors: list[str] = []
@@ -96,6 +102,7 @@ def check_unterminated_strings(lines: list[str]) -> list[str]:
                 f"UNTERMINATED STRING at line {lineno}: {line.strip()!r}"
             )
     return errors
+
 
 def check_empty_node_labels(lines: list[str]) -> list[str]:
     """Warn about nodes defined with empty labels like A[] or A()."""
@@ -111,6 +118,7 @@ def check_empty_node_labels(lines: list[str]) -> list[str]:
                 "every node should have a meaningful label"
             )
     return errors
+
 
 def main() -> None:
     if len(sys.argv) < 2:
@@ -134,6 +142,7 @@ def main() -> None:
     else:
         print(f"PASS — {path}")
         sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

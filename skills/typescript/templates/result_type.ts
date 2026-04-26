@@ -18,6 +18,7 @@ export type Ok<T> = { readonly ok: true; readonly value: T };
 export type Err<E> = { readonly ok: false; readonly error: E };
 export type Result<T, E> = Ok<T> | Err<E>;
 
+
 // ---------------------------------------------------------------------------
 // 2. Constructors
 // ---------------------------------------------------------------------------
@@ -30,6 +31,7 @@ export function err<E>(error: E): Err<E> {
   return { ok: false, error };
 }
 
+
 // ---------------------------------------------------------------------------
 // 3. Type Guards
 // ---------------------------------------------------------------------------
@@ -41,6 +43,7 @@ export function isOk<T, E>(result: Result<T, E>): result is Ok<T> {
 export function isErr<T, E>(result: Result<T, E>): result is Err<E> {
   return !result.ok;
 }
+
 
 // ---------------------------------------------------------------------------
 // 4. Transformations
@@ -86,6 +89,7 @@ export function getOrThrow<T, E>(result: Result<T, E>): T {
   throw new Error(String(error));
 }
 
+
 // ---------------------------------------------------------------------------
 // 5. Constructors from throwing code
 // ---------------------------------------------------------------------------
@@ -111,6 +115,7 @@ export async function fromPromise<T, E = Error>(
     return err(mapErr ? mapErr(e) : (e as E));
   }
 }
+
 
 // ---------------------------------------------------------------------------
 // 6. Combining Results
@@ -141,6 +146,7 @@ export function collectAll<T, E>(results: Result<T, E>[]): Result<T[], E[]> {
   return errors.length > 0 ? err(errors) : ok(values);
 }
 
+
 // ---------------------------------------------------------------------------
 // 7. Domain Error types — use with Result
 // ---------------------------------------------------------------------------
@@ -150,6 +156,7 @@ export type DomainError =
   | { readonly code: "VALIDATION_ERROR"; readonly field: string; readonly message: string }
   | { readonly code: "CONFLICT"; readonly message: string }
   | { readonly code: "INTERNAL_ERROR"; readonly cause: unknown };
+
 
 // ---------------------------------------------------------------------------
 // 8. Example usage

@@ -24,6 +24,7 @@ import math
 import sys
 from pathlib import Path
 
+
 # ---------------------------------------------------------------------------
 # Statistics (stdlib only — no numpy/scipy)
 # ---------------------------------------------------------------------------
@@ -31,12 +32,15 @@ from pathlib import Path
 def mean(data: list[float]) -> float:
     return sum(data) / len(data)
 
+
 def variance(data: list[float]) -> float:
     m = mean(data)
     return sum((x - m) ** 2 for x in data) / (len(data) - 1)
 
+
 def std(data: list[float]) -> float:
     return math.sqrt(variance(data))
+
 
 def median(data: list[float]) -> float:
     s = sorted(data)
@@ -44,6 +48,7 @@ def median(data: list[float]) -> float:
     if n % 2 == 1:
         return s[n // 2]
     return (s[n // 2 - 1] + s[n // 2]) / 2.0
+
 
 def percentile(data: list[float], p: float) -> float:
     """Linear interpolation percentile."""
@@ -57,6 +62,7 @@ def percentile(data: list[float], p: float) -> float:
     frac = idx - lo
     return s[lo] + frac * (s[hi] - s[lo])
 
+
 def iqr_outliers(data: list[float], multiplier: float = 1.5) -> tuple[list[float], float, float]:
     q1 = percentile(data, 25)
     q3 = percentile(data, 75)
@@ -65,6 +71,7 @@ def iqr_outliers(data: list[float], multiplier: float = 1.5) -> tuple[list[float
     upper = q3 + multiplier * iqr
     outliers = [x for x in data if x < lower or x > upper]
     return outliers, lower, upper
+
 
 def shapiro_wilk_w(data: list[float]) -> float:
     """
@@ -91,6 +98,7 @@ def shapiro_wilk_w(data: list[float]) -> float:
     w_num = sum(a_approx) ** 2
     w = min(1.0, w_num / ss * (n - 1)) if ss > 0 else 1.0
     return round(w, 4)
+
 
 def normality_test(data: list[float]) -> tuple[str, float, float, str]:
     """
@@ -125,6 +133,7 @@ def normality_test(data: list[float]) -> tuple[str, float, float, str]:
 
     return test_name, round(stat, 4), round(p, 4), interpretation
 
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -158,6 +167,7 @@ def load_column(path: Path, column: str) -> list[float]:
         print(f"  (Skipped {skipped} non-numeric or missing values)", file=sys.stderr)
 
     return values
+
 
 def main() -> int:
     if len(sys.argv) < 3:
@@ -230,6 +240,7 @@ def main() -> int:
 
     print()
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

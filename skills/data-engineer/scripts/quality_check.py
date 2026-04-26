@@ -26,11 +26,13 @@ import re
 from pathlib import Path
 from typing import NamedTuple
 
+
 class CheckResult(NamedTuple):
     name: str
     passed: bool
     severity: str  # "required" | "recommended" | "optional"
     detail: str
+
 
 def find_yaml_files(directory: Path, pattern: str) -> list[Path]:
     """Recursively find YAML files matching a name pattern."""
@@ -39,6 +41,7 @@ def find_yaml_files(directory: Path, pattern: str) -> list[Path]:
         matches.extend(directory.rglob(ext))
     return [f for f in matches if re.search(pattern, f.name, re.IGNORECASE)]
 
+
 def check_file_contains(filepath: Path, pattern: str) -> bool:
     """Return True if the file contains the given regex pattern."""
     try:
@@ -46,6 +49,7 @@ def check_file_contains(filepath: Path, pattern: str) -> bool:
         return bool(re.search(pattern, content))
     except (OSError, UnicodeDecodeError):
         return False
+
 
 def count_schema_tests(schema_files: list[Path]) -> dict[str, int]:
     """Count occurrences of each built-in dbt test across schema files."""
@@ -63,6 +67,7 @@ def count_schema_tests(schema_files: list[Path]) -> dict[str, int]:
         for test in counts:
             counts[test] += len(re.findall(rf"\b{test}\b", content))
     return counts
+
 
 def run_checks(project_dir: Path) -> list[CheckResult]:
     results: list[CheckResult] = []
@@ -236,6 +241,7 @@ def run_checks(project_dir: Path) -> list[CheckResult]:
 
     return results
 
+
 def print_report(results: list[CheckResult], project_dir: Path) -> int:
     """Print the compliance report. Returns exit code (0=pass, 1=fail)."""
     required_failures = [r for r in results if not r.passed and r.severity == "required"]
@@ -294,6 +300,7 @@ def print_report(results: list[CheckResult], project_dir: Path) -> int:
 
     return 1 if required_failures else 0
 
+
 def main() -> int:
     project_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.cwd()
 
@@ -307,6 +314,7 @@ def main() -> int:
 
     results = run_checks(project_dir)
     return print_report(results, project_dir)
+
 
 if __name__ == "__main__":
     sys.exit(main())

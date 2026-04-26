@@ -104,6 +104,7 @@ def process_experiment(experiment: dict) -> dict:
     score = _calculate_score(experiment)
     return {"name": experiment["name"], "score": score}
 
+
 def _validate_experiment(experiment: dict) -> None:
     if not experiment.get("name"):
         raise ValueError("Missing name")
@@ -111,6 +112,7 @@ def _validate_experiment(experiment: dict) -> None:
         raise ValueError("Missing target")
     if experiment.get("duration", 0) > 3600:
         raise ValueError("Duration too long")
+
 
 def _calculate_score(experiment: dict) -> float:
     base_score = experiment["probes_passed"] / experiment["probes_total"]
@@ -137,27 +139,33 @@ After:
 ```python
 from abc import ABC, abstractmethod
 
+
 class FaultStrategy(ABC):
     @abstractmethod
     def blast_radius(self, target: dict) -> str: ...
+
 
 class LatencyFault(FaultStrategy):
     def blast_radius(self, target: dict) -> str:
         return f"Service {target['name']} and upstream callers"
 
+
 class KillFault(FaultStrategy):
     def blast_radius(self, target: dict) -> str:
         return f"Instance {target['instance_id']} only"
 
+
 class NetworkPartitionFault(FaultStrategy):
     def blast_radius(self, target: dict) -> str:
         return f"Zone {target['zone']} isolated from cluster"
+
 
 STRATEGIES: dict[str, FaultStrategy] = {
     "latency": LatencyFault(),
     "kill": KillFault(),
     "network_partition": NetworkPartitionFault(),
 }
+
 
 def calculate_blast_radius(fault_type: str, target: dict) -> str:
     strategy = STRATEGIES.get(fault_type)
@@ -186,6 +194,7 @@ After:
 ```python
 from dataclasses import dataclass
 
+
 @dataclass(frozen=True)
 class ExperimentConfig:
     name: str
@@ -195,6 +204,7 @@ class ExperimentConfig:
     delay_ms: int = 0
     scope: str = "service"
     abort_threshold: float = 0.05
+
 
 def create_experiment(config: ExperimentConfig) -> dict:
     ...
@@ -209,6 +219,7 @@ class BaseProbe:
     def format_output(self) -> str: ...
     def send_notification(self) -> None: ...  # not all probes need this
 
+
 class HttpProbe(BaseProbe):
     def execute(self) -> ProbeResult: ...
     def send_notification(self) -> None:
@@ -219,17 +230,22 @@ After:
 ```python
 from typing import Protocol
 
+
 class Probe(Protocol):
     def execute(self) -> ProbeResult: ...
+
 
 class Notifier(Protocol):
     def notify(self, result: ProbeResult) -> None: ...
 
+
 class HttpProbe:
     def execute(self) -> ProbeResult: ...
 
+
 class SlackNotifier:
     def notify(self, result: ProbeResult) -> None: ...
+
 
 # Compose at the call site
 def run_probe_with_notification(probe: Probe, notifier: Notifier | None = None) -> ProbeResult:
@@ -266,20 +282,24 @@ For replacing a dependency or subsystem:
 ```python
 from typing import Protocol
 
+
 # Step 1: Create abstraction
 class ExperimentRepository(Protocol):
     async def get(self, experiment_id: str) -> dict: ...
     async def save(self, experiment: dict) -> str: ...
+
 
 # Step 2: Wrap existing implementation
 class LegacySqlRepository:
     async def get(self, experiment_id: str) -> dict: ...
     async def save(self, experiment: dict) -> str: ...
 
+
 # Step 3: New implementation
 class AsyncPgRepository:
     async def get(self, experiment_id: str) -> dict: ...
     async def save(self, experiment: dict) -> str: ...
+
 
 # Step 4: Switch via configuration
 def get_repository(use_new: bool = False) -> ExperimentRepository:
@@ -306,8 +326,8 @@ def get_repository(use_new: bool = False) -> ExperimentRepository:
 ```python
 # Use TODO comments with a ticket reference — never bare TODOs
 # Good:
-# TODO(<PROJ>-123): replace raw SQL with repository pattern
-# TODO(<PROJ>-123): extract this into a shared utility
+# TODO(CLS-42): replace raw SQL with repository pattern
+# TODO(CLS-99): extract this into a shared utility
 
 # Bad:
 # TODO: fix this later

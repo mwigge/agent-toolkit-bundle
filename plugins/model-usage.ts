@@ -1,6 +1,6 @@
 import type { Plugin } from "@opencode-ai/plugin"
 import type { Event } from "@opencode-ai/sdk"
-import { appendFileSync, mkdirSync } from "fs"
+import { appendFileSync, mkdirSync, readFileSync } from "fs"
 import { join } from "path"
 import { execFile } from "child_process"
 import { homedir } from "os"
@@ -97,7 +97,19 @@ interface SessionAccumulator {
 }
 
 const sessions = new Map<string, SessionAccumulator>()
+const costWarningFired = new Set<string>()
 const SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1_000 // 24 hours
+
+function readCostCeiling(cwd: string): number {
+  try {
+    const settingsPath = join(cwd, ".claude", "settings.local.json")
+    const settings = JSON.parse(readFileSync(settingsPath, "utf8"))
+    const val = settings?.costCeilingUsd
+    return typeof val === "number" && val > 0 ? val : 5.0
+  } catch {
+    return 5.0
+  }
+}
 
 function getOrCreate(sessionID: string): SessionAccumulator {
   const existing = sessions.get(sessionID)
@@ -243,10 +255,31 @@ export const ModelUsagePlugin: Plugin = async () => {
           appendFileSync(join(logDir(cwd), "model-usage.ndjson"), JSON.stringify(usageEntry) + "\n")
         } catch { /* ignore */ }
 
-        accumulate(getOrCreate(sessionID), tier, {
+        const acc = getOrCreate(sessionID)
+        accumulate(acc, tier, {
           input: rawTok.input, output: rawTok.output,
           reasoning: rawTok.reasoning, cache_read: rawTok.cache.read,
         }, cost_usd)
+
+        // Cost ceiling advisory warning
+        const totalCost = Object.values(acc.by_tier).reduce((s, b) => s + b.cost_usd, 0)
+        const ceiling = readCostCeiling(cwd)
+        if (ceiling > 0 && totalCost > ceiling && !costWarningFired.has(sessionID)) {
+          costWarningFired.add(sessionID)
+          try {
+            appendFileSync(
+              join(logDir(cwd), "model-usage.ndjson"),
+              JSON.stringify({
+                ts: new Date().toISOString(),
+                event: "cost-warning",
+                session: sessionID,
+                total_cost_usd: totalCost,
+                ceiling_usd: ceiling,
+                message: `Session cost $${totalCost.toFixed(2)} exceeds ceiling $${ceiling.toFixed(2)}`,
+              }) + "\n",
+            )
+          } catch { /* ignore */ }
+        }
       }
 
       // ── Session idle / closed / ended → flush summary ─────────────────────

@@ -1,8 +1,3 @@
----
-name: pr-review
-description: Four-lens PR/MR review discipline: correctness, security, maintainability, and test rigour. Use when reviewing pull or merge requests.
----
-
 # Skill: PR / MR Review
 
 ## The Four Reviewer Lenses
@@ -99,7 +94,7 @@ Will the next engineer (including future you) understand and safely modify this 
 - Test names must describe the scenario: `test_payment_fails_when_card_is_expired` not `test_payment_2`
 
 **Technical debt**:
-- TODOs must reference a Jira ticket: `# TODO: <PROJ>-123 — handle retry exhaustion`
+- TODOs must reference a Jira ticket: `# TODO: CLS-123 — handle retry exhaustion`
 - No magic numbers or strings — use named constants
 - No code commented out and committed
 
@@ -190,7 +185,7 @@ Before clicking Approve:
 
 A high-quality MR description contains:
 
-1. **Jira ticket reference**: `Closes <PROJ>-123`
+1. **Jira ticket reference**: `Closes CLS-123`
 2. **What changed**: a clear, factual description (not the commit message repeated)
 3. **Why it changed**: link to the problem, user need, or technical motivation
 4. **Test plan**: how was this verified? (unit tests, integration tests, manual testing steps)

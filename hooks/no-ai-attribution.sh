@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: Apache-2.0
-#
-# no-ai-attribution.sh — PreToolUse gate.
-# Blocks git commits and PRs containing AI attribution.
+# .claude/hooks/no-ai-attribution.sh
+# PreToolUse gate — blocks git commits and PRs containing AI attribution.
 # Only checks Bash commands that produce git commits or GitHub PRs.
 # Does NOT block file edits (docs need to mention patterns as examples).
 # Exit 2 = block. Exit 0 = allow.

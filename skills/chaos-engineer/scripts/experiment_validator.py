@@ -25,6 +25,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+
 @dataclass
 class ValidationError:
     file: str
@@ -33,6 +34,7 @@ class ValidationError:
 
     def __str__(self) -> str:
         return f"  [FAIL] {self.file}: {self.field} — {self.message}"
+
 
 def validate_experiment(data: dict, file_path: str) -> list[ValidationError]:
     errors: list[ValidationError] = []
@@ -90,6 +92,7 @@ def validate_experiment(data: dict, file_path: str) -> list[ValidationError]:
 
     return errors
 
+
 def validate_file(path: Path) -> list[ValidationError]:
     try:
         content = path.read_text(encoding="utf-8")
@@ -105,6 +108,7 @@ def validate_file(path: Path) -> list[ValidationError]:
         return [ValidationError(str(path), "root", "expected a JSON object at root")]
 
     return validate_experiment(data, str(path))
+
 
 def main() -> int:
     if len(sys.argv) < 2:
@@ -140,6 +144,7 @@ def main() -> int:
 
     print("All experiments are valid.")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

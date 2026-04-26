@@ -16,6 +16,7 @@ import sys
 import time
 from dataclasses import dataclass
 
+
 @dataclass
 class TestCase:
     name: str
@@ -24,6 +25,7 @@ class TestCase:
     expected_format: str | None = None  # "json", "markdown"
     max_output_tokens: int = 1024
 
+
 @dataclass
 class EvalResult:
     name: str
@@ -31,6 +33,7 @@ class EvalResult:
     failure_reason: str | None = None
     latency_ms: float = 0.0
     output_preview: str = ""
+
 
 # --- Define your prompt here ---
 SYSTEM_PROMPT = """You are a chaos engineering assistant.
@@ -41,6 +44,7 @@ Always respond with valid JSON matching this schema:
   "slo_impact": "none" | "minor" | "major" | "critical",
   "recommendations": ["string"]
 }"""
+
 
 def call_llm(user_input: str, max_tokens: int = 1024) -> tuple[str, float]:
     """Call the LLM and return (output, latency_ms)."""
@@ -60,6 +64,7 @@ def call_llm(user_input: str, max_tokens: int = 1024) -> tuple[str, float]:
     )
     latency = (time.monotonic() - start) * 1000
     return response.content[0].text, latency
+
 
 # --- Define test cases ---
 TEST_CASES = [
@@ -82,6 +87,7 @@ TEST_CASES = [
         expected_format="json",
     ),
 ]
+
 
 def evaluate(test_case: TestCase) -> EvalResult:
     """Run a single test case and return the result."""
@@ -126,6 +132,7 @@ def evaluate(test_case: TestCase) -> EvalResult:
         output_preview=output[:200],
     )
 
+
 def main() -> int:
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("ERROR: Set ANTHROPIC_API_KEY environment variable", file=sys.stderr)
@@ -152,6 +159,7 @@ def main() -> int:
     print(f"Avg latency: {avg_latency:.0f}ms")
 
     return 0 if all(r.passed for r in results) else 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

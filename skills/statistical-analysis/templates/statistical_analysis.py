@@ -26,6 +26,7 @@ from scipy import stats
 
 logger = logging.getLogger(__name__)
 
+
 # ---------------------------------------------------------------------------
 # 1. Load Data
 # ---------------------------------------------------------------------------
@@ -66,6 +67,7 @@ def load_groups(
                         "group_b": str(group_labels[1]), "n_b": len(b)})
     return a, b, [str(g) for g in group_labels]
 
+
 # ---------------------------------------------------------------------------
 # 2. Descriptive Statistics
 # ---------------------------------------------------------------------------
@@ -82,6 +84,7 @@ def describe(data: np.ndarray, label: str) -> dict[str, float]:
         "min":  round(float(np.min(data)), 4),
         "max":  round(float(np.max(data)), 4),
     }
+
 
 # ---------------------------------------------------------------------------
 # 3. Normality Test
@@ -114,6 +117,7 @@ def test_normality(data: np.ndarray, label: str) -> dict[str, object]:
         ),
     }
 
+
 # ---------------------------------------------------------------------------
 # 4. Two-Sample Test
 # ---------------------------------------------------------------------------
@@ -145,6 +149,7 @@ def two_sample_test(
         ),
     }
 
+
 # ---------------------------------------------------------------------------
 # 5. Effect Size — Cohen's d
 # ---------------------------------------------------------------------------
@@ -172,6 +177,7 @@ def cohens_d(a: np.ndarray, b: np.ndarray) -> dict[str, object]:
         "magnitude": magnitude,
         "interpretation": f"Effect size is {magnitude} (d={d:.3f}; thresholds: 0.2/0.5/0.8)",
     }
+
 
 # ---------------------------------------------------------------------------
 # 6. Bootstrap Confidence Interval for Mean Difference
@@ -212,6 +218,7 @@ def bootstrap_ci(
                else "Includes zero — difference may not be meaningful.")
         ),
     }
+
 
 # ---------------------------------------------------------------------------
 # Main
@@ -272,6 +279,7 @@ def main(argv: list[str] | None = None) -> int:
     args.output.write_text(json.dumps(report, indent=2), encoding="utf-8")
     logger.info("report_written", extra={"path": str(args.output)})
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

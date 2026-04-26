@@ -25,6 +25,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+
 @dataclass
 class ComplexityResult:
     file: str
@@ -39,6 +40,7 @@ class ComplexityResult:
             f"{self.function} (complexity: {self.complexity})"
         )
 
+
 def grade_complexity(cc: int) -> str:
     if cc <= 5:
         return "A"
@@ -49,6 +51,7 @@ def grade_complexity(cc: int) -> str:
     if cc <= 30:
         return "D"
     return "F"
+
 
 class ComplexityVisitor(ast.NodeVisitor):
     """Simple McCabe complexity calculator using AST."""
@@ -86,6 +89,7 @@ class ComplexityVisitor(ast.NodeVisitor):
 
     visit_AsyncFunctionDef = visit_FunctionDef
 
+
 def analyse_file(path: Path) -> list[ComplexityResult]:
     try:
         source = path.read_text(encoding="utf-8")
@@ -100,6 +104,7 @@ def analyse_file(path: Path) -> list[ComplexityResult]:
     visitor = ComplexityVisitor(str(path))
     visitor.visit(tree)
     return visitor.results
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Cyclomatic complexity checker")
@@ -165,6 +170,7 @@ def main() -> int:
                 print(f"  {g}: {grades[g]}")
 
     return 1 if violations else 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

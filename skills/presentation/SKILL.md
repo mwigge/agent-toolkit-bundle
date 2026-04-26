@@ -1,8 +1,3 @@
----
-name: presentation
-description: Presentation and technical communication patterns: audience identification, narrative structure, slide design, and handoff documents. Use when preparing decks or written writeups.
----
-
 # Skill: Presentation & Technical Communication
 
 ## Diátaxis Framework

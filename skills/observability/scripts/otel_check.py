@@ -24,6 +24,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+
 @dataclass
 class Issue:
     path: str
@@ -35,6 +36,7 @@ class Issue:
     def __str__(self) -> str:
         loc = f":{self.line}" if self.line > 0 else ""
         return f"[{self.severity}] {self.path}{loc}: [{self.code}] {self.message}"
+
 
 class OtelChecker(ast.NodeVisitor):
     def __init__(self, path: str) -> None:
@@ -166,6 +168,7 @@ class OtelChecker(ast.NodeVisitor):
                     message="print() call — consider using structured logging (import logging)",
                 ))
 
+
 def check_file(path: Path) -> list[Issue]:
     try:
         source = path.read_text(encoding="utf-8")
@@ -183,6 +186,7 @@ def check_file(path: Path) -> list[Issue]:
     checker.visit(tree)
     checker.finalise()
     return checker.issues
+
 
 def main() -> int:
     if len(sys.argv) < 2:
@@ -210,6 +214,7 @@ def main() -> int:
 
     print("No observability issues found.")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -68,8 +68,8 @@ from the code and repository alone — no subjective judgements.
 
 - [ ] MR title follows Conventional Commits format: `type(scope): description`
 - [ ] MR description explains **why** the change was made, not just what
-- [ ] Jira ticket linked (`<PROJ>-N`)
-- [ ] No references to internal planning artefacts (`<your-docs-dir>/`, agent names)
+- [ ] Jira ticket linked (`CLS-N`)
+- [ ] No references to internal planning artefacts (`docs_local/`, agent names)
 - [ ] Screenshots or test output attached for UI or behaviour changes
 - [ ] Breaking changes clearly documented (API changes, config schema changes)
 

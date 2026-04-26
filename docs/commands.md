@@ -36,14 +36,14 @@ Claude:
 **What**: Validate branch, push, fill MR template, create PR/MR.
 
 **Flow**:
-1. Validate branch name: `{type}/<PROJ>-{N}/{description}`
+1. Validate branch name: `{type}/CLS-{N}/{description}`
 2. Push to remote if needed
 3. Fill MR template from diff (Jira refs, test plan, rollback plan)
 4. Create PR/MR via `gh` (GitHub) or `glab` (GitLab)
 
 **Rules**:
-- Never reference `<your-docs-dir>/`, planning artifacts, or internal labels in MR descriptions
-- Only `<PROJ>-N` Jira references
+- Never reference `docs_local/`, planning artifacts, or internal labels in MR descriptions
+- Only `CLS-N` Jira references
 - Checklist items must be reader-verifiable from code and repo only
 
 ---
@@ -57,7 +57,7 @@ Claude:
 2. INVEST check: Independent, Negotiable, Valuable, Estimable, Small, Testable
 3. Draft: Title + "As a..." + Given/When/Then ACs + estimate
 4. Get approval
-5. Hand off to your ticketing workflow to create the tracker entry
+5. Hand off to `@jira-story` to create the CLS ticket
 
 **Example**:
 ```
@@ -73,7 +73,7 @@ Claude:
       Then the probe terminates within 5 seconds.
       Estimate: 3 points
   -> "Approve? [yes/edit]"
-  -> On approval: "Hand off to your tracker workflow"
+  -> On approval: "Hand off to @jira-story"
 ```
 
 ---
@@ -110,16 +110,19 @@ Claude:
 **What**: Update docs index and memory after a work session.
 
 **Flow**:
-1. Scan `agent-toolkit-bundle/` for all skills, agents, commands, hooks
-2. Write/update `<your-docs-dir>/INDEX.md`
+1. Scan `ai_local/` for all skills, agents, commands, hooks
+2. Write/update `docs_local/INDEX.md`
 3. Update `memory.md` with date and session state
 
 ---
 
 ### /mine
 
+**What**: Mine OpenSpec artifacts and memory into MemPalace.
+
 **Flow**:
 1. Resolve target (specific change name, path, or all recent changes)
+2. Check MemPalace is importable
 3. Mine each artifact: `proposal.md`, `design.md`, `delivery.md`, `tasks.md` (< 150 lines)
 4. Report results (processed, skipped, errors)
 
@@ -171,36 +174,53 @@ Command definitions live in `.claude/commands/`. Each is a markdown file contain
 
 ## OpenCode Commands
 
-OpenCode supports the same `/command` syntax as Claude Code. OpenCode reads commands from `~/.config/opencode/command/`. The installer copies `commands/opencode/` to that directory.
+OpenCode supports the same `/command` syntax as Claude Code. Command files live in
+`ai_local/opencode/commands/` — symlinked to `~/.config/opencode/commands/` (global).
+Edit files in `ai_local/opencode/commands/`; the change is live immediately via symlink.
 
 ### All commands are ported
 
-| Command | File (in this bundle) |
-|---|---|
-| `/commit` | `commands/opencode/commit.md` |
-| `/pr` | `commands/opencode/pr.md` |
-| `/story` | `commands/opencode/story.md` |
-| `/review` | `commands/opencode/review.md` |
-| `/spec` | `commands/opencode/spec.md` |
-| `/index` | `commands/opencode/index.md` |
-| `/opsx:propose` | `commands/opencode/opsx/propose.md` |
-| `/opsx:apply` | `commands/opencode/opsx/apply.md` |
-| `/opsx:explore` | `commands/opencode/opsx/explore.md` |
-| `/opsx:archive` | `commands/opencode/opsx/archive.md` |
+| Command | File (canonical) | Status |
+|---|---|---|
+| `/commit` | `ai_local/opencode/commands/commit.md` | ✅ |
+| `/pr` | `ai_local/opencode/commands/pr.md` | ✅ |
+| `/story` | `ai_local/opencode/commands/story.md` | ✅ |
+| `/review` | `ai_local/opencode/commands/review.md` | ✅ |
+| `/spec` | `ai_local/opencode/commands/spec.md` | ✅ |
+| `/index` | `ai_local/opencode/commands/index.md` | ✅ |
+| `/mine` | `ai_local/opencode/commands/mine.md` | ✅ |
+| `/opsx:propose` | `ai_local/opencode/commands/opsx/propose.md` | ✅ |
+| `/opsx:apply` | `ai_local/opencode/commands/opsx/apply.md` | ✅ |
+| `/opsx:explore` | `ai_local/opencode/commands/opsx/explore.md` | ✅ |
+| `/opsx:archive` | `ai_local/opencode/commands/opsx/archive.md` | ✅ |
 
 ### How to add a new command (OpenCode)
 
-1. Create `commands/opencode/my-command.md` in this bundle.
-2. Write the command as a markdown prompt — the full text is injected into the model when the user types `/my-command`.
-3. Re-run `./install.sh --profile opencode --force` (or copy the file directly into `~/.config/opencode/command/`).
-4. Restart OpenCode.
+1. Create `ai_local/opencode/commands/my-command.md` (canonical — symlinked to `~/.config/opencode/commands/`)
+2. Write the command as a markdown prompt — the full text is injected into the model when the user types `/my-command`
+3. No registration needed — OpenCode scans the commands directory automatically
 
 For subcommand namespacing (e.g. `/opsx:propose`), create a subdirectory:
-`commands/opencode/opsx/propose.md` → `/opsx:propose`.
+`ai_local/opencode/commands/opsx/propose.md` → `/opsx:propose`
 
 ### Difference from Claude Code
 
-In Claude Code, command files live in `agent-toolkit-bundle/.claude/commands/`. In OpenCode, the canonical
-location is `agent-toolkit-bundle/opencode/commands/`, symlinked to `~/.config/opencode/commands/`.
+In Claude Code, command files live in `ai_local/.claude/commands/`. In OpenCode, the canonical
+location is `ai_local/opencode/commands/`, symlinked to `~/.config/opencode/commands/`.
 Project-scoped commands go in `<project>/.opencode/commands/`.
 The markdown format and `/command-name` invocation syntax are identical.
+
+---
+
+## Codex Reference
+
+Codex does not use these files as a native slash-command registry in this setup.
+
+Instead, the Codex reference installation reuses the same command markdown files as
+**workflow playbooks**:
+
+- read the matching command file from `ai_local/opencode/commands/`
+- follow its steps as the operating procedure
+- treat `/commit`, `/review`, `/opsx:*`, and similar names as user intent labels
+
+See `ai_local/codex/AGENTS.md` and [codex.md](codex.md) for the Codex-specific model.

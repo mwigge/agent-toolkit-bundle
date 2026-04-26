@@ -26,12 +26,14 @@ import re
 import sys
 from typing import NamedTuple
 
+
 class LintResult(NamedTuple):
     rule_id: str
     description: str
     passed: bool
     severity: str   # "required" | "recommended"
     detail: str     # extra context shown on failure
+
 
 def lint_story(text: str) -> list[LintResult]:
     results: list[LintResult] = []
@@ -169,6 +171,7 @@ def lint_story(text: str) -> list[LintResult]:
 
     return results
 
+
 def print_report(results: list[LintResult]) -> int:
     required_failures = [r for r in results if not r.passed and r.severity == "required"]
     recommended_failures = [r for r in results if not r.passed and r.severity == "recommended"]
@@ -210,6 +213,7 @@ def print_report(results: list[LintResult]) -> int:
         print(f"{'═' * width}\n")
         return 0
 
+
 def main() -> int:
     if len(sys.argv) > 1:
         filepath = sys.argv[1]
@@ -232,6 +236,7 @@ def main() -> int:
 
     results = lint_story(text)
     return print_report(results)
+
 
 if __name__ == "__main__":
     sys.exit(main())

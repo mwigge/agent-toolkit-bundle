@@ -1,32 +1,18 @@
-// format-on-save.ts — OpenCode tool.execute.after auto-formatter.
-// SPDX-License-Identifier: Apache-2.0
-//
-// Runs language-appropriate formatters after edit/write tool calls.
-// Mirrors the format-on-save.sh hook. Never throws — format failures
-// are advisory and must not block the tool pipeline.
-//
-// Install:
-//   cp plugins/format-on-save.ts ~/.config/opencode/plugin/format-on-save.ts
-//
-// OpenCode auto-loads any plugin in that directory on startup.
-
 import type { Plugin } from "@opencode-ai/plugin"
-import { execFileSync } from "child_process"
+import { execSync } from "child_process"
 import { existsSync } from "fs"
 
-// Fixed argv only — never interpolate model-chosen paths into a shell
-// string. Prevents command injection via prompt-injected filePath.
-function tryFormat(bin: string, args: string[]): void {
+function tryFormat(cmd: string): void {
   try {
-    execFileSync(bin, args, { stdio: "pipe", timeout: 30000 })
+    execSync(cmd, { stdio: "pipe", timeout: 30000 })
   } catch {
-    // Format failures are never blockers — degrade silently.
+    // format failures are never blockers — degrade silently
   }
 }
 
 function hasCmd(cmd: string): boolean {
   try {
-    execFileSync("command", ["-v", cmd], { stdio: "pipe", shell: "/bin/sh" })
+    execSync(`command -v ${cmd}`, { stdio: "pipe" })
     return true
   } catch {
     return false
@@ -35,13 +21,12 @@ function hasCmd(cmd: string): boolean {
 
 export const FormatOnSavePlugin: Plugin = async () => {
   return {
-    "tool.execute.after": async (input, _output) => {
+    "tool.execute.after": async (input, output) => {
       const tool = input.tool
       if (tool !== "edit" && tool !== "write") return
 
-      // tool.execute.after: args live on input.args (read-only).
-      const args = (input.args ?? {}) as Record<string, unknown>
-      const filePath = typeof args.filePath === "string" ? args.filePath : ""
+      const args = input.args as Record<string, string>
+      const filePath: string = args.filePath ?? ""
       if (!filePath || !existsSync(filePath)) return
 
       const ext = filePath.split(".").pop() ?? ""
@@ -49,11 +34,11 @@ export const FormatOnSavePlugin: Plugin = async () => {
       switch (ext) {
         case "py":
           if (hasCmd("ruff")) {
-            tryFormat("ruff", ["check", "--fix", "--quiet", filePath])
-            tryFormat("ruff", ["format", "--quiet", filePath])
+            tryFormat(`ruff check --fix --quiet "${filePath}"`)
+            tryFormat(`ruff format --quiet "${filePath}"`)
           }
           if (hasCmd("black")) {
-            tryFormat("black", ["--quiet", filePath])
+            tryFormat(`black --quiet "${filePath}"`)
           }
           break
 
@@ -64,7 +49,7 @@ export const FormatOnSavePlugin: Plugin = async () => {
         case "mjs":
         case "cjs":
           if (hasCmd("prettier")) {
-            tryFormat("prettier", ["--write", "--log-level", "silent", filePath])
+            tryFormat(`prettier --write --log-level silent "${filePath}"`)
           }
           break
 
@@ -72,32 +57,18 @@ export const FormatOnSavePlugin: Plugin = async () => {
         case "yaml":
         case "yml":
           if (hasCmd("prettier")) {
-            tryFormat("prettier", ["--write", "--log-level", "silent", filePath])
+            tryFormat(`prettier --write --log-level silent "${filePath}"`)
           }
           break
 
         case "sql":
           if (hasCmd("sqlfluff")) {
-            tryFormat("sqlfluff", ["fix", "--dialect", "postgres", "--quiet", filePath])
-          }
-          break
-
-        case "sh":
-        case "bash":
-          // shfmt first (auto-fix formatting), then shellcheck (advisory).
-          // shellcheck cannot auto-fix but reports findings via stdout/stderr,
-          // which tryFormat swallows — callers opt in by running shellcheck
-          // directly if they want to see findings.
-          if (hasCmd("shfmt")) {
-            tryFormat("shfmt", ["-w", "-i", "2", "-ci", filePath])
-          }
-          if (hasCmd("shellcheck")) {
-            tryFormat("shellcheck", [filePath])
+            tryFormat(`sqlfluff fix --dialect postgres --quiet "${filePath}"`)
           }
           break
       }
 
-      // Always exit cleanly — format-on-save never blocks.
+      // Always exit cleanly — format-on-save never blocks
     },
   }
 }

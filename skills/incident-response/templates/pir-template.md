@@ -160,5 +160,5 @@ All action items must have an owner and a due date. Ownerless items will not be 
 | Incident Slack channel | [link] |
 | Grafana dashboard (incident time range) | [link] |
 | Deployment that preceded incident | [link] |
-| Related Jira tickets | [<PROJ>-XXX] |
+| Related Jira tickets | [CLS-XXX] |
 | Previous related incidents | [link] |

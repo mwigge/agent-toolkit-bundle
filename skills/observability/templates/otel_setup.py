@@ -42,6 +42,7 @@ from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapProp
 
 logger = logging.getLogger(__name__)
 
+
 # ---------------------------------------------------------------------------
 # Resource — service identity for all telemetry
 # ---------------------------------------------------------------------------
@@ -57,6 +58,7 @@ def _build_resource(
         "deployment.environment": environment or os.environ.get("CHAOS_ENV", "production"),
         "service.namespace": "chaos-platform",
     })
+
 
 # ---------------------------------------------------------------------------
 # Tracing Setup
@@ -80,6 +82,7 @@ def _setup_tracer_provider(resource: Resource) -> TracerProvider:
     logger.info("tracer_provider_configured", extra={"endpoint": otlp_endpoint})
     return provider
 
+
 # ---------------------------------------------------------------------------
 # Metrics Setup (Prometheus exporter)
 # ---------------------------------------------------------------------------
@@ -97,6 +100,7 @@ def _setup_meter_provider(resource: Resource) -> MeterProvider:
     provider = MeterProvider(resource=resource, metric_readers=[reader])
     metrics.set_meter_provider(provider)
     return provider
+
 
 # ---------------------------------------------------------------------------
 # Structured Logging with trace_id injection
@@ -116,6 +120,7 @@ class TraceContextFilter(logging.Filter):
             record.span_id = "0" * 16
         return True
 
+
 def _setup_logging(service_name: str) -> None:
     """Configure root logger with JSON-friendly format and trace context injection."""
     root = logging.getLogger()
@@ -131,6 +136,7 @@ def _setup_logging(service_name: str) -> None:
         ))
         root.addHandler(handler)
 
+
 # ---------------------------------------------------------------------------
 # Context Propagation Helpers
 # ---------------------------------------------------------------------------
@@ -139,9 +145,11 @@ def extract_context(headers: dict[str, str]) -> Any:
     """Extract OTel context from incoming HTTP headers (W3C TraceContext)."""
     return extract(headers)
 
+
 def inject_context(headers: dict[str, str]) -> None:
     """Inject current OTel context into outgoing HTTP headers."""
     inject(headers)
+
 
 # ---------------------------------------------------------------------------
 # Resilience Metric Instruments
@@ -182,11 +190,13 @@ def _create_instruments(meter: metrics.Meter) -> dict[str, Any]:
         ),
     }
 
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
 _instruments: dict[str, Any] = {}
+
 
 def setup_telemetry(
     service_name: str = "chaos-platform",
@@ -209,11 +219,14 @@ def setup_telemetry(
 
     logger.info("telemetry_initialised", extra={"service": service_name})
 
+
 def get_tracer(name: str) -> trace.Tracer:
     return trace.get_tracer(name)
 
+
 def get_meter(name: str) -> metrics.Meter:
     return metrics.get_meter(name)
+
 
 def get_instruments() -> dict[str, Any]:
     return _instruments

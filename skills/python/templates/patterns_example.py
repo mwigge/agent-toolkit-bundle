@@ -22,6 +22,7 @@ from typing import Protocol, runtime_checkable
 
 logger = logging.getLogger(__name__)
 
+
 # ---------------------------------------------------------------------------
 # 1. Dataclass with __slots__ for memory efficiency
 # ---------------------------------------------------------------------------
@@ -39,6 +40,7 @@ class ExperimentResult:
     def passed(self) -> bool:
         return self.success and self.duration_ms < 5000.0
 
+
 # ---------------------------------------------------------------------------
 # 2. Protocol for structural subtyping (no inheritance required)
 # ---------------------------------------------------------------------------
@@ -50,15 +52,18 @@ class Measurable(Protocol):
     @property
     def duration_ms(self) -> float: ...
 
+
 def summarise(item: Measurable) -> str:
     """Works with any object that has duration_ms — no base class needed."""
     return f"duration={item.duration_ms:.1f}ms"
+
 
 # ---------------------------------------------------------------------------
 # 3. Structural pattern matching
 # ---------------------------------------------------------------------------
 
 type StatusCode = int  # Python 3.12+ type alias; use TypeAlias on 3.10/3.11
+
 
 def classify_http_status(status: int) -> str:
     match status:
@@ -75,6 +80,7 @@ def classify_http_status(status: int) -> str:
         case _:
             return "unknown"
 
+
 def handle_event(event: dict[str, object]) -> str:
     match event:
         case {"type": "experiment_started", "id": str(eid)}:
@@ -88,6 +94,7 @@ def handle_event(event: dict[str, object]) -> str:
         case _:
             return "malformed event"
 
+
 # ---------------------------------------------------------------------------
 # 4. Walrus operator in comprehensions and while loops
 # ---------------------------------------------------------------------------
@@ -100,6 +107,7 @@ def extract_passing_results(results: Iterable[ExperimentResult]) -> list[str]:
         if (passed := r.passed) and passed  # noqa: F841 — demonstrates walrus
     ]
 
+
 def read_chunks(data: bytes, chunk_size: int = 64) -> list[bytes]:
     """Classic walrus pattern for chunked reading."""
     offset = 0
@@ -108,6 +116,7 @@ def read_chunks(data: bytes, chunk_size: int = 64) -> list[bytes]:
         chunks.append(chunk)
         offset += chunk_size
     return chunks
+
 
 # ---------------------------------------------------------------------------
 # 5. contextlib.contextmanager
@@ -127,6 +136,7 @@ def experiment_context(experiment_id: str) -> Generator[dict[str, object], None,
     finally:
         logger.info("experiment_finished", extra={"experiment_id": experiment_id})
 
+
 # ---------------------------------------------------------------------------
 # 6. functools.cache (unbounded memoisation)
 # ---------------------------------------------------------------------------
@@ -137,6 +147,7 @@ def fibonacci(n: int) -> int:
     if n < 2:
         return n
     return fibonacci(n - 1) + fibonacci(n - 2)
+
 
 @functools.lru_cache(maxsize=256)
 def compute_resilience_score(
@@ -149,6 +160,7 @@ def compute_resilience_score(
     recovery_factor = 1.0 / (1.0 + mttr_seconds / 3600)
     return round(availability * recovery_factor * 100, 2)
 
+
 # ---------------------------------------------------------------------------
 # 7. Generator pipeline (lazy, memory-efficient)
 # ---------------------------------------------------------------------------
@@ -160,20 +172,24 @@ def _parse_raw(lines: Iterable[str]) -> Iterator[dict[str, str]]:
             parts = dict(kv.split("=", 1) for kv in line.strip().split() if "=" in kv)
             yield parts
 
+
 def _filter_errors(records: Iterable[dict[str, str]]) -> Iterator[dict[str, str]]:
     """Stage 2: keep only error records."""
     for record in records:
         if record.get("level") == "ERROR":
             yield record
 
+
 def _enrich(records: Iterable[dict[str, str]]) -> Iterator[dict[str, str]]:
     """Stage 3: add derived fields."""
     for record in records:
         yield {**record, "source": "chaos-platform"}
 
+
 def process_log_pipeline(raw_lines: Iterable[str]) -> Iterator[dict[str, str]]:
     """Compose generator stages — nothing runs until iterated."""
     return _enrich(_filter_errors(_parse_raw(raw_lines)))
+
 
 # ---------------------------------------------------------------------------
 # Example usage

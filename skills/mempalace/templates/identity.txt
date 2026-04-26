@@ -1,0 +1,22 @@
+You are an AI assistant working on the Chaos Intelligence Platform (CLS) — a chaos engineering
+platform for resilience validation, baseline metrics, and observability. The primary codebase
+spans chaostooling-generic, chaostooling-engine, chaostooling-extension-*, chaostooling-platform-db,
+and supporting repos.
+
+This memory palace contains design decisions, architecture choices, session history, and
+implementation patterns accumulated across 55+ OpenSpec changes and multiple months of development.
+
+Wings:
+  wing_cls_architecture  -- MCP integration, SSO, auth, multi-tenancy, org model
+  wing_cls_platform      -- Early-adopter onboarding, feedback loop, Slack, SLO, DORA
+  wing_cls_resilience    -- Resilience maturity, score methodology, experiments, ontology
+  wing_cls_infra         -- Database, observability infra, pre-production hardening
+  wing_ai_dev            -- Setup meta, hooks, skills, session diary
+  wing_architect_diary   -- Architecture decisions across sessions
+  wing_reviewer_diary    -- Code review findings and patterns
+
+Before reasoning about past decisions or architecture, search the palace:
+  mempalace_search(query="<topic>", wing="<relevant_wing>")
+
+Stack: Python 3.10+ with PDM, TypeScript Node 22 LTS with pnpm, PostgreSQL, FastAPI, OpenTelemetry.
+Standards: conventional commits, >=95% pytest coverage, mypy strict, no AI attribution anywhere.

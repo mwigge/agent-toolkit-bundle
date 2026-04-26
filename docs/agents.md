@@ -197,12 +197,24 @@ This is a hard architectural constraint. Agents output human-readable handoff me
 
 ---
 
+### @jira-story
+
+**Invoke when**: Creating a Jira ticket for project CLS.
+
+**Skills loaded**: `/product-owner`, Jira CLI integration
+
+**Produces**: Two-step Jira creation (CLS project, epic CLS-23). Creates the story, then sets DoR/DoD/AC fields in a second step (checklist fields can't be set on CREATE).
+
+---
+
 ## Typical Collaboration Flow
 
 ```
 Feature development:
 
   @product-owner  -->  draft story
+       | (user handoff)
+  @jira-story     -->  create CLS ticket
        | (user handoff)
   @architect      -->  design + ADR
        | (user handoff)
@@ -227,17 +239,41 @@ Not every feature needs every agent. Small bug fixes might go directly to `@code
 
 ## Agent File Location
 
-Agent definitions for Claude Code live in `~/.claude/agents/`. Each is a markdown file that defines the agent's role, skills, constraints, and output format. Claude Code reads these when you invoke `@agent-name`. The installer copies `agents/claude/` from this bundle to that directory.
+Claude Code agent files live in `ai_local/.claude/agents/`.
+OpenCode agent files live in `ai_local/opencode/agents/`.
+
+---
+
+## Codex Reference
+
+Codex does not have a native `@agent-name` registry in this setup.
+
+Instead, the Codex reference installation reuses the existing OpenCode agent files as
+**role contracts** and source prompts:
+
+- read the matching file from `ai_local/opencode/agents/`
+- follow its scope, responsibilities, and output contract
+- optionally delegate using Codex sub-agents when that helps, but do not assume file-based
+  agent registration exists
+
+See `ai_local/codex/AGENTS.md` and [codex.md](codex.md) for the Codex-specific behavior.
+
+Agent definitions live in `.claude/agents/`. Each is a markdown file that defines the agent's role, skills, constraints, and output format. Claude Code reads these when you invoke `@agent-name`.
 
 ---
 
 ## OpenCode Agents
 
-OpenCode supports custom agent definitions in `~/.config/opencode/agent/` (global) or `<project>/.opencode/agent/` (project-scoped). The installer copies `agents/opencode/` from this bundle to the global directory.
+OpenCode fully supports custom agent definitions. Agent files live in
+`~/.config/opencode/agents/` (global) or `<project>/.opencode/agents/` (project-scoped).
 
-### Both sides are kept in parity
+### All 17 agents are ported
 
-Most agents have a Claude Code copy under `agents/claude/<name>.md` and an OpenCode copy under `agents/opencode/<name>.md`. The two copies have different frontmatter but should otherwise stay in lock-step. A parity check in CI flags single-side edits.
+Agent files live in `ai_local/opencode/agents/` — symlinked to `~/.config/opencode/agents/`.
+Edit files in `ai_local/opencode/agents/`; the symlink means the change is live immediately.
+
+Agent files: `ai_local/opencode/agents/<agent-name>.md` (canonical)
+             `~/.config/opencode/agents/<agent-name>.md` (symlink)
 
 Format uses frontmatter to declare `description`, `mode`, and `permission`:
 
@@ -259,8 +295,8 @@ System prompt content...
 **Claude Code**: Agents are leaf nodes. All dispatch is human-triggered. The model outputs
 a handoff message and waits for the user to invoke the next agent.
 
-**OpenCode**: The model CAN spawn subagents autonomously. `mode: subagent` agents are
-spawned by the orchestrator without human intervention.
+**OpenCode**: The model CAN spawn subagents autonomously using the `task` tool. `mode: subagent`
+agents are spawned directly by the orchestrator without human intervention.
 
 The no-subagent rule in `agents.md` is **Claude Code-specific**. In OpenCode, the correct
 architectural decision (autonomous vs human-gated dispatch) depends on the task:
@@ -269,39 +305,13 @@ architectural decision (autonomous vs human-gated dispatch) depends on the task:
 - **Ambiguous tasks requiring human review**: output a handoff message as in Claude Code
 - **High-risk tasks** (deploys, database changes): always human-gated regardless of platform
 
-### How to spawn subagents correctly (OpenCode)
-
-**Do NOT use the `task` tool for coder agents.** The `task` tool runs the subagent as a
-single-shot inference call — devstral:24b responds with text but does not execute tools.
-
-**All agents in this bundle use `mode: primary`**, not `mode: subagent`. This is intentional:
-OpenCode only allows `mode: primary` agents to be invoked as top-level sessions via
-`opencode run --agent <name>` (which is what `delegate.sh` does). Setting `mode: subagent`
-blocks direct invocation and causes `opencode run` to fall back to the default model,
-discarding the agent's system prompt entirely. `mode: primary` agents still work correctly
-when called via `@agent-name` inside an existing session.
-
-Instead, use `delegate.sh`, which fires `opencode run --agent <name>` and gives the
-subagent the full native iterative tool-call loop:
-
-```bash
-bash ~/.config/opencode/scripts/delegate.sh \
-  --agent  coder-rust \
-  --dir    /path/to/repo \
-  --prompt "Your full task description here..."
-```
-
-The script ships in `scripts/delegate.sh` and installs to `~/.config/opencode/scripts/`
-after running `./install.sh`. Timeout defaults to 600 s; override with
-`--timeout <seconds>` or the `DELEGATE_TIMEOUT` env var.
-
 ### How to add a new agent (OpenCode)
 
-1. Create `agents/opencode/my-agent.md` in this bundle.
-2. Add frontmatter: `description`, `mode: subagent`, `model: <provider/model>`, and any `permission` overrides.
-3. Write the system prompt below the frontmatter.
-4. Re-run `./install.sh --profile opencode --force` (or copy the file directly into `~/.config/opencode/agent/`).
-5. Update the agents reference table in `README.md` and `AGENTS.md`.
+1. Create `ai_local/opencode/agents/my-agent.md` (canonical location)
+2. Add frontmatter: `description`, `mode: subagent`, `model: <provider/model>`, and any `permission` overrides
+3. Write the system prompt below the frontmatter
+4. The agent is immediately available via `@my-agent` (symlink makes it live instantly)
+5. Update the Agents Reference table in `ai_local/opencode/AGENTS.md`
 
 ### permission field
 
@@ -312,4 +322,5 @@ permission:
   write: deny       # agent cannot write files
 ```
 
-The `permission` block in OpenCode agent files replaces the `allowed-tools` field in Claude Code agent frontmatter.
+The `permission` block in OpenCode agent files replaces the `allowedTools` and `disallowedTools`
+arrays in Claude Code `.claude/agents/*.md` files.

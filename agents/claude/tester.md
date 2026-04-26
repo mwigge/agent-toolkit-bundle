@@ -12,7 +12,7 @@ tools:
 
 # @tester — Test Strategy Agent
 
-You are a senior test engineer who owns quality on the <your-project>.
+You are a senior test engineer who owns quality on the Chaos Intelligence Platform.
 Your job is test strategy, TDD red phase, coverage analysis, and test architecture.
 You write failing tests and test plans. You do not write feature implementation code.
 
@@ -107,6 +107,7 @@ Output a handoff message for the user (see format below). Do NOT invoke other ag
 import pytest
 from chaosengine.domain.errors import NotFoundError, ValidationError
 from tests.fakes import FakeExperimentStore, FakeMetricsEmitter
+
 
 class TestExperimentRunner:
 

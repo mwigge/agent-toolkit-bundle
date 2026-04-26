@@ -25,6 +25,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+
 @dataclass
 class Issue:
     path: str
@@ -35,6 +36,7 @@ class Issue:
 
     def __str__(self) -> str:
         return f"[{self.severity}] {self.path}:{self.line}: [{self.code}] {self.message}"
+
 
 # Colormaps that are not accessible to colour-blind users
 INACCESSIBLE_COLORMAPS = {
@@ -48,6 +50,7 @@ XLABEL_CALLS = {"xlabel", "set_xlabel"}
 YLABEL_CALLS = {"ylabel", "set_ylabel"}
 TITLE_CALLS = {"title", "set_title", "suptitle"}
 THREE_D_INDICATORS = {"Axes3D", "plot_surface", "plot_wireframe", "scatter3D", "bar3d", "mpl_toolkits"}
+
 
 class ChartChecker(ast.NodeVisitor):
     def __init__(self, path: str, source_lines: list[str]) -> None:
@@ -162,6 +165,7 @@ class ChartChecker(ast.NodeVisitor):
                     "Add savefig() before show() in script context",
                 ))
 
+
 def check_file(path: Path) -> list[Issue]:
     try:
         source = path.read_text(encoding="utf-8")
@@ -186,6 +190,7 @@ def check_file(path: Path) -> list[Issue]:
     checker.visit(tree)
     checker.finalise()
     return checker.issues
+
 
 def main() -> int:
     if len(sys.argv) < 2:
@@ -213,6 +218,7 @@ def main() -> int:
 
     print("No chart issues found.")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

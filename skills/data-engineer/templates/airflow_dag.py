@@ -21,6 +21,7 @@ from airflow.utils.trigger_rule import TriggerRule
 
 log = logging.getLogger(__name__)
 
+
 # ── Callbacks ─────────────────────────────────────────────────────────────────
 
 def on_failure_callback(context: dict[str, Any]) -> None:
@@ -62,6 +63,7 @@ def on_failure_callback(context: dict[str, Any]) -> None:
         except Exception as exc:  # noqa: BLE001
             log.warning("Slack notification failed: %s", exc)
 
+
 def on_sla_miss_callback(
     dag: Any,
     task_list: str,
@@ -79,6 +81,7 @@ def on_sla_miss_callback(
         },
     )
 
+
 # ── Default args ──────────────────────────────────────────────────────────────
 
 DEFAULT_ARGS: dict[str, Any] = {
@@ -93,6 +96,7 @@ DEFAULT_ARGS: dict[str, Any] = {
     "on_failure_callback": on_failure_callback,
     "execution_timeout": timedelta(hours=1),
 }
+
 
 # ── DAG definition ────────────────────────────────────────────────────────────
 
@@ -275,6 +279,7 @@ def daily_crm_etl() -> None:
 
     start >> extract_result
     notify_result >> end
+
 
 # Instantiate the DAG
 daily_crm_etl()

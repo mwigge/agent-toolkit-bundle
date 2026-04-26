@@ -25,13 +25,16 @@ import sys
 import re
 from typing import Any
 
+
 # ── Match functions ────────────────────────────────────────────────────────────
 
 def exact_match(actual: str, expected: str) -> bool:
     return actual.strip().lower() == expected.strip().lower()
 
+
 def contains_match(actual: str, expected: str) -> bool:
     return expected.strip().lower() in actual.strip().lower()
+
 
 def any_match(actual: str, expected: str) -> bool:
     """Pass if actual matches any value in a JSON array string."""
@@ -46,11 +49,13 @@ def any_match(actual: str, expected: str) -> bool:
         for candidate in candidates
     )
 
+
 MATCH_FUNCTIONS = {
     "exact": exact_match,
     "contains": contains_match,
     "any": any_match,
 }
+
 
 # ── Result types ───────────────────────────────────────────────────────────────
 
@@ -69,6 +74,7 @@ class EvalRecord:
     def evaluate(self) -> None:
         fn = MATCH_FUNCTIONS.get(self.match_type, exact_match)
         self.passed = fn(self.actual, self.expected)
+
 
 # ── Loading ────────────────────────────────────────────────────────────────────
 
@@ -102,6 +108,7 @@ def load_records(source: Any) -> list[EvalRecord]:
             print(f"  ... and {len(errors) - 10} more", file=sys.stderr)
 
     return records
+
 
 # ── Reporting ─────────────────────────────────────────────────────────────────
 
@@ -170,6 +177,7 @@ def print_summary_table(records: list[EvalRecord], verbose: bool) -> int:
 
     return 0 if len(failed) == 0 else 1
 
+
 # ── CLI entry point ────────────────────────────────────────────────────────────
 
 def main() -> int:
@@ -201,6 +209,7 @@ def main() -> int:
         record.evaluate()
 
     return print_summary_table(records, verbose=verbose)
+
 
 if __name__ == "__main__":
     sys.exit(main())

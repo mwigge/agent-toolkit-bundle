@@ -1,13 +1,8 @@
----
-name: product-owner
-description: Product owner discipline: user story INVEST criteria, Gherkin acceptance criteria, RICE prioritisation, and OKR alignment. Use when writing stories or grooming the backlog.
----
-
 # Skill: Product Owner
 
 **Version**: 1.0.0 | **Updated**: 2026-04-05
 
-Apply this skill when writing user stories, prioritising backlogs, defining OKRs, running sprint ceremonies, creating Jira tickets (project=<PROJ>), or communicating with stakeholders.
+Apply this skill when writing user stories, prioritising backlogs, defining OKRs, running sprint ceremonies, creating Jira tickets (project=CLS), or communicating with stakeholders.
 
 ---
 
@@ -185,17 +180,17 @@ A story is done when ALL of the following are true:
 
 ---
 
-## Jira Workflow (Project: <PROJ>)
+## Jira Workflow (Project: CLS)
 
 ### Key Configuration
 
 | Item | Value |
 |------|-------|
-| Project | <PROJ> |
-| Primary epic | <PROJ>-123 (`<your-project>`) |
-| Architecture epic | <PROJ>-123 (`cap-backbone`) |
-| Default label | `<your-project>` |
-| Jira server | https://<your-jira-host>/ |
+| Project | CLS |
+| Primary epic | CLS-23 (`cap-resilience`) |
+| Architecture epic | CLS-20 (`cap-backbone`) |
+| Default label | `cap-resilience` |
+| Jira server | https://<your-jira-server>/ |
 | CLI | `~/go/bin/jira` |
 | Auth env var | `JIRA_API_TOKEN` |
 
@@ -206,14 +201,14 @@ Jira checklist fields cannot be set during CREATE. Always use two steps:
 ```bash
 # Step 1: Create the story
 ~/go/bin/jira issue create \
-  --project <PROJ> \
+  --project CLS \
   --type Story \
   --summary "feat: add user email verification" \
   --description "$(cat story.md)" \
-  --custom epic-link=<PROJ>-123
+  --custom epic-link=CLS-23
 
 # Step 2: Update checklist fields (acceptance criteria, DoR/DoD checkboxes)
-~/go/bin/jira issue edit <PROJ>-123 \
+~/go/bin/jira issue edit CLS-999 \
   --custom "Acceptance Criteria=Given ... When ... Then ..."
 ```
 
@@ -225,14 +220,14 @@ Jira checklist fields cannot be set during CREATE. Always use two steps:
 
 ```bash
 # Reject a story
-~/go/bin/jira issue transition <PROJ>-123 --transition 51
+~/go/bin/jira issue transition CLS-999 --transition 51
 ```
 
 ### Assignment Rules
 
 - Assign `reporter` and `assignee` only when work begins — not at story creation
 - Never assign a story to a role; always a named individual
-- Epic link: use <PROJ>-123 for delivery work; <PROJ>-123 for architecture docs only
+- Epic link: use CLS-23 for delivery work; CLS-20 for architecture docs only
 
 ---
 

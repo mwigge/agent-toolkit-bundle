@@ -27,6 +27,7 @@ import json
 import sys
 from datetime import datetime, timezone
 
+
 ANSI_RED    = "\033[0;31m"
 ANSI_YELLOW = "\033[1;33m"
 ANSI_GREEN  = "\033[0;32m"
@@ -34,12 +35,14 @@ ANSI_CYAN   = "\033[0;36m"
 ANSI_BOLD   = "\033[1m"
 ANSI_RESET  = "\033[0m"
 
+
 def b64url_decode(data: str) -> bytes:
     """Decode a Base64URL-encoded string, adding padding as needed."""
     padding = 4 - len(data) % 4
     if padding != 4:
         data += "=" * padding
     return base64.urlsafe_b64decode(data)
+
 
 def decode_part(part: str, label: str) -> dict:
     """Decode a Base64URL-encoded JWT part and parse as JSON."""
@@ -55,6 +58,7 @@ def decode_part(part: str, label: str) -> dict:
         print(f"ERROR: {label} is not valid JSON: {e}", file=sys.stderr)
         sys.exit(2)
 
+
 def format_timestamp(ts: int) -> str:
     """Convert a Unix timestamp to a human-readable UTC string."""
     try:
@@ -63,21 +67,27 @@ def format_timestamp(ts: int) -> str:
     except (OSError, OverflowError, ValueError):
         return f"<invalid timestamp: {ts}>"
 
+
 def print_section(title: str) -> None:
     print(f"\n{ANSI_BOLD}{ANSI_CYAN}── {title} {'─' * max(0, 50 - len(title))}{ANSI_RESET}")
+
 
 def print_json(data: dict) -> None:
     formatted = json.dumps(data, indent=2, ensure_ascii=False)
     print(formatted)
 
+
 def warn(message: str) -> None:
     print(f"{ANSI_YELLOW}  WARNING: {message}{ANSI_RESET}")
+
 
 def error(message: str) -> None:
     print(f"{ANSI_RED}  ERROR: {message}{ANSI_RESET}")
 
+
 def ok(message: str) -> None:
     print(f"{ANSI_GREEN}  OK: {message}{ANSI_RESET}")
+
 
 def inspect_header(header: dict) -> list[str]:
     """Validate the header and return a list of warning messages."""
@@ -111,6 +121,7 @@ def inspect_header(header: dict) -> list[str]:
         )
 
     return warnings
+
 
 def inspect_payload(payload: dict) -> list[str]:
     """Validate the payload and return a list of warning messages."""
@@ -165,6 +176,7 @@ def inspect_payload(payload: dict) -> list[str]:
 
     return warnings
 
+
 def summarise_claims(payload: dict) -> None:
     """Print a human-readable summary of key claims."""
     print_section("Claim Summary")
@@ -198,6 +210,7 @@ def summarise_claims(payload: dict) -> None:
             if isinstance(scopes, list):
                 scopes = " ".join(scopes)
             print(f"  {'Scopes':15}: {scopes}")
+
 
 def main() -> None:
     if len(sys.argv) < 2:
@@ -260,6 +273,7 @@ def main() -> None:
         print(f"  {ANSI_YELLOW}Remember: signature was NOT verified.{ANSI_RESET}")
         print()
         sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

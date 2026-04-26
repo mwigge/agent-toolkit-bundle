@@ -54,6 +54,7 @@ METHOD_NOT_FOUND = -32601
 INVALID_PARAMS = -32602
 INTERNAL_ERROR = -32603
 
+
 # ── Tool definitions ──────────────────────────────────────────────────────────
 
 TOOLS: list[dict[str, Any]] = [
@@ -113,6 +114,7 @@ TOOLS: list[dict[str, Any]] = [
     },
 ]
 
+
 # ── Knowledge base (replace with real retrieval in production) ────────────────
 
 KNOWLEDGE_BASE: list[dict[str, str]] = [
@@ -154,6 +156,7 @@ KNOWLEDGE_BASE: list[dict[str, str]] = [
     },
 ]
 
+
 def search_knowledge_base(query: str, top_k: int = 3) -> list[dict[str, str]]:
     """Simple keyword search over the in-memory knowledge base."""
     query_lower = query.lower()
@@ -167,6 +170,7 @@ def search_knowledge_base(query: str, top_k: int = 3) -> list[dict[str, str]]:
             scored.append((score, doc))
     scored.sort(key=lambda x: x[0], reverse=True)
     return [doc for _, doc in scored[:top_k]]
+
 
 # ── Safe expression evaluator ─────────────────────────────────────────────────
 
@@ -185,6 +189,7 @@ _SAFE_NAMES: dict[str, Any] = {
 _ALLOWED_PATTERN = re.compile(
     r"^[\d\s\+\-\*\/\%\(\)\.\,_a-zA-Z]+$"
 )
+
 
 def safe_evaluate(expression: str, precision: int = 6) -> float:
     """
@@ -208,16 +213,19 @@ def safe_evaluate(expression: str, precision: int = 6) -> float:
 
     return round(float(result), precision)
 
+
 # ── MCP message handling ──────────────────────────────────────────────────────
 
 def make_response(request_id: Any, result: Any) -> dict[str, Any]:
     return {"jsonrpc": "2.0", "id": request_id, "result": result}
+
 
 def make_error(request_id: Any, code: int, message: str, data: Any = None) -> dict[str, Any]:
     error: dict[str, Any] = {"code": code, "message": message}
     if data is not None:
         error["data"] = data
     return {"jsonrpc": "2.0", "id": request_id, "error": error}
+
 
 def handle_initialize(request_id: Any, params: dict[str, Any]) -> dict[str, Any]:
     client_name = params.get("clientInfo", {}).get("name", "unknown")
@@ -233,8 +241,10 @@ def handle_initialize(request_id: Any, params: dict[str, Any]) -> dict[str, Any]
         },
     })
 
+
 def handle_tools_list(request_id: Any) -> dict[str, Any]:
     return make_response(request_id, {"tools": TOOLS})
+
 
 def handle_tools_call(request_id: Any, params: dict[str, Any]) -> dict[str, Any]:
     tool_name = params.get("name")
@@ -295,6 +305,7 @@ def handle_tools_call(request_id: Any, params: dict[str, Any]) -> dict[str, Any]
             "isError": True,
         })
 
+
 def dispatch(message: dict[str, Any]) -> dict[str, Any] | None:
     """
     Dispatch a JSON-RPC message and return a response (or None for notifications).
@@ -329,6 +340,7 @@ def dispatch(message: dict[str, Any]) -> dict[str, Any] | None:
     else:
         log.warning("Unknown method: %s", method)
         return make_error(request_id, METHOD_NOT_FOUND, f"Method not found: {method!r}")
+
 
 # ── Main loop ─────────────────────────────────────────────────────────────────
 
@@ -383,6 +395,7 @@ def main() -> None:
         if response is not None:
             _write_response(stdout, response)
 
+
 def _write_response(stdout: Any, response: dict[str, Any]) -> None:
     """Serialise and write a JSON-RPC response to stdout, followed by a newline."""
     try:
@@ -391,6 +404,7 @@ def _write_response(stdout: Any, response: dict[str, Any]) -> None:
         stdout.flush()
     except Exception as exc:
         log.error("Failed to write response: %s", exc)
+
 
 if __name__ == "__main__":
     main()

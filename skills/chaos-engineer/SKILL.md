@@ -51,6 +51,7 @@ Examples:
 from dataclasses import dataclass, field
 from enum import Enum
 
+
 class FaultType(str, Enum):
     LATENCY = "latency"
     ERROR = "error"
@@ -62,11 +63,13 @@ class FaultType(str, Enum):
     CLOCK_SKEW = "clock_skew"
     DEPENDENCY_UNAVAILABLE = "dependency_unavailable"
 
+
 class ExperimentScope(str, Enum):
     UNIT = "unit"           # single instance
     SERVICE = "service"     # all instances of one service
     ZONE = "zone"           # availability zone
     REGION = "region"       # entire region
+
 
 @dataclass
 class ExperimentSpec:
@@ -116,7 +119,7 @@ class ExperimentSpec:
         "tolerance": true,
         "provider": {
           "type": "python",
-          "module": "<your-project>.probes.http",
+          "module": "chaostooling.probes.http",
           "func": "probe_latency_within_threshold",
           "arguments": {
             "url": "${API_URL}/api/health",
@@ -130,7 +133,7 @@ class ExperimentSpec:
         "tolerance": true,
         "provider": {
           "type": "python",
-          "module": "<your-project>.probes.metrics",
+          "module": "chaostooling.probes.metrics",
           "func": "probe_error_rate_below",
           "arguments": {
             "threshold": 0.01
@@ -145,7 +148,7 @@ class ExperimentSpec:
       "type": "action",
       "provider": {
         "type": "python",
-        "module": "<your-project>.actions.network",
+        "module": "chaostooling.actions.network",
         "func": "inject_latency",
         "arguments": {
           "target": "postgres",
@@ -161,7 +164,7 @@ class ExperimentSpec:
       "type": "action",
       "provider": {
         "type": "python",
-        "module": "<your-project>.actions.network",
+        "module": "chaostooling.actions.network",
         "func": "remove_latency",
         "arguments": {
           "target": "postgres"
@@ -225,6 +228,7 @@ class ExperimentSpec:
 from dataclasses import dataclass
 from typing import Callable
 
+
 @dataclass
 class SafetyMechanism:
     """Safety controls for chaos experiments."""
@@ -243,6 +247,7 @@ class SafetyMechanism:
     # Approval
     requires_approval: bool = False  # for production experiments
     approved_by: str | None = None
+
 
 def abort_check(
     current_error_rate: float,
@@ -418,6 +423,7 @@ Extend the data layer fault catalogue with data-integrity and capacity scenarios
 ```python
 import hashlib
 
+
 def verify_data_integrity(data: bytes, expected_checksum: str) -> bool:
     """Verify data has not been corrupted in storage or transit."""
     actual = hashlib.sha256(data).hexdigest()
@@ -453,6 +459,7 @@ Before any experiment, capture concrete baselines:
 ```python
 from dataclasses import dataclass
 
+
 @dataclass
 class PhaseMetrics:
     phase: str          # "baseline", "during_fault", "recovery"
@@ -461,6 +468,7 @@ class PhaseMetrics:
     error_rate: float
     throughput_rps: float
     duration_s: float
+
 
 def compare_phases(
     baseline: PhaseMetrics,

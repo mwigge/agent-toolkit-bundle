@@ -24,6 +24,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+
 try:
     import yaml
     def _load_yaml(text: str) -> object:
@@ -40,9 +41,11 @@ except ImportError:
                 "Alternatively, provide JSON-format rules."
             )
 
+
 REQUIRED_ANNOTATIONS = ["summary", "description", "runbook_url"]
 REQUIRED_LABELS = ["severity"]
 VALID_SEVERITIES = {"critical", "warning", "info", "page"}
+
 
 @dataclass
 class RuleViolation:
@@ -60,6 +63,7 @@ class RuleViolation:
             f"{self.field} — {self.message}"
         )
 
+
 @dataclass
 class RulePass:
     file: str
@@ -68,6 +72,7 @@ class RulePass:
 
     def __str__(self) -> str:
         return f"  [PASS] {self.file} group={self.group!r} alert={self.rule_name!r}"
+
 
 def validate_rule(
     rule: dict,
@@ -125,6 +130,7 @@ def validate_rule(
 
     return violations
 
+
 def validate_file(path: Path) -> tuple[list[RuleViolation], list[RulePass]]:
     violations: list[RuleViolation] = []
     passes: list[RulePass] = []
@@ -174,6 +180,7 @@ def validate_file(path: Path) -> tuple[list[RuleViolation], list[RulePass]]:
 
     return violations, passes
 
+
 def main() -> int:
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <rules.yaml> [...]", file=sys.stderr)
@@ -215,6 +222,7 @@ def main() -> int:
 
     print("\nAll alert rules are SLO-compliant.")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

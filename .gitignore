@@ -7,3 +7,10 @@ package-lock.json
 
 # Internal working documents — not published
 SPEC.md
+
+# Build artifacts
+skills/**/__pycache__/
+scripts/**/__pycache__/
+*.pyc
+opencode/bun.lock
+opencode/node_modules/

@@ -1,10 +1,8 @@
 ---
 description: Code refactoring specialist. Use for reducing complexity, extracting abstractions, renaming, migrating patterns, or paying down technical debt — across Python, TypeScript, and SQL. Invoke as @refactor with the file(s) and smell/goal description.
 mode: primary
-model: github-copilot/claude-sonnet-4.6
-tools:
-  skill: true
 ---
+
 
 # @refactor — Refactoring Specialist Agent
 

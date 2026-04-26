@@ -230,7 +230,7 @@ pip-audit
 Or run the project pre-commit script:
 
 ```bash
-./<your-docs-dir>/projects/<your-project>/03-team-coordination/scripts/pre-commit-checks.sh
+./docs_local/projects/chaostooling-generic/03-team-coordination/scripts/pre-commit-checks.sh
 ```
 
 ---
@@ -381,7 +381,7 @@ Allows operators to validate experiment configuration without
 affecting the target system. Probe results are collected but
 chaos actions are skipped.
 
-Closes <PROJ>-123
+Closes CLS-42
 ```
 
 **Never** mention TDD, failing tests, red phase, or "add tests for" in a commit message. The commit describes the feature, not the process.

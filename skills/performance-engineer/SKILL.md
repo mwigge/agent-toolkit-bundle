@@ -83,6 +83,7 @@ export default function () {
 ```python
 from locust import HttpUser, task, between
 
+
 class ChaosAPIUser(HttpUser):
     wait_time = between(1, 3)
 
@@ -130,6 +131,7 @@ class ChaosAPIUser(HttpUser):
 import cProfile
 import pstats
 from io import StringIO
+
 
 def profile_function(fn, *args, **kwargs):
     """Profile a function and return sorted stats."""
@@ -217,6 +219,7 @@ wrk -t4 -c100 -d30s -s post.lua http://localhost:8000/api/experiments
 import timeit
 import statistics
 
+
 def benchmark(fn, iterations=1000, warmup=100):
     """Benchmark a function with warmup and statistical summary."""
     # Warmup
@@ -261,6 +264,7 @@ def benchmark(fn, iterations=1000, warmup=100):
 
 ```python
 from dataclasses import dataclass
+
 
 @dataclass
 class PerformanceBaseline:

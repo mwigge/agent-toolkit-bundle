@@ -1,0 +1,72 @@
+{
+  "default_wing": "wing_cls_infra",
+  "wings": {
+    "wing_cls_architecture": {
+      "type": "domain",
+      "description": "MCP integration, SSO, auth, multi-tenancy, org model, Apigee",
+      "keywords": [
+        "mcp", "agent", "sso", "auth", "multitenancy", "multi-tenancy",
+        "org-role", "org_role", "idp", "wl-sso", "apigee", "compliance",
+        "mcp-agent-integration", "sso-auth-foundation", "multitenancy-org-isolation",
+        "org-role-model", "what-if-we-add-idp", "wl-sso-multitenancy-mcp",
+        "apigee-implementation", "compliance-framework-mapping"
+      ]
+    },
+    "wing_cls_platform": {
+      "type": "domain",
+      "description": "Early-adopter onboarding, feedback loop, admin, tester-first, Slack, SLO, DORA",
+      "keywords": [
+        "early-adopter", "onboarding", "feedback", "admin-role", "admin_role",
+        "tester-first", "demo", "learning", "gamification", "slack", "slo", "dora",
+        "early-adopter-onboarding", "platform-feedback-loop", "platform-admin-role",
+        "tester-first-ui", "demo-learning-mode", "resilience-gamification",
+        "resilience-learning", "slack-integration", "slo-import", "dora-eu-indicators"
+      ]
+    },
+    "wing_cls_resilience": {
+      "type": "domain",
+      "description": "Resilience maturity, score methodology, complexity, ontology, experiments, scenarios",
+      "keywords": [
+        "resilience", "maturity", "score", "complexity", "ontology", "scenario",
+        "experiment", "library", "steadystate", "recommend", "action-probe",
+        "resilience-maturity-report", "score-methodology-ui", "complexity-score-v2",
+        "resilience-ontology", "resilience-as-code-manifesto",
+        "scenario-builder-canvas", "experiment-library-isolation",
+        "experiment-plans", "experiment-project-scope",
+        "experiment-recommendations", "experiment-steadystate-enrichment",
+        "action-probe-generator", "incident-intelligence", "incident-taxonomy-mapping",
+        "run-probe-results"
+      ]
+    },
+    "wing_cls_infra": {
+      "type": "domain",
+      "description": "Database, observability infra, pre-production hardening, metrics, pipelines",
+      "keywords": [
+        "postgres", "pgbouncer", "observability", "pre-production", "hardening",
+        "compute", "metric", "typed", "session-metric", "quality-lake",
+        "run-probe", "run-experiment", "guardrail", "pipeline", "target",
+        "postgres-refactor-schemas", "pgbouncer-connection-pooling",
+        "observability-infrastructure", "platform-observability",
+        "pre-production-hardening", "chaostooling-quality-lake",
+        "analytics-scale-with-duckdb", "typed-metric-tables-compliance-views",
+        "session-metrics-during-values", "quality-context-signals",
+        "run-experiment-guardrails", "target-registry-secrets",
+        "remote_compute_stress", "cloud-provider-extensions",
+        "kubernetes-extension", "app-extension-build",
+        "extension-gap-fill", "extension-metadata-enrichment",
+        "experiment-metadata-enrichment",
+        "artifactory-pipeline-fix", "alerting-integration",
+        "company-programme-schedule", "early-adopter-onboarding",
+        "pgbouncer-connection-pooling"
+      ]
+    },
+    "wing_ai_dev": {
+      "type": "meta",
+      "description": "AI development setup, hooks, skills, agents, session diary",
+      "keywords": [
+        "memory", "CLAUDE", "hook", "skill", "agent", "setup", "ai_local",
+        "ai_dev", "openspec", "session", "diary"
+      ]
+    }
+  }
+}

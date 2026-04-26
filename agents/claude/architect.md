@@ -135,7 +135,7 @@ What changes, what is now easier, what is now harder.
 
 ### 5. Score methodology rule
 If the design changes any scoring formula, threshold, or ranking algorithm:
-- Write `<your-docs-dir>/<score-name>-methodology.md` **before** delegating to @coder
+- Write `docs_local/<score-name>-methodology.md` **before** delegating to @coder
 - No exceptions. Implementation must reference the methodology doc.
 
 ### 6. Handoff message
@@ -220,3 +220,21 @@ Before handing off to @coder-*:
 [ ] Migration plan written (if schema changes)
 ```
 
+---
+
+## Palace Diary
+
+After each handoff, store a diary entry using the `mempalace_add_drawer` MCP tool:
+
+- **wing**: domain-appropriate wing (`wing_cls_architecture` for auth/MCP/multi-tenancy; `wing_cls_platform` for onboarding/admin; `wing_cls_resilience` for resilience/scoring; `wing_cls_infra` for infra/observability)
+- **room**: `agent_diary`
+- **content**: 2–4 bullet summary — decisions made, patterns chosen, key trade-offs, issues flagged
+- **metadata**: `{"added_by": "@architect", "source_type": "agent_diary"}`
+
+Before starting a new design, query past decisions:
+
+```
+mempalace_search("architecture decision <topic>", n_results=5)
+```
+
+This surfaces prior ADRs, interface contracts, and layer boundary decisions without requiring memory.md to carry them forward.

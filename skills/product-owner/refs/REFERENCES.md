@@ -34,6 +34,6 @@
 - Risk management in Agile: https://www.pmi.org/learning/library/risk-management-agile-projects-9303
 
 ## Chaos Tooling Project (Internal)
-- Jira project <PROJ>: https://<your-jira-host>/projects/<PROJ>
-- Epic <PROJ>-123 (<your-project>): https://<your-jira-host>/browse/<PROJ>-123
-- Epic <PROJ>-123 (cap-backbone): https://<your-jira-host>/browse/<PROJ>-123
+- Jira project CLS: https://<your-jira-server>/projects/CLS
+- Epic CLS-23 (cap-resilience): https://<your-jira-server>/browse/CLS-23
+- Epic CLS-20 (cap-backbone): https://<your-jira-server>/browse/CLS-20

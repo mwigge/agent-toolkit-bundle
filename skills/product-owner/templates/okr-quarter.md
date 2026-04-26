@@ -37,8 +37,8 @@ A team consistently scoring < 0.4 needs to review capacity or target calibration
 | KR1.3 | [Measurable outcome] | [Unit] | [Current value] | [Target by EOQ] | | 0.0 |
 
 **Initiatives** (work that drives these KRs):
-- [<PROJ>-N] [Brief description]
-- [<PROJ>-N] [Brief description]
+- [CLS-N] [Brief description]
+- [CLS-N] [Brief description]
 
 **Confidence**: [High / Medium / Low] — [one sentence rationale]
 
@@ -62,8 +62,8 @@ A team consistently scoring < 0.4 needs to review capacity or target calibration
 | KR2.4 | [Measurable outcome] | [Unit] | [Current value] | [Target by EOQ] | | 0.0 |
 
 **Initiatives**:
-- [<PROJ>-N] [Brief description]
-- [<PROJ>-N] [Brief description]
+- [CLS-N] [Brief description]
+- [CLS-N] [Brief description]
 
 **Confidence**: [High / Medium / Low] — [rationale]
 
@@ -86,7 +86,7 @@ A team consistently scoring < 0.4 needs to review capacity or target calibration
 | KR3.3 | [Measurable outcome] | [Unit] | [Current value] | [Target by EOQ] | | 0.0 |
 
 **Initiatives**:
-- [<PROJ>-N] [Brief description]
+- [CLS-N] [Brief description]
 
 **Confidence**: [High / Medium / Low] — [rationale]
 

@@ -35,6 +35,7 @@ function createMilliseconds(n: number): Milliseconds {
 // This would be a type error — cannot mix UserId and ExperimentId:
 // const id: ExperimentId = "user-123" as UserId; // ✗
 
+
 // ---------------------------------------------------------------------------
 // 2. Discriminated Unions — exhaustive pattern matching
 // ---------------------------------------------------------------------------
@@ -68,6 +69,7 @@ function describeStatus(status: ExperimentStatus): string {
   }
 }
 
+
 // ---------------------------------------------------------------------------
 // 3. Conditional Types + `infer`
 // ---------------------------------------------------------------------------
@@ -96,6 +98,7 @@ type ReadonlyExperiment = DeepReadonly<{
   config: { timeout: number; targets: string[] };
 }>;
 
+
 // ---------------------------------------------------------------------------
 // 4. Template Literal Types
 // ---------------------------------------------------------------------------
@@ -117,6 +120,7 @@ function emitMetric(key: MetricKey, value: number): void {
   console.log(`metric: ${key}=${value}`);
 }
 
+
 // ---------------------------------------------------------------------------
 // 5. `satisfies` operator — validate shape without widening
 // ---------------------------------------------------------------------------
@@ -135,6 +139,7 @@ const defaultConfig = {
 } satisfies Config;
 
 // defaultConfig.timeoutMs is still `number`, not widened to `Config["timeoutMs"]`
+
 
 // ---------------------------------------------------------------------------
 // 6. `const` Assertions
@@ -156,6 +161,7 @@ function compareSeverity(a: Severity, b: Severity): number {
   return SEVERITY_LEVELS[a] - SEVERITY_LEVELS[b];
 }
 
+
 // ---------------------------------------------------------------------------
 // 7. Utility type composition
 // ---------------------------------------------------------------------------
@@ -176,6 +182,7 @@ type ApiResponse<T> =
 function isSuccess<T>(response: ApiResponse<T>): response is { ok: true; data: T } {
   return response.ok;
 }
+
 
 // ---------------------------------------------------------------------------
 // Usage

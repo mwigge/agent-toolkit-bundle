@@ -19,6 +19,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+
 def slugify(text: str) -> str:
     """Convert a title to a URL-safe slug."""
     text = text.lower()
@@ -27,11 +28,13 @@ def slugify(text: str) -> str:
     text = re.sub(r"-+", "-", text)
     return text.strip("-")
 
+
 def validate_sev(value: str) -> str:
     upper = value.upper()
     if upper not in {"SEV1", "SEV2", "SEV3", "SEV4"}:
         raise argparse.ArgumentTypeError(f"Invalid severity: {value}. Must be SEV1, SEV2, SEV3, or SEV4.")
     return upper
+
 
 def validate_date(value: str) -> str:
     try:
@@ -39,6 +42,7 @@ def validate_date(value: str) -> str:
         return value
     except ValueError:
         raise argparse.ArgumentTypeError(f"Invalid date: {value}. Expected format: YYYY-MM-DD")
+
 
 def pir_deadline(sev: str, incident_date: str) -> str:
     dt = datetime.strptime(incident_date, "%Y-%m-%d")
@@ -52,6 +56,7 @@ def pir_deadline(sev: str, incident_date: str) -> str:
         return f"{deadline.strftime('%Y-%m-%d')} (1-week SLA for {sev})"
     else:
         return "No mandatory deadline — schedule at team discretion"
+
 
 def render_pir(title: str, sev: str, date: str) -> str:
     slug = slugify(title)
@@ -196,8 +201,9 @@ All action items must have an owner and a due date. No ownerless action items.
 - Incident Slack channel: [link]
 - Dashboard at time of incident: [link]
 - Deployment that preceded incident: [link]
-- Related Jira tickets: [<PROJ>-XXX]
+- Related Jira tickets: [CLS-XXX]
 """
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -223,6 +229,7 @@ def main() -> None:
     output_path.write_text(content, encoding="utf-8")
     print(f"Created: {output_path}")
     print(f"PIR due: {pir_deadline(args.sev, args.date)}")
+
 
 if __name__ == "__main__":
     main()

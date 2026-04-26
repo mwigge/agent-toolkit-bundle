@@ -4,7 +4,7 @@
 **Author**: [@author]
 **Reviewer**: [@reviewer]
 **Date**: [YYYY-MM-DD]
-**Jira**: [<PROJ>-NNN]
+**Jira**: [CLS-NNN]
 
 ---
 
@@ -12,7 +12,7 @@
 
 Before starting a detailed review, confirm:
 
-- [ ] MR description references a Jira ticket (`Closes <PROJ>-NNN` or `Relates to <PROJ>-NNN`)
+- [ ] MR description references a Jira ticket (`Closes CLS-NNN` or `Relates to CLS-NNN`)
 - [ ] CI pipeline is green (do not review a red MR without a good reason)
 - [ ] Commit titles follow Conventional Commits format
 - [ ] No AI attribution in commit messages (`Co-authored-by: Claude` etc.)
@@ -82,7 +82,7 @@ If any pre-review check fails, ask the author to fix it before proceeding.
 - [ ] Complex algorithms have a comment explaining the approach
 - [ ] No magic numbers or magic strings — named constants used
 - [ ] No commented-out code committed
-- [ ] TODOs reference a Jira ticket: `# TODO: <PROJ>-NNN — description`
+- [ ] TODOs reference a Jira ticket: `# TODO: CLS-NNN — description`
 - [ ] Test coverage meets threshold: ≥95% Python / ≥80% TypeScript on changed files
 - [ ] Test names describe the scenario (`test_payment_fails_when_card_expired`)
 - [ ] Tests assert behaviour, not implementation details

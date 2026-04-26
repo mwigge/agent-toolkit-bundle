@@ -16,6 +16,7 @@ from my_service.infra.otel import configure_otel
 from my_service.store.postgres import PostgresExperimentStore
 from my_service.service.experiments import ExperimentService
 
+
 def configure_logging() -> None:
     structlog.configure(
         processors=[
@@ -27,12 +28,14 @@ def configure_logging() -> None:
         wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
     )
 
+
 def get_required_env(name: str) -> str:
     value = os.environ.get(name)
     if not value:
         print(f"FATAL: required env var {name!r} is not set", file=sys.stderr)  # noqa: T201
         sys.exit(1)
     return value
+
 
 async def main() -> None:
     configure_logging()
@@ -52,6 +55,7 @@ async def main() -> None:
 
     log.info("service.started", service=config.service_name)
     # ... start server / worker
+
 
 if __name__ == "__main__":
     import asyncio

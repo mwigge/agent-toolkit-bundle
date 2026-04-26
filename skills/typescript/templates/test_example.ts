@@ -53,6 +53,7 @@ function computeScore(results: ExperimentResult[]): number {
   return Math.round((passed / results.length) * 100);
 }
 
+
 // ---------------------------------------------------------------------------
 // 1. Basic describe/it/expect
 // ---------------------------------------------------------------------------
@@ -85,6 +86,7 @@ describe("computeScore", () => {
     expect(computeScore(results)).toBe(0);
   });
 });
+
 
 // ---------------------------------------------------------------------------
 // 2. beforeEach + vi.spyOn + async
@@ -135,6 +137,7 @@ describe("ExperimentService", () => {
   });
 });
 
+
 // ---------------------------------------------------------------------------
 // 3. vi.mock — module-level mock
 // ---------------------------------------------------------------------------
@@ -149,6 +152,7 @@ describe("vi.mock example", () => {
     expect(randomUUID()).toBe("mocked-uuid-1234");
   });
 });
+
 
 // ---------------------------------------------------------------------------
 // 4. MSW v2 HTTP mocking
@@ -204,6 +208,7 @@ describe.skipIf(!mswAvailable)("HTTP integration with MSW", () => {
     expect(body.name).toBe("network-latency");
   });
 });
+
 
 // ---------------------------------------------------------------------------
 // 5. Snapshot testing

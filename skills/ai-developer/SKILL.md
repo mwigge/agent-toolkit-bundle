@@ -1,8 +1,3 @@
----
-name: ai-developer
-description: LLM integration patterns: Anthropic and OpenAI APIs, RAG pipelines, MCP server development, prompt engineering, and evaluation frameworks. Use when building AI-powered features or designing agentic workflows.
----
-
 # Skill: AI Developer
 
 **Version**: 1.0.0 | **Updated**: 2026-04-05
@@ -882,3 +877,373 @@ def generate_with_fallback(prompt: str) -> str:
 - **API key storage**: use `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` env vars; store in Vault or cloud secrets manager for production
 - **Rate limiting**: implement client-side exponential backoff on 429 responses; use jitter to avoid thundering herd
 - **Input length limits**: reject inputs exceeding your configured `max_input_tokens` before sending to the API — fail fast and cheaply
+
+---
+
+## Task Queue MCP Server (`task_queue.py`)
+
+A persistent task queue and agent broadcast bus, exposed as an MCP server over stdio transport.
+Lives at `~/.claude/skills/ai-developer/scripts/task_queue.py` and is registered globally in
+`~/.claude/settings.json` as the `task-queue` MCP server.
+
+### Registration (`~/.claude/settings.json`)
+
+```json
+"mcpServers": {
+  "task-queue": {
+    "command": "/Users/<you>/.pyenv/versions/3.12.13/bin/python3",
+    "args": ["/Users/<you>/.claude/skills/ai-developer/scripts/task_queue.py"]
+  }
+}
+```
+
+No extra packages required for SQLite mode. For PostgreSQL mode, install `psycopg2-binary`.
+
+### Environment Variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `TASK_QUEUE_DB` | `~/.agent_task_queue.db` | SQLite file path |
+| `DATABASE_URL` | *(unset)* | If set, switches backend to PostgreSQL (`postgresql://user@host:port/db`) |
+
+### Task State Machine
+
+```
+        task_post
+            │
+            ▼
+         pending
+            │  task_claim(agent_name)
+            ▼
+         claimed
+            │  task_update(status="in_progress")
+            ▼
+        in_progress ──── task_update(status="failed") ──► failed
+            │
+            │  task_complete(result={...})
+            ▼
+           done
+```
+
+Any state can transition to `failed` via `task_update(status="failed")`.
+
+### Tools Reference
+
+#### Task Lifecycle
+
+| Tool | Transition | Required params |
+|------|-----------|-----------------|
+| `task_post` | → `pending` | `title` |
+| `task_claim` | `pending` → `claimed` | `task_id`, `agent_name` |
+| `task_update` | `claimed` → `in_progress` **or** any → `failed` | `task_id`, `status` |
+| `task_complete` | `in_progress` → `done` | `task_id` |
+| `task_result` | read-only | `task_id` |
+| `task_list` | read-only | *(all optional)* |
+
+#### Agent Messaging
+
+| Tool | Purpose | Required params |
+|------|---------|-----------------|
+| `agent_broadcast` | Post a message to a channel (default TTL 3600 s) | `from_agent`, `message` |
+| `agent_inbox` | Read non-expired messages, newest first | `agent_name` |
+
+### Usage Examples
+
+**Create and work a task (orchestrator → subagent pattern)**:
+
+```python
+# Orchestrator posts a task
+task = task_post(title="Build auth module", description="JWT-based auth for the API", wing="myproject")
+task_id = task["id"]
+
+# Subagent claims it
+task_claim(task_id=task_id, agent_name="coder-python")
+
+# Subagent starts work
+task_update(task_id=task_id, status="in_progress", note="Starting TDD cycle")
+
+# Subagent finishes
+task_complete(task_id=task_id, result={"files_changed": ["src/auth.py"], "tests_pass": True})
+```
+
+**List all in-progress tasks for a specific agent**:
+
+```python
+tasks = task_list(status="in_progress", assigned_to="coder-python")
+```
+
+**Agent-to-agent broadcast**:
+
+```python
+# Sender
+agent_broadcast(from_agent="opsx", message="Deploy gate open — proceed", channel="deploy", ttl_seconds=300)
+
+# Receiver
+messages = agent_inbox(agent_name="coder-rust", channel="deploy")
+```
+
+### Schema (SQLite / PostgreSQL)
+
+```sql
+-- Tasks table
+CREATE TABLE tasks (
+    id          TEXT PRIMARY KEY,        -- UUID
+    title       TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    status      TEXT NOT NULL DEFAULT 'pending',  -- pending|claimed|in_progress|done|failed
+    assigned_to TEXT,                    -- agent name
+    wing        TEXT,                    -- optional namespace/domain label
+    created_at  TEXT NOT NULL,           -- ISO 8601 UTC
+    updated_at  TEXT NOT NULL,
+    result      TEXT,                    -- JSON blob stored when done
+    metadata    TEXT                     -- arbitrary JSON
+);
+
+-- Broadcasts table
+CREATE TABLE broadcasts (
+    id          TEXT PRIMARY KEY,
+    from_agent  TEXT NOT NULL,
+    message     TEXT NOT NULL,
+    channel     TEXT NOT NULL DEFAULT '',
+    created_at  TEXT NOT NULL,
+    expires_at  TEXT                     -- ISO 8601 UTC; NULL = never expires
+);
+```
+
+### Reinstall Checklist
+
+If `task-queue` tools are missing from the tool list after a reinstall:
+
+1. Confirm the script exists: `ls ~/.claude/skills/ai-developer/scripts/task_queue.py`
+2. Confirm registration in `~/.claude/settings.json` under `"mcpServers"` → `"task-queue"`
+3. Restart Claude / OpenCode to reload MCP servers
+4. Verify by calling `task_list()` — an empty array `[]` is a healthy response
+5. The SQLite DB is at `~/.agent_task_queue.db` by default — delete it to reset state
+
+---
+
+## Pattern C — Tiered Agent Architecture (opsx → OpenHands → MemPalace)
+
+Pattern C is the production delegation model for autonomous coding work. The orchestrator
+(opsx / Claude) posts a task to the queue; OpenHands executes it in a full sandboxed
+environment; results flow back via the task queue and persist in MemPalace.
+
+### Architecture
+
+```
+YOU
+ │  natural language
+ ▼
+opsx (Claude / OpenCode)              tier 1 — orchestrator
+ │
+ │  1. task_post(title, description, wing)
+ │  2. delegate_to_openhands.sh --task-id <uuid>
+ ▼
+task_queue.db  ←──────────────────────── shared bus (SQLite, persists forever)
+ │
+ │  openhands_bridge.py claims task, marks in_progress
+ ▼
+OpenHands (http://localhost:3000)     tier 2 — executor
+ │  CodeActAgent + devstral:24b
+ │  full sandbox: bash, git, browser, test runner
+ │
+ │  on finish:
+ ├── task_complete(result)            → opsx can read via task_result()
+ └── mempalace_add_drawer(...)        → session knowledge persists
+      wing=openhands, room=sessions
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `~/dev/src/local/openhands/bridge/openhands_bridge.py` | Bridge: submit task → OpenHands, poll, complete |
+| `~/.config/opencode/scripts/delegate_to_openhands.sh` | opsx calls this to hand off a task |
+| `~/dev/src/local/openhands/docker-compose.yaml` | OpenHands container config |
+| `~/.agent_task_queue.db` | Shared task bus (same DB as task_queue MCP) |
+
+### How opsx Delegates (the standard pattern)
+
+```python
+# 1. Post the task
+task = task_post(
+    title="Add rate limiting to the auth API",
+    description="...",   # full spec goes here
+    wing="myproject",
+    metadata={"repo": "/opt/workspace/myrepo", "branch": "feat/rate-limit"}
+)
+
+# 2. Hand off to OpenHands (blocking — waits for completion)
+# Run via Bash tool:
+# bash ~/.config/opencode/scripts/delegate_to_openhands.sh --task-id <task["id"]>
+
+# 3. Read the result (after delegate returns)
+result = task_result(task_id=task["id"])
+# result["status"] == "done"
+# result["result"]["conversation_url"] → OpenHands UI link
+
+# 4. Query what was built in MemPalace
+# mempalace_search("rate limiting auth API myproject")
+```
+
+### OpenHands Bridge CLI
+
+```bash
+# Submit a pending task and block until done
+python ~/dev/src/local/openhands/bridge/openhands_bridge.py submit <task_id>
+
+# List pending/claimed tasks
+python ~/dev/src/local/openhands/bridge/openhands_bridge.py list
+
+# Poll a running conversation (manual recovery)
+python ~/dev/src/local/openhands/bridge/openhands_bridge.py poll <conversation_id> [task_id]
+```
+
+### Pointing OpenHands at a Repo
+
+Edit `~/dev/src/local/openhands/.env`:
+```
+WORKSPACE_HOST=${HOME}/dev/src/pprojects/myrepo
+```
+Then restart: `docker-compose -f ~/dev/src/local/openhands/docker-compose.yaml restart`
+
+The repo will be mounted at `/opt/workspace` inside the sandbox — OpenHands can read,
+edit, test, and commit to it directly.
+
+### MemPalace Query Patterns
+
+```
+# Find all sessions for a project
+mempalace_search("openhands session myproject")
+
+# Find what built a specific feature
+mempalace_search("rate limiting openhands")
+
+# Find failed sessions
+mempalace_search("STATUS: ERROR openhands")
+```
+
+Sessions are stored in wing=`openhands`, room=`sessions`.
+Architecture docs are in wing=`openhands`, room=`architecture`.
+
+### Environment Variables (bridge)
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `OPENHANDS_URL` | `http://localhost:3000` | OpenHands REST API |
+| `TASK_QUEUE_DB` | `~/.agent_task_queue.db` | Shared task bus |
+| `MEMPALACE_URL` | `http://localhost:8765` | MemPalace HTTP API |
+| `OPENHANDS_LLM_MODEL` | `ollama/devstral:24b` | LLM passed to OpenHands |
+| `OPENHANDS_LLM_URL` | `http://localhost:11434` | LLM base URL |
+| `OPENHANDS_LLM_KEY` | `ollama` | LLM API key |
+
+---
+
+## Pattern C — Tiered Agent Architecture (opsx → OpenHands → MemPalace)
+
+Pattern C is the production delegation model for autonomous coding work. The orchestrator
+(opsx / Claude) posts a task to the queue; OpenHands executes it in a full sandboxed
+environment; results flow back via the task queue and persist in MemPalace.
+
+### Architecture
+
+```
+YOU
+ │  natural language
+ ▼
+opsx (Claude / OpenCode)              tier 1 — orchestrator
+ │
+ │  1. task_post(title, description, wing)
+ │  2. delegate_to_openhands.sh --task-id <uuid>
+ ▼
+task_queue.db  ←──────────────────── shared bus (SQLite, persists forever)
+ │
+ │  openhands_bridge.py claims task, marks in_progress
+ ▼
+OpenHands (http://localhost:3000)     tier 2 — executor
+ │  CodeActAgent + devstral:24b
+ │  full sandbox: bash, git, browser, test runner
+ │
+ │  on finish:
+ ├── task_complete(result)            → opsx reads via task_result()
+ └── mempalace_add_drawer(...)        → session knowledge persists
+      wing=openhands, room=sessions
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `~/dev/src/local/openhands/bridge/openhands_bridge.py` | Bridge: submit → OpenHands, poll, complete |
+| `~/.config/opencode/scripts/delegate_to_openhands.sh` | opsx calls this to hand off a task |
+| `~/dev/src/local/openhands/docker-compose.yaml` | OpenHands container config |
+| `~/.agent_task_queue.db` | Shared task bus (same DB as task_queue MCP) |
+
+### How opsx Delegates (the standard pattern)
+
+```python
+# 1. Post the task
+task = task_post(
+    title="Add rate limiting to the auth API",
+    description="...",   # full spec goes here
+    wing="myproject",
+    metadata={"repo": "/opt/workspace/myrepo", "branch": "feat/rate-limit"}
+)
+
+# 2. Hand off to OpenHands — run via Bash tool:
+#    bash ~/.config/opencode/scripts/delegate_to_openhands.sh --task-id <task["id"]>
+
+# 3. Read the result after delegate returns
+result = task_result(task_id=task["id"])
+# result["status"] == "done"
+# result["result"]["conversation_url"] → OpenHands UI link
+
+# 4. Query what was built
+#    mempalace_search("rate limiting auth API myproject")
+```
+
+### OpenHands Bridge CLI
+
+```bash
+# Submit a pending task and block until done
+python ~/dev/src/local/openhands/bridge/openhands_bridge.py submit <task_id>
+
+# List pending/claimed tasks
+python ~/dev/src/local/openhands/bridge/openhands_bridge.py list
+
+# Poll a running conversation (manual recovery)
+python ~/dev/src/local/openhands/bridge/openhands_bridge.py poll <conversation_id> [task_id]
+```
+
+### Pointing OpenHands at a Repo
+
+Edit `~/dev/src/local/openhands/.env`:
+```
+WORKSPACE_HOST=${HOME}/dev/src/pprojects/myrepo
+```
+Restart: `docker-compose -f ~/dev/src/local/openhands/docker-compose.yaml restart`
+
+The repo is mounted at `/opt/workspace` inside the sandbox — OpenHands can read,
+edit, test, and commit directly.
+
+### MemPalace Query Patterns
+
+Sessions are stored in wing=`openhands`, room=`sessions`.
+Architecture docs are in wing=`openhands`, room=`architecture`.
+
+```
+mempalace_search("openhands session myproject")  # all sessions for a project
+mempalace_search("STATUS: ERROR openhands")       # failed sessions
+mempalace_search("TASK_ID:<uuid>")                # specific task session
+```
+
+### Environment Variables (bridge)
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `OPENHANDS_URL` | `http://localhost:3000` | OpenHands REST API |
+| `TASK_QUEUE_DB` | `~/.agent_task_queue.db` | Shared task bus |
+| `MEMPALACE_URL` | `http://localhost:8765` | MemPalace HTTP API |
+| `OPENHANDS_LLM_MODEL` | `ollama/devstral:24b` | LLM for OpenHands |
+| `OPENHANDS_LLM_URL` | `http://localhost:11434` | LLM base URL |
+| `OPENHANDS_LLM_KEY` | `ollama` | LLM API key |

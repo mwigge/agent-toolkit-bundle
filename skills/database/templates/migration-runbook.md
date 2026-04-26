@@ -2,7 +2,7 @@
 
 **Date**: YYYY-MM-DD
 **Author**: [NAME]
-**Ticket**: <PROJ>-[N]
+**Ticket**: CLS-[N]
 **Engine**: PostgreSQL / MySQL / SQLite
 
 ---

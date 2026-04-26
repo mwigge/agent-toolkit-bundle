@@ -48,7 +48,7 @@ pdm config -d <key>                 # delete/unset
 name = "artifactory"
 url = "https://artifactory.example.com/artifactory/api/pypi/pypi-local/simple"
 verify_ssl = true
-include_packages = ["<your-project>", "myorg-*"]
+include_packages = ["chaostooling-*", "myorg-*"]
 
 [[tool.pdm.source]]
 name = "pypi"
@@ -105,7 +105,7 @@ PDM_IGNORE_STORED_INDEX=true pdm install
 [[tool.pdm.source]]
 name = "artifactory"
 url = "..."
-include_packages = ["<your-project>", "myorg-*"]
+include_packages = ["chaostooling-*", "myorg-*"]
 exclude_packages = ["requests"]
 ```
 
@@ -114,24 +114,24 @@ exclude_packages = ["requests"]
 1. **`include_packages` is EXCLUSIVE**: when a package name matches, it is fetched **only** from this source. It will NOT fall back to other sources if not found here.
 2. **`exclude_packages`**: the source is never considered for matching packages, even if they would otherwise be eligible.
 3. **Glob patterns**, not regex. Case-insensitive.
-4. **`<your-project>` does NOT match `<your-project>`** (no suffix). To match both: `["<your-project>", "<your-project>"]`.
+4. **`chaostooling-*` does NOT match `chaostooling`** (no suffix). To match both: `["chaostooling", "chaostooling-*"]`.
 
 ### Common pitfall: glob too broad or too narrow
 
 ```toml
-# Matches <your-project>, <your-project>, etc. — NOT plain "<your-project>"
-include_packages = ["<your-project>"]
+# Matches chaostooling-generic, chaostooling-otel, etc. — NOT plain "chaostooling"
+include_packages = ["chaostooling-*"]
 
-# Matches ONLY <your-project> — nothing else from Artifactory
-include_packages = ["<your-project>"]
+# Matches ONLY chaostooling-generic — nothing else from Artifactory
+include_packages = ["chaostooling-generic"]
 
 # Matches both the base package AND all sub-packages
-include_packages = ["<your-project>", "<your-project>"]
+include_packages = ["chaostooling", "chaostooling-*"]
 ```
 
-### Why `<your-project>` breaks CI (the red build problem)
+### Why `chaostooling-*` breaks CI (the red build problem)
 
-If the Artifactory index only contains `<your-project>` (not other `<your-project>` packages), using `<your-project>` may cause PDM to try resolving other transitive deps from Artifactory where they don't exist, or bind packages to Artifactory that belong on PyPI. Using the exact name `<your-project>` scopes the binding precisely.
+If the Artifactory index only contains `chaostooling-generic` (not other `chaostooling-*` packages), using `chaostooling-*` may cause PDM to try resolving other transitive deps from Artifactory where they don't exist, or bind packages to Artifactory that belong on PyPI. Using the exact name `chaostooling-generic` scopes the binding precisely.
 
 ### Belt-and-suspenders pattern (include + respect-source-order)
 
@@ -142,7 +142,7 @@ respect-source-order = true
 [[tool.pdm.source]]
 name = "artifactory"
 url = "https://..."
-include_packages = ["<your-project>"]
+include_packages = ["chaostooling-generic"]
 
 [[tool.pdm.source]]
 name = "pypi"
@@ -287,8 +287,8 @@ pdm install --no-self                # skip installing the project package itsel
   before_script:
     - pip install -U pdm
     - pdm config pypi.url $PIP_INDEX_URL
-    - pdm config pypi.artifactory.url $PIP_<your-project>
-    - pdm config pypi.artifactory.include_packages "<your-project>"
+    - pdm config pypi.artifactory.url $PIP_CHAOSTOOLING_URL
+    - pdm config pypi.artifactory.include_packages "chaostooling-generic"
 
 test:
   <<: *pdm_setup
@@ -329,8 +329,8 @@ lock-update:
   before_script:
     - pip install -U pdm
     - pdm config pypi.url https://pypi.org/simple
-    - pdm config pypi.artifactory.url $PIP_<your-project>
-    - pdm config pypi.artifactory.include_packages "<your-project>"
+    - pdm config pypi.artifactory.url $PIP_CHAOSTOOLING_URL
+    - pdm config pypi.artifactory.include_packages "chaostooling-generic"
   script:
     - pdm lock --static-urls
     - git add pdm.lock && git diff --cached --quiet || git commit -m "chore: regenerate pdm.lock"
@@ -370,7 +370,7 @@ excludes = ["requests"]
 
 ## Common Pitfalls Checklist
 
-1. **`<your-project>` glob does not match `<your-project>`** — add both if needed.
+1. **`chaostooling-*` glob does not match `chaostooling`** — add both if needed.
 2. **`include_packages` is exclusive** — if Artifactory doesn't have the package, install fails; no fallback.
 3. **User-level indexes bleed into CI** — always set `PDM_IGNORE_STORED_INDEX=true` in CI.
 4. **Named sources have no `PDM_PYPI_<NAME>_*` env vars** — use URL embedding or `pdm config`.
@@ -379,4 +379,4 @@ excludes = ["requests"]
 7. **`respect-source-order` can cause version downgrades** — enabling mid-project may switch resolution winner.
 8. **Editable installs only in `dev` group** — `pdm add -e` outside dev raises `PdmUsageError`.
 9. **`pdm lock` on CI via Artifactory may fail** for packages Artifactory cannot proxy — use `pypi.org` for lock generation, Artifactory only for install.
-10. **`include_packages` with too-broad glob (`<your-project>`)** — binds ALL `<your-project>` packages exclusively to Artifactory; use the exact package name to scope precisely.
+10. **`include_packages` with too-broad glob (`chaostooling-*`)** — binds ALL `chaostooling-*` packages exclusively to Artifactory; use the exact package name to scope precisely.

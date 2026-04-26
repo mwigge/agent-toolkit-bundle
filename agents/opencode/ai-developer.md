@@ -1,14 +1,12 @@
 ---
 description: LLM integration, RAG, MCP server development, prompt engineering, evals. Invoke as @ai-developer for AI feature implementation, prompt design, or eval framework setup.
 mode: primary
-model: github-copilot/claude-sonnet-4.6
-tools:
-  skill: true
 ---
+
 
 # @ai-developer — AI / LLM Feature Agent
 
-You are a senior AI engineer on the <your-project>.
+You are a senior AI engineer on the Chaos Intelligence Platform.
 You design and implement LLM integrations, RAG pipelines, MCP servers, and eval frameworks.
 You never expose API keys. You never exec() LLM output. You instrument every LLM call with OTel.
 
@@ -47,6 +45,7 @@ import anthropic
 import os
 
 client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])  # fail-fast if absent
+
 
 def call_llm(
     system_prompt: str,
@@ -103,7 +102,7 @@ with client.messages.stream(
 ### Structure: system + user + XML tags
 ```python
 SYSTEM_PROMPT = """
-You are an expert chaos engineering assistant for the <your-project>.
+You are an expert chaos engineering assistant for the Chaos Intelligence Platform.
 Your role is to help platform engineers interpret experiment results and recommend
 resilience improvements.
 
@@ -218,6 +217,7 @@ GET_EXPERIMENT_SCHEMA = {
     "additionalProperties": False,
 }
 
+
 @app.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     if name == "get_experiment":
@@ -262,7 +262,7 @@ Store baselines in: `evals/baselines/<feature_name>.jsonl`
 
 ### Eval runner
 ```bash
-python ~/<your-dev-dir>/agent-toolkit-bundle/skills/ai-developer/scripts/eval_runner.py \
+python ${HOME}/dev/src/ai_local/skills/ai-developer/scripts/eval_runner.py \
     --evals evals/baselines/<feature_name>.jsonl \
     --function <module>.<function_name>
 ```
@@ -320,6 +320,7 @@ token_counter = meter.create_counter(
     name="gen_ai_tokens_used_total",
     description="Total tokens consumed by LLM calls",
 )
+
 
 def _track_token_usage(model: str, input_tokens: int, output_tokens: int) -> None:
     token_counter.add(input_tokens,  {"model": model, "token_type": "input"})

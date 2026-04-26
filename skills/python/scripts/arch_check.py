@@ -24,6 +24,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
+
 REQUIRED_LAYERS = ["domain", "application", "infrastructure", "interfaces"]
 
 # (source_layer, forbidden_target_layer, severity)
@@ -35,6 +36,7 @@ DEPENDENCY_RULES: list[tuple[str, str, str]] = [
     ("application", "interfaces", "ERROR"),
 ]
 
+
 @dataclass
 class Violation:
     path: str
@@ -44,6 +46,7 @@ class Violation:
 
     def __str__(self) -> str:
         return f"[{self.severity}] {self.path}:{self.line}: {self.message}"
+
 
 def get_imports(source: str, filepath: str) -> list[tuple[int, str]]:
     """Return list of (lineno, module_name) for all import statements."""
@@ -61,6 +64,7 @@ def get_imports(source: str, filepath: str) -> list[tuple[int, str]]:
             if node.module:
                 imports.append((node.lineno, node.module))
     return imports
+
 
 def check_layer_boundaries(src_dir: Path) -> list[Violation]:
     violations: list[Violation] = []
@@ -96,6 +100,7 @@ def check_layer_boundaries(src_dir: Path) -> list[Violation]:
 
     return violations
 
+
 def check_layer_structure(src_dir: Path) -> list[Violation]:
     violations: list[Violation] = []
     for layer in REQUIRED_LAYERS:
@@ -119,6 +124,7 @@ def check_layer_structure(src_dir: Path) -> list[Violation]:
                 )
             )
     return violations
+
 
 def main() -> int:
     src_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("src")
@@ -164,6 +170,7 @@ def main() -> int:
 
     print(f"\n{len(errors)} error(s), {len(warns)} warning(s) found.")
     return 1 if errors else 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

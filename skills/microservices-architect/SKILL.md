@@ -68,6 +68,7 @@ Use for:
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
 
+
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_exponential(multiplier=1, min=0.5, max=10),
@@ -92,6 +93,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import uuid
 
+
 @dataclass(frozen=True)
 class DomainEvent:
     event_type: str
@@ -102,6 +104,7 @@ class DomainEvent:
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
     version: int = 1
+
 
 # Example events
 ExperimentCreated = lambda exp_id, name: DomainEvent(
@@ -146,6 +149,7 @@ ExperimentCompleted = lambda exp_id, result: DomainEvent(
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
+
 @dataclass
 class ServiceInstance:
     service_name: str
@@ -175,12 +179,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Callable, Awaitable
 
+
 class StepStatus(str, Enum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
     COMPENSATED = "compensated"
+
 
 @dataclass
 class SagaStep:
@@ -189,6 +195,7 @@ class SagaStep:
     compensation: Callable[..., Awaitable[None]]
     status: StepStatus = StepStatus.PENDING
     result: dict | None = None
+
 
 @dataclass
 class Saga:
@@ -242,9 +249,11 @@ On failure at any step:
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+
 # Command side — writes
 class Command(ABC):
     pass
+
 
 @dataclass
 class CreateExperiment(Command):
@@ -252,18 +261,22 @@ class CreateExperiment(Command):
     target_service: str
     fault_type: str
 
+
 class CommandHandler(ABC):
     @abstractmethod
     async def handle(self, command: Command) -> str:
         """Execute command, return aggregate ID."""
 
+
 # Query side — reads (can use a denormalised read model)
 class Query(ABC):
     pass
 
+
 @dataclass
 class GetExperimentSummary(Query):
     experiment_id: str
+
 
 class QueryHandler(ABC):
     @abstractmethod
@@ -460,6 +473,7 @@ In a microservices architecture, assume the network is hostile — even between 
 ```python
 from dataclasses import dataclass
 
+
 @dataclass
 class ServiceAccessPolicy:
     """Define which services can call which endpoints."""
@@ -470,6 +484,7 @@ class ServiceAccessPolicy:
 
     def is_allowed(self, method: str, path: str) -> bool:
         return f"{method} {path}" in self.allowed_endpoints
+
 
 # Example: experiment-runner can read experiments and write results, nothing else
 POLICIES = [

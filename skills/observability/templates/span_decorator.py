@@ -42,13 +42,16 @@ F = TypeVar("F", bound=Callable[..., Any])
 
 _request_context: ContextVar[dict[str, str]] = ContextVar("request_context", default={})
 
+
 def set_request_context(**kwargs: str) -> None:
     """Store request-scoped metadata (user_id, experiment_id, etc.) in context."""
     ctx = {**_request_context.get(), **kwargs}
     _request_context.set(ctx)
 
+
 def get_request_context() -> dict[str, str]:
     return _request_context.get()
+
 
 def current_trace_id() -> str:
     """Return the current span's trace ID as a hex string, or zeros if no active span."""
@@ -57,6 +60,7 @@ def current_trace_id() -> str:
     if ctx.is_valid:
         return format(ctx.trace_id, "032x")
     return "0" * 32
+
 
 # ---------------------------------------------------------------------------
 # @traced decorator
@@ -125,6 +129,7 @@ def traced(
 
     return decorator
 
+
 def _apply_attributes(
     span: trace.Span,
     attributes: dict[str, str | int | float | bool],
@@ -132,11 +137,13 @@ def _apply_attributes(
     for key, value in attributes.items():
         span.set_attribute(key, value)
 
+
 def _apply_context_attrs(span: trace.Span) -> None:
     """Propagate request context variables as span attributes."""
     ctx = get_request_context()
     for key, value in ctx.items():
         span.set_attribute(f"app.{key}", value)
+
 
 # ---------------------------------------------------------------------------
 # @timed_histogram decorator
@@ -205,6 +212,7 @@ def timed_histogram(
             return sync_wrapper  # type: ignore[return-value]
 
     return decorator
+
 
 # ---------------------------------------------------------------------------
 # Usage example

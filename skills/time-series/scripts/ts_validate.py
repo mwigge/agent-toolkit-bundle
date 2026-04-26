@@ -27,6 +27,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+
 @dataclass
 class QualityReport:
     path: str
@@ -95,6 +96,7 @@ class QualityReport:
             print("\n  RESULT: ISSUES FOUND — see above")
         print()
 
+
 TIMESTAMP_FORMATS = [
     "%Y-%m-%dT%H:%M:%S.%fZ",
     "%Y-%m-%dT%H:%M:%SZ",
@@ -104,6 +106,7 @@ TIMESTAMP_FORMATS = [
     "%Y-%m-%d",
     "%s",  # Unix epoch (handled separately)
 ]
+
 
 def parse_timestamp(value: str) -> datetime | None:
     value = value.strip()
@@ -123,6 +126,7 @@ def parse_timestamp(value: str) -> datetime | None:
         except ValueError:
             continue
     return None
+
 
 def validate_csv(
     path: Path,
@@ -210,6 +214,7 @@ def validate_csv(
 
     return report
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate a time series CSV file")
     parser.add_argument("csv_file", type=Path, help="Path to CSV file")
@@ -230,6 +235,7 @@ def main() -> int:
     )
     report.print_report()
     return 0 if report.is_clean else 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

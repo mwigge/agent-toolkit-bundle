@@ -25,6 +25,7 @@ import sys
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
+
 @dataclass
 class ResourceMetric:
     name: str
@@ -58,6 +59,7 @@ class ResourceMetric:
             return "ACTION_NEEDED"
         return "OK"
 
+
 def load_from_csv(path: Path) -> list[ResourceMetric]:
     """
     CSV format:
@@ -80,6 +82,7 @@ def load_from_csv(path: Path) -> list[ResourceMetric]:
             )
     return metrics
 
+
 def default_metrics() -> list[ResourceMetric]:
     """Example metrics for demonstration."""
     return [
@@ -88,6 +91,7 @@ def default_metrics() -> list[ResourceMetric]:
         ResourceMetric("disk", 0.45, 0.08, 0.20, 30),
         ResourceMetric("connections", 0.30, 0.06, 0.25, 7),
     ]
+
 
 def report(metrics: list[ResourceMetric], output_json: bool = False) -> int:
     if output_json:
@@ -132,6 +136,7 @@ def report(metrics: list[ResourceMetric], output_json: bool = False) -> int:
             print("All resources have sufficient headroom.")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Capacity planning check")
     parser.add_argument("--csv", type=Path, help="CSV file with resource metrics")
@@ -151,6 +156,7 @@ def main() -> int:
         return 2
 
     return report(metrics, output_json=args.json)
+
 
 if __name__ == "__main__":
     sys.exit(main())

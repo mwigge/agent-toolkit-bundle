@@ -1,8 +1,3 @@
----
-name: documentation
-description: Documentation discipline: identify the doc type (reference, tutorial, how-to, explanation) before writing. Use when authoring or reviewing any technical documentation.
----
-
 # Skill: Documentation
 
 ## Diátaxis Framework — Mandatory
@@ -100,10 +95,10 @@ All notable changes to this project are documented here.
 ## [Unreleased]
 
 ### Added
-- [<PROJ>-123] Circuit breaker for payment client with configurable thresholds
+- [CLS-123] Circuit breaker for payment client with configurable thresholds
 
 ### Fixed
-- [<PROJ>-123] Null pointer when user has no payment method on file
+- [CLS-124] Null pointer when user has no payment method on file
 
 ## [1.2.0] — 2026-03-15
 

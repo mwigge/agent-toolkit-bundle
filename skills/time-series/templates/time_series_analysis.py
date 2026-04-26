@@ -26,6 +26,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+
 # ---------------------------------------------------------------------------
 # 1. Load and clean
 # ---------------------------------------------------------------------------
@@ -46,6 +47,7 @@ def load_series(path: Path, value_col: str = "value") -> pd.Series:
     logger.info("series_loaded", extra={"rows": len(series)})
     return series
 
+
 # ---------------------------------------------------------------------------
 # 2. Resample to regular interval
 # ---------------------------------------------------------------------------
@@ -57,6 +59,7 @@ def resample_regular(series: pd.Series, freq: str = "1min") -> pd.Series:
     gap_count = int(resampled.isna().sum())
     logger.info("resampled", extra={"rows": len(resampled), "gaps": gap_count})
     return resampled
+
 
 # ---------------------------------------------------------------------------
 # 3. Interpolate gaps
@@ -86,6 +89,7 @@ def interpolate_gaps(
     logger.info("interpolation_complete",
                 extra={"filled": int(na_mask.sum()) - int(interpolated.isna().sum())})
     return interpolated
+
 
 # ---------------------------------------------------------------------------
 # 4. STL Decomposition
@@ -122,6 +126,7 @@ def stl_decompose(
         "residual": pd.Series(result.resid, index=clean.index),
     }
 
+
 # ---------------------------------------------------------------------------
 # 5. Anomaly Detection (IQR method)
 # ---------------------------------------------------------------------------
@@ -153,6 +158,7 @@ def detect_anomalies(
     logger.info("anomalies_detected",
                 extra={"count": anomaly_count, "lower": lower, "upper": upper})
     return anomaly_df
+
 
 # ---------------------------------------------------------------------------
 # 6. Prophet Forecast
@@ -191,6 +197,7 @@ def prophet_forecast(
 
     logger.info("forecast_complete", extra={"forecast_rows": len(forecast)})
     return forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]]
+
 
 # ---------------------------------------------------------------------------
 # 7. Report
@@ -244,6 +251,7 @@ def build_report(
         ),
     }
 
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -286,6 +294,7 @@ def main(argv: list[str] | None = None) -> int:
     args.output.write_text(json.dumps(report, indent=2), encoding="utf-8")
     logger.info("report_written", extra={"path": str(args.output)})
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

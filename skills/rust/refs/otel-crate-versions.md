@@ -56,7 +56,7 @@ opentelemetry::global::set_tracer_provider(provider.clone());
 | `chaos.experiment.id` | `exp-42` | Experiment identifier |
 | `chaos.experiment.name` | `pg-conn-exhaust` | Human-readable name |
 | `chaos.action.type` | `fault_injection` | Action category |
-| `chaos.action.provider` | `<your-project>-db` | Extension providing the action |
+| `chaos.action.provider` | `chaostooling-db` | Extension providing the action |
 | `chaos.probe.type` | `ssh` | Probe transport |
 | `chaos.probe.tolerance` | `true` | Whether probe passed |
 | `chaos.rollback.status` | `completed` | Rollback outcome |

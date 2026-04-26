@@ -32,12 +32,14 @@ try:
 except ImportError as exc:
     raise SystemExit("polars is required: pip install polars") from exc
 
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S",
 )
 logger = logging.getLogger("analysis")
+
 
 def load_from_parquet(path: Path) -> pl.DataFrame:
     """Load experiment data from Parquet using DuckDB for SQL-based preprocessing."""
@@ -68,6 +70,7 @@ def load_from_parquet(path: Path) -> pl.DataFrame:
 
     logger.info("data_loaded", extra={"rows": len(df), "columns": df.columns})
     return df
+
 
 def compute_summary(df: pl.DataFrame) -> dict[str, object]:
     """Compute descriptive statistics for experiment duration and success rate."""
@@ -145,6 +148,7 @@ def compute_summary(df: pl.DataFrame) -> dict[str, object]:
         ],
     }
 
+
 def compute_outliers(df: pl.DataFrame) -> list[dict[str, object]]:
     """Identify experiments with anomalous duration using IQR method."""
     logger.info("detecting_outliers")
@@ -172,10 +176,12 @@ def compute_outliers(df: pl.DataFrame) -> list[dict[str, object]]:
         for row in outliers.iter_rows(named=True)
     ]
 
+
 def write_report(report: dict[str, object], output_path: Path) -> None:
     logger.info("writing_report", extra={"path": str(output_path)})
     output_path.write_text(json.dumps(report, indent=2, default=str), encoding="utf-8")
     logger.info("report_written", extra={"path": str(output_path)})
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Analyse chaos experiment Parquet data")
@@ -202,6 +208,7 @@ def main(argv: list[str] | None = None) -> int:
     write_report(report, args.output)
     logger.info("analysis_complete", extra={"output": str(args.output)})
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -42,6 +42,7 @@ logging.basicConfig(
 )
 log = logging.getLogger("rag_pipeline")
 
+
 # ── Configuration ─────────────────────────────────────────────────────────────
 
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "text-embedding-3-small")
@@ -52,6 +53,7 @@ CHUNK_OVERLAP_TOKENS = int(os.environ.get("CHUNK_OVERLAP_TOKENS", "64"))
 
 # Approximate chars per token for English text
 CHARS_PER_TOKEN = 4
+
 
 # ── Data models ───────────────────────────────────────────────────────────────
 
@@ -73,10 +75,12 @@ class Chunk:
             metadata={**metadata, "chunk_index": chunk_index},
         )
 
+
 @dataclass
 class RetrievalResult:
     chunk: Chunk
     score: float
+
 
 # ── In-memory vector store (replace with pgvector/Pinecone/Chroma in production) ──
 
@@ -116,6 +120,7 @@ class InMemoryVectorStore:
     def __len__(self) -> int:
         return len(self._chunks)
 
+
 def cosine_similarity(a: list[float], b: list[float]) -> float:
     if len(a) != len(b) or not a:
         return 0.0
@@ -125,6 +130,7 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
     if norm_a == 0.0 or norm_b == 0.0:
         return 0.0
     return dot / (norm_a * norm_b)
+
 
 # ── RAGPipeline ───────────────────────────────────────────────────────────────
 
@@ -405,6 +411,7 @@ class RAGPipeline:
     def __exit__(self, *_: Any) -> None:
         self.close()
 
+
 # ── Utilities ─────────────────────────────────────────────────────────────────
 
 def _split_sentences(text: str) -> list[str]:
@@ -412,6 +419,7 @@ def _split_sentences(text: str) -> list[str]:
     import re
     sentences = re.split(r"(?<=[.!?])\s+", text)
     return [s.strip() for s in sentences if s.strip()]
+
 
 # ── CLI demo ──────────────────────────────────────────────────────────────────
 

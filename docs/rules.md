@@ -2,7 +2,7 @@
 
 **Purpose**: These two files are the always-loaded system prompt for each tool. Every agent, every skill, every command inherits them. They are where project-wide discipline (TDD, conventional commits, no AI attribution, no secrets) lives.
 
-The bundle ships example starters — [`templates/CLAUDE.md.example`](../templates/CLAUDE.md.example) and [`templates/AGENTS.md.example`](../templates/AGENTS.md.example) — containing the non-negotiable rules from this repo's own style guide, minus anything project-specific. Copy one or both into your project root, then edit to taste.
+The bundle ships example starters — [`templates/CLAUDE.md.example`](../templates/CLAUDE.md.example), [`templates/AGENTS.md.example`](../templates/AGENTS.md.example), [`templates/GEMINI.md.example`](../templates/GEMINI.md.example), and [`templates/codex.config.toml.example`](../templates/codex.config.toml.example) — containing the non-negotiable rules and starter config from this repo's own style guide, minus anything project-specific. Copy what you need into your project root, then edit to taste.
 
 The installer does **not** copy these files by default. They are user-owned. Pass `--templates` to drop them into the current directory:
 
@@ -16,6 +16,8 @@ cd ~/my-project && /path/to/agent-toolkit-bundle/install.sh --templates
 
 - **Claude Code** reads `CLAUDE.md` (project-level) and `~/.claude/CLAUDE.md` (user-level).
 - **OpenCode** reads `AGENTS.md` (project-level) and `~/.config/opencode/AGENTS.md` (user-level). OpenCode also supports **Claude Code compatibility mode**, which additionally discovers `CLAUDE.md` and `~/.claude/CLAUDE.md` so that a project already set up for Claude Code works on OpenCode without duplication.
+- **Gemini CLI** in this bundle is modeled with a project-level `GEMINI.md` starter.
+- **Codex** in this bundle is modeled with project-level `AGENTS.md` plus `.codex/config.toml`.
 
 OpenCode's discovery order (earlier entries override later entries for overlapping rules):
 
@@ -30,7 +32,7 @@ If both a local `AGENTS.md` and a local `CLAUDE.md` exist, OpenCode reads both a
 
 ## Why two files at all
 
-The short answer: the two tools disagree on the filename and neither is willing to change. The longer answer is that the filename also implies the audience — `CLAUDE.md` advertises "rules for Claude specifically", `AGENTS.md` advertises "rules for any agent". In practice, 95% of the content is identical. The bundle's two example templates are kept in lock-step, and contributors are expected to edit both when a rule changes.
+The short answer: the tools disagree on filenames and config locations. The longer answer is that the filename also implies the audience — `CLAUDE.md` advertises "rules for Claude specifically", `AGENTS.md` advertises "rules for any agent", `GEMINI.md` advertises Gemini-specific workspace rules. In practice, most of the rule content is identical. The bundle's example templates are expected to stay aligned where the policy is shared.
 
 If you only use one tool, delete the other file. The installer does not care.
 
@@ -38,7 +40,7 @@ If you only use one tool, delete the other file. The installer does not care.
 
 ## Using the bundled templates
 
-The templates are **starters**, not drop-in configs. Each one includes:
+The templates are **starters**, not drop-in configs. Together they include:
 
 - A customisation header block pointing at placeholders to replace.
 - Stack defaults (Python, TypeScript, Rust, Node — delete whichever you do not use).
@@ -48,11 +50,12 @@ The templates are **starters**, not drop-in configs. Each one includes:
 - Observability standards (OTel spans, structured logging, no credentials in output).
 - A short reference to skills and agents by name.
 - A `## Project-Specific Rules` section with a placeholder comment telling you to add your own.
+- A `.codex/config.toml` starter with placeholder MCP and trust blocks.
 
 After running `install.sh --templates`, grep for placeholders:
 
 ```bash
-grep -n '<your-' CLAUDE.md AGENTS.md
+grep -n '<your-' CLAUDE.md AGENTS.md GEMINI.md .codex/config.toml
 ```
 
 and substitute your real values. The placeholder table is in the top-level [`README.md`](../README.md#placeholder-table).
@@ -104,7 +107,9 @@ The bundle's templates are written assuming they land in the project root. If yo
 ## See also
 
 - [`templates/CLAUDE.md.example`](../templates/CLAUDE.md.example) — Claude Code starter.
-- [`templates/AGENTS.md.example`](../templates/AGENTS.md.example) — OpenCode starter.
+- [`templates/AGENTS.md.example`](../templates/AGENTS.md.example) — OpenCode / Codex rules starter.
+- [`templates/GEMINI.md.example`](../templates/GEMINI.md.example) — Gemini starter.
+- [`templates/codex.config.toml.example`](../templates/codex.config.toml.example) — Codex config starter.
 - [`agents.md`](agents.md) — how agents interact with the global rules file.
 - [`skills.md`](skills.md) — how skills interact with the global rules file.
 - [`compatibility.md`](compatibility.md) — which tool reads which file.

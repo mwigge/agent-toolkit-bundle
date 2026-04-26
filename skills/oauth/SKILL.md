@@ -1,8 +1,3 @@
----
-name: oauth
-description: OAuth 2.1 and OpenID Connect patterns: authorization code with PKCE, token handling, refresh flows, JWT validation, and session management. Use when implementing authentication.
----
-
 # Skill: OAuth 2.1 and JWT Authentication
 
 ## OAuth 2.1 (RFC 9207)

@@ -61,7 +61,7 @@ use opentelemetry_semantic_conventions::resource as res;
 
 fn init_telemetry() -> Result<(), Box<dyn std::error::Error>> {
     let resource = Resource::builder()
-        .with_attribute(res::SERVICE_NAME, "-engine")
+        .with_attribute(res::SERVICE_NAME, "tumult-engine")
         .with_attribute(res::SERVICE_VERSION, env!("CARGO_PKG_VERSION"))
         .with_attribute(res::DEPLOYMENT_ENVIRONMENT_NAME,
             std::env::var("OTEL_ENVIRONMENT").unwrap_or_else(|_| "development".into()))

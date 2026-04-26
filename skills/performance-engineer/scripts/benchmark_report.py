@@ -30,6 +30,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+
 @dataclass
 class EndpointMetrics:
     endpoint: str
@@ -38,6 +39,7 @@ class EndpointMetrics:
     p99_ms: float
     rps: float
     error_rate: float
+
 
 @dataclass
 class Comparison:
@@ -57,6 +59,7 @@ class Comparison:
             f"({sign}{self.change_pct:.1f}%)"
         )
 
+
 REGRESSION_THRESHOLDS = {
     "p50_ms": 0.15,      # 15% increase is a regression
     "p95_ms": 0.10,      # 10% increase
@@ -64,6 +67,7 @@ REGRESSION_THRESHOLDS = {
     "rps": -0.10,         # 10% decrease (negative = regression)
     "error_rate": 0.005,  # absolute threshold: 0.5% increase
 }
+
 
 def compare(
     baseline: list[EndpointMetrics],
@@ -118,6 +122,7 @@ def compare(
 
     return comparisons
 
+
 def demo() -> int:
     baseline = [
         EndpointMetrics("/api/experiments", 45.2, 120.5, 250.3, 1500, 0.001),
@@ -139,6 +144,7 @@ def demo() -> int:
 
     print(f"\n{len(regressions)} regression(s) detected out of {len(results)} comparisons.")
     return 1 if regressions else 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Benchmark regression detector")
@@ -166,6 +172,7 @@ def main() -> int:
     regressions = [r for r in results if r.is_regression]
     print(f"\n{len(regressions)} regression(s) detected.")
     return 1 if regressions else 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

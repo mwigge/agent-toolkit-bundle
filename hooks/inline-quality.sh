@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: Apache-2.0
-#
-# inline-quality.sh — PostToolUse hook on Edit|Write.
-# Provides additionalContext feedback so the agent self-corrects inline
-# rather than waiting for the Stop quality-gate. Uses exit 0 +
-# additionalContext JSON — never blocks, only advises.
+# .claude/hooks/inline-quality.sh
+# PostToolUse hook on Edit|Write — provides additionalContext feedback so Claude
+# self-corrects inline rather than waiting for the Stop quality-gate.
+# Uses exit 0 + additionalContext JSON — never blocks, only advises.
 #
 # additionalContext format:
 #   { "additionalContext": "INLINE QUALITY FEEDBACK:\n..." }
@@ -19,7 +17,7 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null |
 EXT="${FILE_PATH##*.}"
 ISSUES=()
 
-# --- Python checks -----------------------------------------------------------
+# ── Python checks ────────────────────────────────────────────────────────────
 if [[ "$EXT" == "py" ]]; then
   # print() in non-test code
   if [[ "$FILE_PATH" != *test* ]] && [[ "$FILE_PATH" != *tests* ]]; then
@@ -48,7 +46,7 @@ if [[ "$EXT" == "py" ]]; then
   fi
 fi
 
-# --- TypeScript checks -------------------------------------------------------
+# ── TypeScript checks ─────────────────────────────────────────────────────────
 if [[ "$EXT" == "ts" || "$EXT" == "tsx" ]]; then
   # console.log in non-test files
   if [[ "$FILE_PATH" != *.test.* ]] && [[ "$FILE_PATH" != *.spec.* ]]; then
@@ -65,7 +63,7 @@ if [[ "$EXT" == "ts" || "$EXT" == "tsx" ]]; then
   fi
 fi
 
-# --- SQL checks (Python callers) ---------------------------------------------
+# ── SQL checks ────────────────────────────────────────────────────────────────
 if [[ "$EXT" == "py" ]]; then
   # string-interpolated SQL (f-string or % format)
   if grep -nE 'cursor\.execute\(f"|cursor\.execute\(.*%\s*[a-z]' "$FILE_PATH" 2>/dev/null | grep -q .; then
@@ -74,11 +72,11 @@ if [[ "$EXT" == "py" ]]; then
   fi
 fi
 
-# --- Emit additionalContext --------------------------------------------------
+# ── Emit additionalContext ────────────────────────────────────────────────────
 if [[ ${#ISSUES[@]} -gt 0 ]]; then
   MSG="INLINE QUALITY FEEDBACK for ${FILE_PATH##*/}:\n"
   for issue in "${ISSUES[@]}"; do
-    MSG+="  - $issue\n"
+    MSG+="  • $issue\n"
   done
   MSG+="Fix these issues now before moving on."
   jq -n --arg ctx "$MSG" '{"additionalContext": $ctx}'

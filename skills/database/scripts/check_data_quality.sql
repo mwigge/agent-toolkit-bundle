@@ -29,6 +29,7 @@ FROM target_table;
 --     COUNT(*) - COUNT(col_c) AS col_c_nulls
 -- FROM target_table;
 
+
 -- ---------------------------------------------------------------------------
 -- 2. DUPLICATE DETECTION
 --    Find rows that share the same values on logical key columns.
@@ -56,6 +57,7 @@ LIMIT 100;
 -- ) dups ON t.col_a = dups.col_a AND t.col_b = dups.col_b
 -- ORDER BY t.col_a, t.col_b;
 
+
 -- ---------------------------------------------------------------------------
 -- 3. ORPHAN DETECTION
 --    Find child rows referencing non-existent parent rows.
@@ -70,6 +72,7 @@ LEFT JOIN parent_table AS p ON c.parent_id = p.id
 WHERE p.id IS NULL
 ORDER BY c.id
 LIMIT 100;
+
 
 -- ---------------------------------------------------------------------------
 -- 4. RANGE VALIDATION
@@ -96,6 +99,7 @@ WHERE
 ORDER BY created_at
 LIMIT 100;
 
+
 -- ---------------------------------------------------------------------------
 -- 5. REFERENTIAL INTEGRITY SUMMARY
 --    Count orphans per FK relationship.
@@ -108,6 +112,7 @@ SELECT
 FROM child_table AS c
 LEFT JOIN parent_table AS p ON c.parent_id = p.id
 WHERE p.id IS NULL;
+
 
 -- ---------------------------------------------------------------------------
 -- 6. TABLE STALENESS CHECK (PostgreSQL only)
@@ -133,6 +138,7 @@ WHERE p.id IS NULL;
 -- FROM information_schema.tables
 -- WHERE table_schema = DATABASE()
 -- ORDER BY COALESCE(update_time, '1970-01-01') ASC;
+
 
 -- ---------------------------------------------------------------------------
 -- 7. DEDUPLICATION (when duplicates are found)

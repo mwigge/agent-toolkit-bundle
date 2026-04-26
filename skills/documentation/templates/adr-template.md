@@ -92,6 +92,6 @@ We will [state the decision precisely].
 ## Related
 
 - [ADR-NNN: Related decision]
-- [<PROJ>-NNN: Jira ticket that drove this decision]
+- [CLS-NNN: Jira ticket that drove this decision]
 - [RFC-NNN: Related RFC, if applicable]
 - [Link to any benchmarks, spikes, or design documents]

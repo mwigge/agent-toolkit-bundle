@@ -1,340 +1,766 @@
-# agent-toolkit-bundle
+# ai_local — AI-Assisted Development Reference Installation
 
-A bundle of agents, skills, hooks, plugins, custom tools, commands, and global rules for [Claude Code](https://claude.com/claude-code) and [OpenCode](https://opencode.ai). One repo, one installer, two tools supported. GitHub Copilot CLI support is planned — see [`docs/copilot.md`](docs/copilot.md).
+A complete, opinionated setup for AI-assisted software engineering, supporting **Claude Code**, **OpenCode**, and a **Codex reference install**. Ships with 43 skills, 17 agents, 15 hooks (Claude Code) / 11 plugins (OpenCode), 11 slash commands, MCP-backed memory and code intelligence, the OpenSpec spec-driven development workflow, and a governance layer (PII guard, egress allowlisting, tamper-evident audit, DORA + PCI-DSS compliance mappings, OTel agent tracing).
 
-Sibling to [`agent-circuit-breaker`](https://github.com/mwigge/agent-circuit-breaker) — the companion repo that ships the dual-context mode guard. This bundle does **not** re-ship the mode guard; install the circuit breaker separately if you want it. See [`docs/ecosystem.md`](docs/ecosystem.md) for the full list of companion tools.
+This repository is the **source of truth**. Both tools are configured to read from here via symlinks — editing a file in `ai_local/` changes it everywhere instantly.
 
----
+## Codex Reference
 
-## Why
+A Codex reference install now lives in `ai_local/codex/`.
 
-- **One source of truth.** The cloned repo IS the golden copy. The installer creates symlinks from each tool's install location back into the repo — no files are copied. `git pull` propagates instantly to every installed component, across every tool.
-- **Opinionated defaults.** TDD, conventional commits, no AI attribution, structured logging, strict types. The bundle encodes a stack discipline rather than a toolbox of optional pieces.
-- **Tool-selectable install.** Run the installer, pick a profile, get exactly what your tool supports. Claude Code gets hooks + skills; OpenCode gets plugins + custom tools + skills; agents and commands install to both. Skills are tool-neutral and install once under `~/.agents/skills/`.
-- **Apache-2.0, no vendor lock-in.** Every file is plain text. Fork it, rename it, delete half of it — the installer still works.
+- Rules file: `ai_local/codex/AGENTS.md`
+- MCP config: `ai_local/codex/config.toml`
+- Installer: `ai_local/codex/install.sh`
 
-This bundle is opinionated. If you want a pick-and-choose library of loose files, this is not it.
+This variant reuses `ai_local` skills, command playbooks, agent prompts, and MCP integrations.
+Claude hooks and OpenCode plugins are reused as policy and workflow logic, not as native Codex
+runtime integrations.
 
----
+Gemini currently appears in the architecture material as a design/reference direction, but
+`ai_local` does **not** yet ship a packaged Gemini installation alongside Claude Code,
+OpenCode, and Codex.
 
-## What's in the bundle
-
-| Component | Count | Tool support        |
-|-----------|-------|---------------------|
-| Agents    | 15 Claude / 16 OpenCode | both (dual copies; OpenCode has one extra) |
-| Commands  | 10   | both (dual copies) |
-| Skills    | ~40  | both (native skill support on Claude Code and OpenCode v1.0.110+) |
-| Hooks     | 12   | Claude Code only (shell) |
-| Plugins   | 8    | OpenCode only (TypeScript lifecycle modules) |
-| Custom tools | 2 | OpenCode only (LLM-callable TypeScript functions) |
-| Scripts   | 1    | OpenCode only (`delegate.sh` — orchestrator → subagent dispatch) |
-| Templates | 3    | both (user-owned) |
-| MemPalace | sub-package | opt-in integration for the upstream `milla-jovovich/mempalace` server |
-
-Agents include architecture review, per-language coders (Python / TypeScript / SQL), test and TDD drivers, an adversarial reviewer, SRE, security, API designer, observability, data engineer / analyst, AI developer, product owner.
-
-Skills cover Python, TypeScript, Rust, Go, Node, Docker, Kubernetes, Terraform, Postgres, OAuth, OTel, SRE, security, chaos engineering, data analysis, presentation, PR review, OpenSpec workflow, and ~25 more. Skills are native in both Claude Code and OpenCode and install once at the tool-neutral `~/.agents/skills/` path — see [`docs/skills.md`](docs/skills.md).
-
-Hooks enforce: format-on-save, inline quality gates, no-AI-attribution in commits, a security guard, a setup init, a permission auto-approver, structured observability, transcript backup, skill activation, codegraph sync on `git add`, and a post-Stop quality gate.
-
-Plugins mirror the hook surface for OpenCode where the semantics translate: format-on-save, inline quality, no-AI-attribution, observability, codegraph sync, quality gate, security guard, session init. See [`docs/plugins.md`](docs/plugins.md).
-
-Custom tools are OpenCode-only, LLM-callable TypeScript functions that bridge a specific gap: OpenCode's built-in `skill` tool loads `SKILL.md` but not the skill's `refs/`, `scripts/`, or `templates/` subdirectories. The bundle's `skill_ref` and `skill_list_refs` custom tools restore progressive-disclosure skill loading on OpenCode. See [`docs/tools.md`](docs/tools.md).
-
-Templates are user-owned starter files — `CLAUDE.md.example`, `AGENTS.md.example`, and `opencode.json.example` — that land in your project root via `--templates`. See [`docs/rules.md`](docs/rules.md) for how the two system-prompt files interact.
-
-MemPalace is an **opt-in** sub-package under `mempalace/` that ships an integration layer (hooks, plugin, custom tools, skill, slash command, contract docs) for the upstream [`milla-jovovich/mempalace`](https://github.com/milla-jovovich/mempalace) MCP server. Not installed by default. See the [Optional: MemPalace (BYO)](#optional-mempalace-byo) section below and [`docs/install-mempalace.md`](docs/install-mempalace.md).
+| Feature | Claude Code | OpenCode | Codex |
+|---------|-------------|----------|-------|
+| Provider | Anthropic (Claude) | Multi-provider (Copilot, Ollama, OpenAI, Gemini, etc.) | OpenAI Codex CLI |
+| Project instructions | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` |
+| Config file | `~/.claude/settings.json` | `~/.config/opencode/opencode.json` | `~/.codex/config.toml` |
+| Project config | `.claude/settings.local.json` | `.opencode.json` | `.codex/config.toml` |
+| MCP servers | `.mcp.json` | `mcp` in `.opencode.json` | `[mcp_servers]` in `.codex/config.toml` |
+| Enforcement | 14 shell hooks (deterministic) | 10 TypeScript plugins | Manual guardrails derived from hooks/plugins |
+| Agents | 17 role-specific sub-agents | Same 17 agents, model-pinned | Reused as role prompts / delegation contracts |
+| Skills | 43 domain knowledge modules | Via `AGENTS.md` context | Reused directly from `ai_local/skills/` |
+| Memory / code intel | MemPalace + CodeGraph via MCP | MemPalace + CodeGraph via MCP | MemPalace + CodeGraph via MCP |
+| OpenSpec | Native workflow support | Native workflow support | Native workflow support |
+| Config source | `ai_local/.claude/` | `ai_local/opencode/` | `ai_local/codex/` |
 
 ---
 
-## Install model — symlinks, not copies
+## Prerequisites
 
-`install.sh` creates symlinks from each tool's canonical install location back into the cloned repo. The cloned repo IS the golden copy. A `git pull` in the repo propagates to every installed component without re-running anything.
+### 1. OpenSpec (required for all tools)
 
-Chain for skills:
-
-```
-<repo>/skills/<name>/                    (real git-tracked files)
-    ^
-    | symlink
-    |
-~/.agents/skills/<name>                  (tool-neutral, OpenCode reads natively)
-    ^
-    | symlink
-    |
-~/.claude/skills/<name>                  (Claude Code reads here)
-```
-
-Agents, commands, hooks, plugins, and custom tools symlink directly into the tool-specific install dirs — no `~/.agents/` middleman, because those components have no cross-tool neutral convention yet.
-
-**Keep the repo at a persistent path.** Moving it after install breaks every symlink. Re-running `install.sh` from the new location re-creates them. A typical place to park it is `~/src/agent-toolkit-bundle` or `~/dev/src/agent-toolkit-bundle`, somewhere you will not accidentally `rm -rf` during a disk cleanup.
-
-Templates (`.example` files) are the one exception — they are copied, not symlinked, because users edit their project-local copy.
-
----
-
-## Quick install
+OpenSpec is a **hard prerequisite**. The spec-driven development workflow (`/opsx:propose`, `/opsx:apply`, `/opsx:explore`, `/opsx:archive`) depends on it. Without OpenSpec, you lose the ability to plan before you implement — and agent-assisted coding without a plan devolves into guesswork.
 
 ```bash
-git clone https://github.com/mwigge/agent-toolkit-bundle.git
-cd agent-toolkit-bundle
-./install.sh
+npm install -g @fission-ai/openspec@latest
 ```
 
-`install.sh` auto-detects which tool(s) you have installed and symlinks the right subset. Existing real files are left alone unless you pass `--force`. Existing symlinks are always replaced (safe — the repo is the source of truth).
-
-Common variants:
+Then initialise it in any project:
 
 ```bash
-# Claude Code only, agents + skills, no hooks
-./install.sh --profile claude --components agents,skills
-
-# OpenCode only, force overwrite
-./install.sh --profile opencode --force
-
-# Non-interactive CI
-./install.sh --yes --profile both
-
-# Also drop the system-prompt templates into the current project
-cd ~/my-project && /path/to/agent-toolkit-bundle/install.sh --templates
-
-# Opt in to the mempalace sub-package on top of the default install
-./install.sh --components agents,skills,hooks,plugins,tools,commands,mempalace
+cd ~/dev/src/my-project
+openspec init --tools claude    # for Claude Code
+openspec init --tools opencode  # for OpenCode
+openspec init --tools codex     # for Codex
 ```
 
-See `./install.sh --help` for the full option list.
+This creates the `openspec/` directory structure:
+```
+openspec/
+  changes/    <- active work (proposals, designs, specs, tasks)
+  specs/      <- archived specifications (promoted after implementation)
+```
+
+See [openspec.dev](https://openspec.dev) for full documentation.
+
+### 2. Claude Code CLI
+
+```bash
+npm install -g @anthropic-ai/claude-code
+claude --version
+```
+
+Requires an Anthropic API key or Claude Max subscription. See [Claude Code docs](https://docs.anthropic.com/en/docs/claude-code).
+
+### 3. OpenCode CLI
+
+```bash
+# Option A: Install script
+curl -fsSL https://raw.githubusercontent.com/opencode-ai/opencode/refs/heads/main/install | bash
+
+# Option B: Homebrew
+brew install opencode-ai/tap/opencode
+
+# Option C: npm
+npm i -g opencode-ai@latest
+
+# Option D: Go
+go install github.com/opencode-ai/opencode@latest
+```
+
+Requires at least one provider API key (OpenAI, Gemini, Copilot, Groq, etc.) or a local model via Ollama. See [OpenCode docs](https://opencode.ai/docs/).
+
+### 4. Development tools
+
+The hooks and skills assume these tools are available:
+
+| Tool | Purpose | Install |
+|------|---------|---------|
+| `git` | Version control | Pre-installed on macOS (`xcode-select --install`) |
+| `node` 22+ | JS runtime | `brew install node@22` or `fnm install 22` |
+| `python` 3.10+ | Python projects | `brew install python@3.12` or `pyenv install 3.12` |
+| `ruff` | Python linting + formatting | `pip install ruff` |
+| `black` | Python formatting | `pip install black` |
+| `mypy` | Python type checking | `pip install mypy` |
+| `pytest` | Python testing | `pip install pytest pytest-cov` |
+| `prettier` | TS/JSON/YAML formatting | `npm install -g prettier` |
+| `gh` | GitHub CLI | `brew install gh` |
+| `glab` | GitLab CLI (optional) | `brew install glab` |
+| `jq` | JSON processing | `brew install jq` |
+
+Not all tools are required. Hooks degrade gracefully — if `ruff` is not installed, the Python format-on-save hook skips silently.
+
+### 5. Codex CLI
+
+Codex uses a project `AGENTS.md` plus `.codex/config.toml` for MCP wiring.
+This repository provides a Codex reference installation in `ai_local/codex/`.
+
+Project-level install:
+
+```bash
+cd ~/dev/src/ai_local
+bash codex/install.sh
+```
+
+That copies:
+
+- `ai_local/codex/AGENTS.md` -> `~/dev/src/AGENTS.md`
+- `ai_local/codex/config.toml` -> `~/dev/src/.codex/config.toml`
+
+The Codex reference setup explicitly uses:
+
+- **MemPalace** for cross-session memory and decision recovery
+- **CodeGraph** for structural code analysis and impact tracing
+- **OpenSpec** as the planning layer
 
 ---
 
-## Install — Claude Code only
+## Installation
+
+### Step 1: Clone the repository
 
 ```bash
-./install.sh --profile claude
+mkdir -p ~/dev/src
+cd ~/dev/src
+git clone https://github.com/<github-user>/ai_local.git
 ```
 
-This symlinks:
+### Step 2: Run install.sh
 
-- `agents/claude/*.md` → `~/.claude/agents/`
-- `commands/claude/**/*.md` → `~/.claude/commands/`
-- `skills/**` → `~/.agents/skills/` and `~/.claude/skills/`
-- `hooks/*.sh` → `~/.claude/hooks/`
+```bash
+cd ~/dev/src/ai_local
+bash install.sh
+```
 
-The installer does **not** edit `~/.claude/settings.json`. Merge the following block into your settings yourself — only the hooks you actually want to run need to be listed:
+This single script wires up **both** Claude Code and OpenCode by creating symlinks from their config directories to `ai_local/`:
+
+| Symlink created | Points to |
+|----------------|-----------|
+| `~/.claude/agents` | `ai_local/.claude/agents` |
+| `~/.claude/commands` | `ai_local/.claude/commands` |
+| `~/.claude/hooks` | `ai_local/.claude/hooks` |
+| `~/.claude/skills` | `ai_local/skills` |
+| `~/.config/opencode/agents` | `ai_local/opencode/agents` |
+| `~/.config/opencode/plugins` | `ai_local/opencode/plugins` |
+| `~/.config/opencode/commands` | `ai_local/opencode/commands` |
+| `~/.config/opencode/AGENTS.md` | `ai_local/opencode/AGENTS.md` |
+| `~/.config/opencode/opencode.json` | `ai_local/opencode/opencode.json` |
+| `~/.config/opencode/package.json` | `ai_local/opencode/package.json` |
+
+The script is idempotent — safe to re-run. Existing non-symlink files are backed up with a timestamp before replacement.
+
+### Step 3: Copy settings.json (Claude Code)
+
+```bash
+cp ~/dev/src/ai_local/.claude/settings.json ~/.claude/settings.json
+```
+
+**Why copy, not symlink?** `settings.json` contains hook paths with `$HOME` references that differ per machine, and you may add personal permission overrides. Edit the copy to set your absolute hook paths.
+
+### Step 4: Create the root CLAUDE.md
+
+```bash
+cp ~/dev/src/ai_local/CLAUDE.md ~/dev/src/CLAUDE.md
+```
+
+Edit `~/dev/src/CLAUDE.md` to match your team's standards. This file cascades to all projects under `~/dev/src/`.
+
+### Step 5: Install plugin dependencies (OpenCode)
+
+```bash
+npm install --prefix ~/.config/opencode
+```
+
+This installs `@opencode-ai/plugin` used by the TypeScript enforcement plugins. `install.sh` does this automatically if `node_modules/` is absent.
+
+### Step 6: Configure local models (OpenCode, optional)
+
+If you want to run local models via Ollama:
+
+```bash
+brew install ollama
+brew services start ollama
+ollama pull devstral:24b          # ~9.6GB — primary model (thinking + tools + 128K context)
+ollama pull devstral:24b   # ~9GB   — fast tasks (title, summary, compaction)
+```
+
+> **Zscaler note**: If `ollama pull` returns a 403, use the manual manifest injection workaround — see `docs_local/ollama_zscaler.md`.
+
+The `opencode.json` is pre-configured for both. See [docs/local-models.md](docs/local-models.md) for the full model routing table.
+
+### Step 7: Set your provider API key
+
+```bash
+export GITHUB_TOKEN="..."            # GitHub Copilot (default cloud model)
+# or
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+### Step 8: Verify
+
+```bash
+# Claude Code
+cd ~/dev/src/ai_local
+claude
+# Inside: /opsx:explore "test the setup" — @architect should load and respond
+
+# OpenCode
+cd ~/dev/src/ai_local
+opencode
+# Inside: ask anything — should respond via Qwen 14B (local) or Copilot (cloud)
+
+# Codex
+cd ~/dev/src
+codex
+# In this repo/project root: AGENTS.md + .codex/config.toml should be detected
+# and MemPalace / CodeGraph should be available via MCP when configured
+```
+
+---
+
+## Setup — Mode Circuit Breaker (Claude Code / OpenCode, shared with Codex reference)
+
+The company/private mode guard prevents accidental cross-contamination between work and personal projects. Add this to your `~/.zshrc` (or `~/.bashrc`):
+
+```bash
+# AI dev mode circuit breaker
+mode() {
+  if [[ -z "$1" ]]; then
+    cat ~/.claude/mode 2>/dev/null || echo "company"
+    return
+  fi
+  if [[ "$1" != "company" && "$1" != "private" ]]; then
+    echo "Usage: mode [company|private]"
+    return 1
+  fi
+  echo "$1" > ~/.claude/mode
+  echo "Mode: $1"
+}
+
+# Initialise mode file if missing
+[[ ! -f ~/.claude/mode ]] && echo "company" > ~/.claude/mode
+```
+
+Then reload:
+```bash
+source ~/.zshrc
+```
+
+**Note**: The mode guard hook (`mode-guard.sh`) is enforced by Claude Code's hook system. OpenCode does not have a native hook system, so mode enforcement relies on discipline when using OpenCode. The Codex reference setup also relies on `AGENTS.md` guidance rather than deterministic hook enforcement. The `AGENTS.md` file can include a reminder: "Check `~/.claude/mode` before writing to any path."
+
+---
+
+## What's Inside
+
+### Directory structure
+
+```
+ai_local/
+  .claude/
+    agents/          17 role-specific sub-agents (Claude Code)
+    commands/        11 slash commands (/commit, /pr, /story, /review, /spec, /index, /mine, /opsx:*)
+    hooks/           15 deterministic hooks (security, quality, formatting, observability, codegraph)
+    settings.json    Hook wiring and permission config (reference copy — not symlinked)
+    settings.local.json  Machine-specific overrides (not for sharing)
+    skill-rules.json     Keyword-to-skill activation mapping
+    permission-policy.md Three-tier auto-approve policy
+  opencode/
+    agents/          17 agent definitions with model: routing (OpenCode)
+    plugins/         10 TypeScript enforcement plugins (OpenCode)
+    commands/        11 slash commands (OpenCode)
+    AGENTS.md        Global instructions + skill activation table
+    opencode.json    Provider config, model routing, MCP servers
+    package.json     @opencode-ai/plugin dependency
+  skills/            43 domain knowledge modules (shared by both tools)
+  docs/
+    ai-dev-architecture.drawio   Architecture diagram (Claude, OpenCode, MemPalace, model routing, Codex, Gemini)
+    local-models.md              Model routing table, Ollama setup
+    agents.md / hooks.md / commands.md / skills.md / circuit-breaker.md / codex.md
+  install.sh         One-shot symlink wiring for Claude Code + OpenCode
+  codex/             Codex reference install (AGENTS.md, config.toml, installer)
+  CLAUDE.md          Project-level Claude Code instructions
+  AGENTS.md          Project-level Codex instructions (installed in workspace root)
+  memory.md          Session memory (active branch, pending work)
+  mr-description-template.md    MR template for projects without one
+```
+
+### Three-layer cascade
+
+```
+Layer 1: ai_local/                Source of truth (this repo)
+              ↓ symlinks (install.sh)
+Layer 2: ~/.claude/               Claude Code global config
+         ~/.config/opencode/      OpenCode global config
+         ~/dev/src/CLAUDE.md      Generic dev standards (cascades to all repos)
+         ~/dev/src/AGENTS.md      Codex project rules
+         ~/dev/src/.codex/        Codex project MCP config
+              ↓ overrides
+Layer 3: <project>/CLAUDE.md      Project-specific rules
+         <project>/AGENTS.md      Project-specific Codex/OpenCode rules
+         <project>/.claude/       Project-specific settings, MCP servers
+         <project>/.codex/        Project-specific Codex config
+         <project>/openspec/      Project-specific specs and changes
+```
+
+### Agents (17)
+
+All 17 agents are available in both Claude Code and OpenCode. In OpenCode each agent is pinned to a model tier via frontmatter — see [docs/local-models.md](docs/local-models.md) for the full routing table.
+
+In the Codex reference setup, the same agent definitions are reused as **role contracts** and
+source prompts rather than as a native Codex agent registry. See [docs/codex.md](docs/codex.md).
+
+| Agent | Role | Model tier |
+|-------|------|-----------|
+| `@coder-python` | Python feature implementation (TDD) | Devstral 24B |
+| `@coder-sql` | SQL / database implementation | Devstral 24B |
+| `@coder-tdd` | TDD Red phase — writes failing tests only | Devstral 24B |
+| `@coder-typescript` | TypeScript feature implementation (TDD) | Devstral 24B |
+| `@architect` | Design review, interface specs, ADRs | Devstral 24B |
+| `@data-analyst` | Data analysis, stats, visualisation | Devstral 24B |
+| `@data-engineer` | Pipelines, dbt, Airflow, Spark | Devstral 24B |
+| `@refactor` | Safe incremental refactoring (Python, TS, SQL) | Devstral 24B |
+| `@jira-story` | Create structured Jira stories | Devstral 24B |
+| `@product-owner` | Stories, INVEST, RICE, OKR | Devstral 24B |
+| `@observability` | OTel instrumentation | Devstral 24B |
+| `@sre` | Deployment safety, OTel, runbooks | Devstral 24B |
+| `@tester` | Test strategy, coverage analysis | Devstral 24B |
+| `@api` | API design, OpenAPI 3.1 | Devstral 24B |
+| `@ai-developer` | LLM, RAG, MCP servers, evals | Devstral 24B |
+| `@reviewer` | Adversarial 4-lens code review | Claude Sonnet |
+| `@security` | Security review, OWASP, secrets audit | Claude Sonnet |
+
+In Claude Code all agents are leaf agents — no agent spawns another, handoffs are human-triggered. In OpenCode, agents can be spawned autonomously by the orchestrator.
+
+### Slash commands (11)
+
+| Command | Purpose |
+|---------|---------|
+| `/commit` | Analyse diff, draft conventional commit message, validate, commit |
+| `/pr` | Validate branch, push, fill MR template, create PR/MR |
+| `/story` | INVEST check, draft user story with ACs, hand off to @jira-story |
+| `/review` | 4-lens adversarial code review on current branch |
+| `/spec` | Generate OpenAPI 3.1 path entry for a new endpoint |
+| `/index` | Update docs index and memory after a work session |
+| `/mine` | Manually ingest OpenSpec artifacts into MemPalace |
+| `/opsx:propose` | OpenSpec — create proposal, design, tasks |
+| `/opsx:explore` | OpenSpec — thinking mode, no implementation |
+| `/opsx:apply` | OpenSpec — implement next unchecked task |
+| `/opsx:archive` | OpenSpec — promote specs, archive the change |
+
+Claude Code and OpenCode expose these as native slash commands. In the Codex reference setup,
+the same markdown command definitions are reused as workflow playbooks rather than native Codex
+slash commands.
+
+### Claude Code hooks (15)
+
+| Hook | Event | Purpose |
+|------|-------|---------|
+| `setup-init.sh` | SessionStart | Create dirs, chmod hooks, inject context |
+| `skill-activation.sh` | UserPromptSubmit | Detect keywords, inject skill hints |
+| `mode-guard.sh` | PreToolUse | Company/private path separation |
+| `security-guard.sh` | PreToolUse | Block destructive commands, secret patterns |
+| `no-ai-attribution.sh` | PreToolUse | Block AI attribution in commits/code |
+| `observe.sh` | Pre/PostToolUse | Async audit trail to events.ndjson |
+| `format-on-save.sh` | PostToolUse | Auto-format (ruff, black, prettier, sqlfluff) |
+| `inline-quality.sh` | PostToolUse | Immediate feedback on code issues |
+| `quality-gate.sh` | Stop | Final quality sweep before session ends |
+| `transcript-backup.sh` | PreCompact | Save conversation before context compaction |
+| `permission-autoapprove.sh` | PermissionRequest | GREEN/YELLOW/RED tier auto-approve |
+| `notify.sh` | Notification | Desktop notification (macOS/Linux) |
+| `mempalace-ingest.sh` | PostToolUse | Auto-ingest to MemPalace on write |
+| `codegraph-sync.sh` | PostToolUse | Async codegraph sync on `git add` |
+| `mempalace-wake-up.sh` | SessionStart | Initialise MemPalace connection |
+
+### OpenCode plugins (10)
+
+TypeScript plugins replace shell hooks. Loaded via `opencode.json`.
+
+| Plugin | Event | Purpose |
+|--------|-------|---------|
+| `session-init.ts` | First tool call | mkdir, audit.log, MemPalace wake-up |
+| `mode-guard.ts` | tool.execute.before | Company/private path separation |
+| `no-ai-attribution.ts` | tool.execute.before | Block AI attribution in commits/code |
+| `security-guard.ts` | tool.execute.before | Block destructive commands, secret patterns |
+| `quality-gate.ts` | tool.execute.after | Blocking checks: print(), bare except, tsc, ESLint |
+| `format-on-save.ts` | tool.execute.after | Auto-format on every write |
+| `inline-quality.ts` | tool.execute.after | Advisory quality hints |
+| `codegraph-sync.ts` | tool.execute.after | Async codegraph sync on `git add` |
+| `observe.ts` | tool.execute.before/after | NDJSON event log, risk scoring 0–3 |
+| `mempalace-ingest.ts` | session.compacting | Mine OpenSpec artifacts before compaction |
+
+### Skills (43)
+
+Organised by domain:
+
+- **Python** (5): `/python`, `/python-developer`, `/python-patterns`, `/python-testing`, `/python-architect`
+- **TypeScript** (4): `/typescript`, `/typescript-developer`, `/typescript-tdd`, `/typescript-architect`
+- **Node.js** (3): `/nodejs`, `/nodejs-fastify`, `/nodejs-nestjs`
+- **Data** (5): `/data-analyst`, `/data-engineer`, `/statistical-analysis`, `/time-series`, `/data-visualisation`
+- **Platform** (4): `/sre`, `/observability`, `/ci-cd`, `/incident-response`
+- **Database** (1): `/postgres-patterns`
+- **API** (1): `/api-designer`
+- **Security** (3): `/security-review`, `/compliance`, `/oauth`
+- **AI** (1): `/ai-developer`
+- **Process** (5): `/tdd-workflow`, `/verification-loop`, `/pr-review`, `/documentation`, `/presentation`
+- **Product** (1): `/product-owner`
+- **Specialist** (5): `/golang-patterns`, `/pdm-expert`, `/multi-tenancy`, `/web-design-guidelines`, `/mempalace`
+- **OpenSpec** (4): `/openspec-propose`, `/openspec-apply-change`, `/openspec-explore`, `/openspec-archive-change`
+
+---
+
+## OpenSpec workflow
+
+OpenSpec is the spec-driven development framework that ensures every non-trivial change has a paper trail: decision, design, tasks, commits, archive.
+
+```
+/opsx:explore     Think about a problem before committing to a solution
+      |
+/opsx:propose     Create proposal.md, design.md, specs/, tasks.md
+      |
+/opsx:apply       Implement tasks — picks the next unchecked task
+      |
+/opsx:archive     Promote specs, archive the change
+```
+
+Typical session:
+
+```bash
+mode company                              # or: mode private
+cd ~/dev/src/my-project
+
+# Think first
+# Claude: /opsx:explore "should we use Redis or SQLite for caching?"
+
+# Commit to a plan
+# Claude: /opsx:propose "add SQLite-based query cache"
+#   -> creates openspec/changes/sqlite-query-cache/{proposal,design,tasks}.md
+
+# Implement
+# Claude: /opsx:apply
+#   -> reads tasks.md, picks next unchecked task, implements it, marks complete
+
+# Archive when done
+# Claude: /opsx:archive
+```
+
+---
+
+## MemPalace — Persistent Cross-Session Memory
+
+[MemPalace](https://github.com/milla-jovovich/mempalace) gives AI coding agents persistent memory across sessions. It stores decisions, discoveries, preferences, and session events in a structured "palace" backed by ChromaDB for semantic search. Everything stays on your machine — no cloud APIs.
+
+Without MemPalace, every new session starts from zero context. With it, your agent recalls past decisions, design rationale, and session history.
+
+### Quick start (complete first-time setup)
+
+Run these commands in a **regular terminal** (not inside Claude Code/OpenCode — `mempalace init` requires interactive input):
+
+```bash
+# 1. Install
+pip install mempalace
+
+# 2. Initialise the palace for your project directory
+#    Press Enter twice (accept entities, accept rooms)
+mempalace init ~/dev/src/my-project
+
+# 3. Copy the wing config template
+cp ~/dev/src/ai_local/skills/mempalace/templates/wing_config.json ~/.mempalace/wing_config.json
+# Edit ~/.mempalace/wing_config.json to match your domain areas
+
+# 4. Mine your documents (first run downloads ~80MB embedding model)
+mempalace mine ~/dev/src/my-project --wing my_wing
+
+# 5. Wire the MCP server — Claude Code:
+cat > ~/dev/src/my-project/.mcp.json << 'EOF'
+{
+  "mcpServers": {
+    "mempalace": {
+      "command": "python3",
+      "args": ["-m", "mempalace.mcp_server"]
+    }
+  }
+}
+EOF
+
+# 6. Verify — start Claude Code or OpenCode and ask:
+#    "What's the status of the memory palace?"
+```
+
+### Detailed steps
+
+#### Step 1: Install MemPalace
+
+```bash
+pip install mempalace
+```
+
+Requires Python 3.10+. Installs `chromadb` and `pyyaml` as dependencies.
+
+If using pyenv:
+```bash
+~/.pyenv/versions/3.12.13/bin/pip install mempalace
+```
+
+#### Step 2: Initialise the palace
+
+Run this in a **regular terminal** (not inside Claude Code/OpenCode — it requires interactive input):
+
+```bash
+mempalace init ~/dev/src/my-project
+```
+
+This does two things:
+1. **Entity detection** — scans files for people and projects. Press Enter to accept defaults.
+2. **Room detection** — proposes rooms based on directory structure. Press Enter to accept.
+
+Creates:
+- `~/.mempalace/` — global palace directory (ChromaDB embeddings, config, knowledge graph)
+- `~/dev/src/my-project/mempalace.yaml` — per-directory room mapping
+- `~/dev/src/my-project/entities.json` — detected entities
+
+Repeat for each project directory you want to mine.
+
+#### Step 3: Configure wings
+
+Copy the wing config template:
+
+```bash
+cp ~/dev/src/ai_local/skills/mempalace/templates/wing_config.json ~/.mempalace/wing_config.json
+```
+
+Edit `~/.mempalace/wing_config.json` to match your domain areas. The template ships with:
+
+| Wing | Contains |
+|------|---------|
+| `wing_cls_architecture` | MCP, SSO, auth, multi-tenancy, org-role |
+| `wing_cls_platform` | Early-adopter, feedback loop, admin, tester-first |
+| `wing_cls_resilience` | Resilience maturity, score methodology, ontology |
+| `wing_cls_infra` | Postgres refactor, pgbouncer, observability |
+| `wing_ai_dev` | Session diary, hook evolution, skill/agent meta-work |
+
+#### Step 4: Mine your documents
+
+Mine a directory that has been initialised (has `mempalace.yaml`):
+
+```bash
+mempalace mine ~/dev/src/my-project --wing my_wing
+```
+
+This reads all files, chunks them into drawers, and stores embeddings in ChromaDB. First run downloads the embedding model (~80MB).
+
+Other mining modes:
+```bash
+mempalace mine ~/chats/ --mode convos                    # conversation exports
+mempalace mine ~/chats/ --mode convos --extract general  # auto-classify into 5 memory types
+```
+
+#### Step 5: Configure the MCP server
+
+Both Claude Code and OpenCode connect to MemPalace via MCP.
+
+**Claude Code** — add to `.mcp.json` in your project root:
 
 ```json
 {
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write|Bash",
-        "hooks": [
-          { "type": "command", "command": "bash ~/.claude/hooks/security-guard.sh" },
-          { "type": "command", "command": "bash ~/.claude/hooks/permission-autoapprove.sh" }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          { "type": "command", "command": "bash ~/.claude/hooks/format-on-save.sh" },
-          { "type": "command", "command": "bash ~/.claude/hooks/inline-quality.sh" }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "bash ~/.claude/hooks/codegraph-sync.sh", "async": true, "timeout": 15 }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          { "type": "command", "command": "bash ~/.claude/hooks/quality-gate.sh" },
-          { "type": "command", "command": "bash ~/.claude/hooks/no-ai-attribution.sh" }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          { "type": "command", "command": "bash ~/.claude/hooks/setup-init.sh" }
-        ]
-      }
-    ]
+  "mcpServers": {
+    "mempalace": {
+      "command": "python3",
+      "args": ["-m", "mempalace.mcp_server"]
+    }
   }
 }
 ```
 
-See [`docs/hooks.md`](docs/hooks.md) for a full hook-by-hook reference.
+Or register via CLI:
+```bash
+claude mcp add mempalace -- python3 -m mempalace.mcp_server
+```
+
+**OpenCode** — add to `.opencode.json` in your project root:
+
+```json
+{
+  "mcpServers": {
+    "mempalace": {
+      "type": "stdio",
+      "command": "python3",
+      "args": ["-m", "mempalace.mcp_server"]
+    }
+  }
+}
+```
+
+If using pyenv, replace `"python3"` with the full path (e.g. `"~/.pyenv/versions/3.12.13/bin/python3"`).
+
+#### Step 6: Verify
+
+Start Claude Code or OpenCode and ask:
+
+```
+What's the status of the memory palace?
+```
+
+This triggers `mempalace_status`. You should see wing/room counts and drawer totals.
+
+### Palace structure
+
+```
+~/.mempalace/                        Global palace directory
+  palace/                            ChromaDB embeddings
+  config.json                        Palace configuration
+  wing_config.json                   Wing keyword mapping
+  knowledge_graph.sqlite3            Temporal entity-relationship triples
+
+WING  (domain area)
+  +-- ROOM  (topic — usually a change name or module)
+        +-- HALL  (memory type)
+              |  hall_facts        — decisions, locked-in choices
+              |  hall_events       — sessions, milestones
+              |  hall_discoveries  — breakthroughs, insights
+              |  hall_preferences  — approaches preferred
+              |  hall_advice       — recommendations, solutions
+              +-- DRAWER  (verbatim text chunk in ChromaDB)
+```
+
+### Hooks (Claude Code only)
+
+| Hook | Event | Purpose |
+|------|-------|---------|
+| `mempalace-wake-up.sh` | SessionStart | Initialise MemPalace connection, load palace status |
+| `mempalace-ingest.sh` | PostToolUse | Auto-ingest to MemPalace on write |
+
+Included in `.claude/hooks/` and wired in `settings.json`. OpenCode lacks native hooks — use `mempalace mine` or `/mine` manually.
+
+### MCP tools (19 total)
+
+Key tools your agent calls automatically:
+
+| Tool | Purpose |
+|------|---------|
+| `mempalace_search` | Semantic search across all drawers |
+| `mempalace_kg_query` | Knowledge graph entity queries |
+| `mempalace_kg_timeline` | Chronological story of an entity |
+| `mempalace_diary_write` / `diary_read` | Agent diary entries |
+| `mempalace_traverse` | Navigate wing > room > hall > drawer |
+| `mempalace_list_wings` / `list_rooms` | Explore palace structure |
+| `mempalace_status` | Palace health check |
+| `mempalace_graph_stats` | Knowledge graph statistics |
+
+### Populating via `/mine` (Claude Code)
+
+```
+/mine                           # mine all recently modified OpenSpec changes
+/mine early-adopter-onboarding  # mine a specific change
+```
 
 ---
 
-## Install — OpenCode only
+## Company/Private mode circuit breaker
+
+Hard separation between company and personal work, enforced by the `mode-guard.sh` hook at every tool call.
 
 ```bash
-./install.sh --profile opencode
+mode company      # Block private paths, allow company paths
+mode private      # Block company paths, allow private paths
 ```
 
-This symlinks:
+Customise the path patterns in `.claude/hooks/mode-guard.sh` to match your directory layout. The default assumes:
 
-- `agents/opencode/*.md` → `~/.config/opencode/agent/`
-- `commands/opencode/**/*.md` → `~/.config/opencode/command/`
-- `plugins/*.ts` → `~/.config/opencode/plugin/`
-- `tools/*.ts` → `~/.config/opencode/tools/`
-- `scripts/delegate.sh` → `~/.config/opencode/scripts/delegate.sh`
-- `skills/**` → `~/.agents/skills/` (OpenCode reads this natively)
-
-OpenCode auto-loads plugins and tools from those directories at startup — no settings file to edit. Restart OpenCode after the install so the plugins and tools take effect.
-
-For a recommended `opencode.json` starter, see [`templates/opencode.json.example`](templates/opencode.json.example) and its annotated explainer at [`templates/opencode.json.example.md`](templates/opencode.json.example.md).
-
-See [`docs/plugins.md`](docs/plugins.md), [`docs/tools.md`](docs/tools.md), and [`docs/skills.md`](docs/skills.md) for the full reference.
+- **Company paths**: `ghorg/`, `docs_local/`, `chaostooling*/`, `tokens/`, `scripts/`
+- **Private paths**: `pprojects/`, `api_projects/`
+- **Neutral (both)**: `ai_local/`, `~/.ssh/`, `~/.claude/`, system paths
 
 ---
 
-## Configure
+## Customisation
 
-Every shipped file uses literal `<your-…>` placeholders where anything project-specific might otherwise leak. After installing, run a grep to find what you need to substitute in your own copies:
+### Adding a project-specific CLAUDE.md
+
+Each project can have its own `CLAUDE.md` that adds rules on top of the root one:
 
 ```bash
-grep -rn '<your-' ~/.claude/agents ~/.claude/commands ~/.agents/skills 2>/dev/null
-grep -rn '<your-' ~/.config/opencode/agent ~/.config/opencode/command 2>/dev/null
+cd ~/dev/src/my-project
+cat > CLAUDE.md << 'EOF'
+# My Project — Claude Code Setup
+
+## Stack
+- Python 3.12, FastAPI, PostgreSQL
+- Tests: pytest, >=95% coverage
+
+## Rules
+- All SQL must use parameterised queries
+- No raw SQL outside store.py
+EOF
 ```
 
-The installer does **not** rewrite placeholders. That is deliberate — you should read what you're configuring, not trust a sed-pass to guess correctly. Because the installed files are symlinks back into the repo, edit them in the repo (not through the symlinks) if you plan to version the edits in git.
+### Adding project-specific settings
 
-### Placeholder table
+Create `.claude/settings.local.json` in your project for MCP servers and project-specific permissions:
 
-| Placeholder         | Replace with                                  |
-|---------------------|-----------------------------------------------|
-| `<your-org>`        | Your organisation or employer name            |
-| `<your-project>`    | The project this install is for               |
-| `<your-dev-dir>`    | Parent directory for your source checkouts    |
-| `<your-docs-dir>`   | Where your planning / spec docs live          |
-| `<your-git-host>`   | Your internal Git host (if any)               |
-| `<your-jira-host>`  | Your Jira / issue tracker host                |
-| `<your-artifactory>`| Your private package registry host            |
-| `<your-github-user>`| Your GitHub username                          |
-| `<PROJ>`            | Your Jira / tracker project key               |
-
-Placeholders are literal strings, not template variables. They render fine in the agent prompts as-is — the agent will ask you for the real values the first time it needs them.
-
-For detail on `CLAUDE.md` / `AGENTS.md` discovery order and how to disable OpenCode's Claude Code compatibility layer, see [`docs/rules.md`](docs/rules.md).
-
----
-
-## Optional: MemPalace (BYO)
-
-MemPalace is a persistent cross-session memory pattern — wings → rooms → halls → drawers plus a per-agent diary — backed by an external MCP server. The bundle ships an opt-in **integration layer** under `mempalace/` (hooks, plugin, OpenCode custom tools, skill, slash command, MCP contract docs) that targets any MCP-compatible backend.
-
-**Recommended backend**: [`milla-jovovich/mempalace`](https://github.com/milla-jovovich/mempalace) — the upstream project this sub-package integrates with. MIT-licensed, `pip install mempalace`, ships its own Claude Code marketplace plugin and a generic MCP server entry point. Install it once, set `MEMPAL_DIR=~/my-project/docs_local` so auto-ingest knows where to look, then run `./install.sh --components mempalace` to wire up the bundle's integration layer on top.
-
-The bundle integration is opt-in — it is **not** installed by the default `install.sh` invocation. If you have no need for persistent cross-session memory, ignore the sub-package entirely.
-
-Full walkthrough: [`docs/install-mempalace.md`](docs/install-mempalace.md). Sub-package internals: [`mempalace/README.md`](mempalace/README.md).
-
----
-
-## Copilot CLI
-
-GitHub Copilot CLI support is **planned** but not yet shipped. Copilot CLI is installable via `brew install copilot-cli@prerelease` and officially supports agent skills per GitHub docs, but its exact discovery paths for skills / agents / commands are not publicly confirmed in a form the bundle can safely target without risking silent breakage. See [`docs/copilot.md`](docs/copilot.md) for the status, a manual workaround, and what needs confirming before `--profile copilot` ships.
-
----
-
-## Repository layout
-
-```
-agent-toolkit-bundle/
-├── README.md
-├── LICENSE                       # Apache-2.0 verbatim
-├── install.sh                    # Symlink-based installer
-├── .gitignore
-│
-├── agents/
-│   ├── claude/                   # Claude Code agent format (.md)
-│   └── opencode/                 # OpenCode agent format (.md with frontmatter)
-│
-├── skills/                       # Tool-neutral (both tools read natively)
-│   └── <skill>/SKILL.md          # One directory per skill
-│
-├── hooks/                        # Claude Code only (shell)
-│
-├── plugins/                      # OpenCode only (TypeScript lifecycle modules)
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── tools/                        # OpenCode only (LLM-callable TypeScript)
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── scripts/                      # OpenCode only (shell helpers, e.g. delegate.sh)
-│   └── delegate.sh
-│
-├── commands/                     # Slash commands (both tools)
-│   ├── claude/
-│   └── opencode/
-│
-├── templates/                    # User-owned starters
-│   ├── CLAUDE.md.example
-│   ├── AGENTS.md.example
-│   ├── opencode.json.example
-│   └── opencode.json.example.md  # annotated explainer
-│
-├── mempalace/                    # Opt-in sub-package (BYO MCP backend)
-│   ├── README.md
-│   ├── skill/SKILL.md
-│   ├── hooks/ plugins/ tools/ commands/ config/
-│   └── docs/install.md, mcp-contract.md, ingestion.md, configuration.md
-│
-└── docs/
-    ├── agents.md
-    ├── skills.md
-    ├── hooks.md
-    ├── commands.md
-    ├── plugins.md
-    ├── tools.md
-    ├── rules.md
-    ├── copilot.md
-    ├── ecosystem.md
-    ├── installation.md
-    ├── compatibility.md
-    └── install-mempalace.md
+```json
+{
+  "permissions": {
+    "allow": ["Read", "Glob", "Grep", "Bash(git *)"]
+  },
+  "mcpServers": {
+    "my-server": {
+      "command": "node",
+      "args": ["path/to/server.js"]
+    }
+  }
+}
 ```
 
-The per-tool subdirs under `agents/` and `commands/` are intentional: even if 80% of an agent file is identical between Claude Code and OpenCode, the frontmatter is not. A flat dual-copy is boring, and boring is correct for a reference repo. The drift is caught by a parity check in CI.
+### Modifying hooks
+
+Edit the hooks in `ai_local/.claude/hooks/`. Changes propagate to `~/.claude/hooks/` via symlink.
+
+### Adding skills
+
+Create a new directory under `ai_local/skills/<skill-name>/` with a `SKILL.md`. Add keyword mappings to `.claude/skill-rules.json` for auto-activation.
 
 ---
 
-## Companion tools
+## Further reading
 
-- [`agent-circuit-breaker`](https://github.com/mwigge/agent-circuit-breaker) — a pre-tool circuit breaker that enforces hard separation between two work contexts. Install it alongside this bundle if you work in two contexts (employer + personal) and want blast-radius protection against cross-contamination.
-- [`milla-jovovich/mempalace`](https://github.com/milla-jovovich/mempalace) — the upstream MCP server the bundle's mempalace sub-package integrates with.
-- See [`docs/ecosystem.md`](docs/ecosystem.md) for the full list.
+### Deep dives
 
----
+- [docs/circuit-breaker.md](docs/circuit-breaker.md) — Company/private mode guard: path ownership, hook mechanics, shell function, test examples
+- [docs/hooks.md](docs/hooks.md) — All 15 hooks + 9 OpenCode plugins: lifecycle events, execution order, exit codes, how to add new hooks
+- [docs/agents.md](docs/agents.md) — All 17 agents: when to invoke, skills loaded, handoff patterns, collaboration flow
+- [docs/skills.md](docs/skills.md) — All 43 skills: catalogue by domain, auto-activation, how to add new skills
+- [docs/commands.md](docs/commands.md) — All 11 slash commands: what each does, examples, workflows
+- [docs/local-models.md](docs/local-models.md) — Ollama setup, model routing table, per-agent model assignments, decision flowchart
 
-## Uninstall
+### Reference
 
-```bash
-# Symlinks only — safe to run without --force because the installer
-# never replaces real files.
-find ~/.claude/agents ~/.claude/commands ~/.claude/hooks \
-     ~/.config/opencode/agent ~/.config/opencode/command \
-     ~/.config/opencode/plugin ~/.config/opencode/tools \
-     ~/.config/opencode/scripts \
-     ~/.agents/skills ~/.claude/skills \
-     -maxdepth 1 -type l -delete 2>/dev/null
-
-# Then remove the settings.json block you added for the hooks, and
-# the mempalace section if you installed it.
-```
-
-Because the installer creates symlinks, uninstall is just `find -type l -delete`. The cloned repo is untouched.
-
----
-
-## License
-
-Apache License 2.0. See `LICENSE`.
+- [docs/ai_dev.md](docs/ai_dev.md) — Full architecture reference (deployment model, three-layer cascade, end-to-end lifecycle)
+- [docs/ai-dev-architecture.drawio](docs/ai-dev-architecture.drawio) — Visual architecture diagram (6 pages, including OpenCode execution model and model routing)
+- [CLAUDE.md](CLAUDE.md) — The root Claude Code instructions file
+- [install.sh](install.sh) — One-shot setup script for both tools
+- [OpenSpec documentation](https://openspec.dev)
+- [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code)
+- [OpenCode documentation](https://opencode.ai/docs/)
+- [MemPalace](https://github.com/milla-jovovich/mempalace) — Persistent cross-session memory

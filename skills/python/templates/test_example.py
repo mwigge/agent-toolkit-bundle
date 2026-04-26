@@ -30,6 +30,7 @@ try:
 except ImportError:
     RESPX_AVAILABLE = False
 
+
 # ---------------------------------------------------------------------------
 # Module under test (inline for self-contained example)
 # ---------------------------------------------------------------------------
@@ -51,11 +52,13 @@ def compute_resilience_score(
     recovery_factor = 1.0 / (1.0 + mttr_seconds / 3600)
     return round(availability * recovery_factor * 100, 2)
 
+
 async def fetch_experiment(client: httpx.AsyncClient, experiment_id: str) -> dict:  # type: ignore[type-arg]
     """Fetch experiment data from the chaos API."""
     response = await client.get(f"/experiments/{experiment_id}")
     response.raise_for_status()
     return response.json()  # type: ignore[no-any-return]
+
 
 # ---------------------------------------------------------------------------
 # 1. Parametrize with descriptive ids
@@ -82,6 +85,7 @@ def test_resilience_score_range(
         f"Score {score} out of expected range [{expected_min}, {expected_max}]"
     )
 
+
 # ---------------------------------------------------------------------------
 # 2. Fixture injection
 # ---------------------------------------------------------------------------
@@ -95,11 +99,13 @@ def test_config_file_content(sample_config_file: object) -> None:  # type: ignor
     content = path.read_text()
     assert "exp-001" in content
 
+
 def test_env_injection(clean_env: None) -> None:
     """clean_env fixture sets required env vars."""
     import os
     assert os.environ["CHAOS_ENV"] == "test"
     assert "SENTRY_DSN" not in os.environ
+
 
 # ---------------------------------------------------------------------------
 # 3. Hypothesis property-based test
@@ -120,6 +126,7 @@ def test_resilience_score_always_in_bounds(
     """Property: score is always in [0, 100] for valid inputs."""
     score = compute_resilience_score(success_rate, mttr_seconds, blast_radius)
     assert 0.0 <= score <= 100.0
+
 
 # ---------------------------------------------------------------------------
 # 4. Exception assertions
@@ -149,6 +156,7 @@ def test_resilience_score_invalid_inputs(kwargs: dict, error_fragment: str) -> N
     with pytest.raises(ValueError, match=error_fragment):
         compute_resilience_score(**kwargs)
 
+
 # ---------------------------------------------------------------------------
 # 5. Async test with mocked HTTP (respx)
 # ---------------------------------------------------------------------------
@@ -167,6 +175,7 @@ async def test_fetch_experiment_success() -> None:
     assert result["id"] == "exp-001"
     assert result["success"] is True
 
+
 @pytest.mark.skipif(not RESPX_AVAILABLE, reason="respx/httpx not installed")
 @pytest.mark.asyncio
 async def test_fetch_experiment_not_found() -> None:
@@ -176,6 +185,7 @@ async def test_fetch_experiment_not_found() -> None:
             with pytest.raises(httpx.HTTPStatusError):
                 await fetch_experiment(client, "missing")
 
+
 # ---------------------------------------------------------------------------
 # 6. factory_boy usage
 # ---------------------------------------------------------------------------
@@ -184,6 +194,7 @@ def test_experiment_factory_defaults(experiment_factory: object) -> None:
     exp = experiment_factory()  # type: ignore[operator]
     assert "id" in exp
     assert exp["success"] is True
+
 
 def test_experiment_factory_override(experiment_factory: object) -> None:
     exp = experiment_factory(success=False, status="failed")  # type: ignore[operator]
