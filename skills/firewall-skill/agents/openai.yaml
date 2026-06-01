@@ -1,0 +1,4 @@
+interface:
+  display_name: "Firewall Skill"
+  short_description: "Design scoped firewall chaos experiments"
+  default_prompt: "Use this skill to design firewall rule, packet-filter, and rollback-safe network security fault experiments."

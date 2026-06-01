@@ -1,0 +1,4 @@
+interface:
+  display_name: "Network Skill"
+  short_description: "Design network fault-injection experiments"
+  default_prompt: "Use this skill to design latency, loss, routing, DNS, dependency, and connectivity chaos experiments with rollback evidence."

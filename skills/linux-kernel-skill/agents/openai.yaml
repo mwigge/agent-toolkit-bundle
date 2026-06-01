@@ -1,0 +1,4 @@
+interface:
+  display_name: "Linux Kernel Skill"
+  short_description: "Design and review guarded Linux kernel chaos experiments"
+  default_prompt: "Use this skill to design safe Linux kernel diagnostics, OOPS analysis, and kernel fault-injection experiments."
