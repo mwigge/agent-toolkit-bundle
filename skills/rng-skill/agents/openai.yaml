@@ -1,0 +1,4 @@
+interface:
+  display_name: "RNG Skill"
+  short_description: "Design entropy and random-number-generator experiments"
+  default_prompt: "Use this skill to design RNG, entropy, and randomness fault-injection experiments with measurable safety evidence."

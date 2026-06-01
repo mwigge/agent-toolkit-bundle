@@ -1,0 +1,3 @@
+interface:
+  display_name: "Monitoring Expert"
+  short_description: "Audit metrics, logs, traces, alerts, dashboards, and experiment instrumentation."
