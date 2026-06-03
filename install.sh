@@ -47,7 +47,7 @@ TARGET_OPENCODE="$HOME/.config/opencode"
 TARGET_AGENTS="$HOME/.agents"
 # TODO: confirm Copilot CLI skills path and add TARGET_COPILOT — see docs/copilot.md
 
-VALID_COMPONENTS=(agents skills hooks plugins tools scripts commands mempalace)
+VALID_COMPONENTS=(agents skills hooks plugins tools scripts commands mempalace codegraph openspec)
 
 usage() {
 	cat <<'EOF'
@@ -58,13 +58,15 @@ Options:
       --force                  Overwrite real files / directories at target
                                paths. Existing symlinks are always replaced.
       --profile PROFILE        claude | opencode | both | auto  (default: auto)
-      --components LIST        Comma-separated subset (default: all for profile)
-                               Valid: agents,skills,hooks,plugins,tools,
-                                      scripts,commands,mempalace
-      --templates              Also copy CLAUDE.md.example / AGENTS.md.example
-                               into the current directory (templates are the
-                               one exception to the symlink rule — users edit
-                               their project copy)
+       --components LIST        Comma-separated subset (default: all for profile)
+                                Valid: agents,skills,hooks,plugins,tools,
+                                       scripts,commands,mempalace,codegraph,
+                                       openspec
+      --templates              Also copy CLAUDE.md.example / AGENTS.md.example /
+                               GEMINI.md.example into the current directory and
+                               create .codex/config.toml from the Codex starter
+                               template (templates are the one exception to the
+                               symlink rule — users edit their project copy)
       --target-claude DIR      Override Claude install root (default ~/.claude)
       --target-opencode DIR    Override OpenCode install root
                                (default ~/.config/opencode)
@@ -287,6 +289,28 @@ if want_component mempalace; then
 	fi
 fi
 
+# --- CodeGraph (opt-in) ----------------------------------------------------
+#
+# CodeGraph is an npm-based code intelligence MCP server. This bundle ships
+# docs and configuration reference under codegraph/ — the skill is already
+# in skills/ (installed by the skills component). The codegraph/ directory
+# is linked into $TARGET_AGENTS so it is reachable tool-neutrally.
+
+if want_component codegraph; then
+	plan "$HERE/codegraph" "$TARGET_AGENTS/codegraph" dir
+fi
+
+# --- OpenSpec (opt-in) -----------------------------------------------------
+#
+# OpenSpec is an npm-based spec-driven development CLI. This bundle ships
+# docs and configuration reference under openspec/ — the four skills are
+# already in skills/ (installed by the skills component). The openspec/
+# directory is linked into $TARGET_AGENTS so it is reachable tool-neutrally.
+
+if want_component openspec; then
+	plan "$HERE/openspec" "$TARGET_AGENTS/openspec" dir
+fi
+
 # ---- planner helpers -------------------------------------------------------
 #
 # Expand the LINK_PLAN into concrete (src, target) pairs.
@@ -436,7 +460,7 @@ fi
 # ---- templates (opt-in, actually copied, not symlinked) --------------------
 
 if [[ "$WITH_TEMPLATES" -eq 1 ]]; then
-	for tmpl in CLAUDE.md.example AGENTS.md.example; do
+	for tmpl in CLAUDE.md.example AGENTS.md.example GEMINI.md.example; do
 		src="$HERE/templates/$tmpl"
 		if [[ -f "$src" ]]; then
 			dst="$(pwd)/$tmpl"
@@ -450,6 +474,20 @@ if [[ "$WITH_TEMPLATES" -eq 1 ]]; then
 			printf 'skipped:   templates/%s not present in the bundle\n' "$tmpl"
 		fi
 	done
+
+	src="$HERE/templates/codex.config.toml.example"
+	if [[ -f "$src" ]]; then
+		mkdir -p "$(pwd)/.codex"
+		dst="$(pwd)/.codex/config.toml"
+		if [[ -f "$dst" && "$FORCE" -ne 1 ]]; then
+			printf 'kept:      %s (re-run with --force to overwrite)\n' "$dst"
+		else
+			install -m 0644 "$src" "$dst"
+			printf 'copied:    %s\n' "$dst"
+		fi
+	else
+		printf 'skipped:   templates/codex.config.toml.example not present in the bundle\n'
+	fi
 fi
 
 # ---- final instructions ----------------------------------------------------
@@ -466,9 +504,15 @@ Next steps:
   2. Keep the repo at its current location ($HERE) - symlinks point here.
      If you move the repo later, re-run this installer from the new path.
   3. (Optional) For persistent cross-session memory, re-run with
-     --components mempalace and then read docs/install-mempalace.md for
-     the MCP server (BYO) setup and environment variables.
-  4. Grep for placeholders in your shell or AGENTS.md / CLAUDE.md:
+       --components mempalace and then read docs/install-mempalace.md for
+       the MCP server (BYO) setup and environment variables.
+  4. (Optional) For code intelligence, re-run with --components codegraph
+       and then read codegraph/docs/install.md to install the npm package
+       and wire the MCP server into your agent config.
+  5. (Optional) For spec-driven development, re-run with
+       --components openspec and then read openspec/docs/install.md to
+       install the npm package and initialise each project.
+  6. Grep for placeholders in your shell or AGENTS.md / CLAUDE.md:
        grep -r '<your-' ~/.claude ~/.config/opencode 2>/dev/null
      and replace them with real values for your project.
 EOF

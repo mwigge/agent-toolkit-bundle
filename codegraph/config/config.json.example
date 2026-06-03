@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "languages": ["typescript", "python"],
+  "exclude": [
+    "node_modules/**",
+    "dist/**",
+    "build/**",
+    ".venv/**",
+    "__pycache__/**",
+    "*.min.js",
+    "coverage/**",
+    ".codegraph/**"
+  ],
+  "maxFileSize": 1048576,
+  "extractDocstrings": true,
+  "trackCallSites": true
+}
