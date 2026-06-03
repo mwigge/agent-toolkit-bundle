@@ -63,6 +63,8 @@ openspec/
 ```
 
 See [openspec.dev](https://openspec.dev) for full documentation.
+See [`openspec/docs/install.md`](openspec/docs/install.md) for the full
+cross-platform install guide including Linux, pnpm, yarn, bun, and nix.
 
 ### 2. Claude Code CLI
 
@@ -97,17 +99,17 @@ The hooks and skills assume these tools are available:
 
 | Tool | Purpose | Install |
 |------|---------|---------|
-| `git` | Version control | Pre-installed on macOS (`xcode-select --install`) |
-| `node` 22+ | JS runtime | `brew install node@22` or `fnm install 22` |
-| `python` 3.10+ | Python projects | `brew install python@3.12` or `pyenv install 3.12` |
+| `git` | Version control | Pre-installed on macOS (`xcode-select --install`); `apt install git` on Debian/Ubuntu |
+| `node` 20+ | JS runtime (required by OpenSpec + CodeGraph) | `brew install node@22` / `nvm install 20` / NodeSource |
+| `python` 3.10+ | Python projects | `brew install python@3.12` / `pyenv install 3.12` / `apt install python3` |
 | `ruff` | Python linting + formatting | `pip install ruff` |
 | `black` | Python formatting | `pip install black` |
 | `mypy` | Python type checking | `pip install mypy` |
 | `pytest` | Python testing | `pip install pytest pytest-cov` |
 | `prettier` | TS/JSON/YAML formatting | `npm install -g prettier` |
-| `gh` | GitHub CLI | `brew install gh` |
-| `glab` | GitLab CLI (optional) | `brew install glab` |
-| `jq` | JSON processing | `brew install jq` |
+| `gh` | GitHub CLI | `brew install gh` / [cli.github.com](https://cli.github.com) |
+| `glab` | GitLab CLI (optional) | `brew install glab` / [gitlab.com/gitlab-org/cli](https://gitlab.com/gitlab-org/cli) |
+| `jq` | JSON processing | `brew install jq` / `apt install jq` |
 
 Not all tools are required. Hooks degrade gracefully — if `ruff` is not installed, the Python format-on-save hook skips silently.
 
@@ -295,7 +297,7 @@ ai_local/
     package.json     @opencode-ai/plugin dependency
   skills/            43 domain knowledge modules (shared by both tools)
   docs/
-    ai-dev-architecture.drawio   Architecture diagram (Claude, OpenCode, MemPalace, model routing, Codex, Gemini)
+
     local-models.md              Model routing table, Ollama setup
     agents.md / hooks.md / commands.md / skills.md / circuit-breaker.md / codex.md
   install.sh         One-shot symlink wiring for Claude Code + OpenCode
@@ -757,7 +759,6 @@ Create a new directory under `ai_local/skills/<skill-name>/` with a `SKILL.md`. 
 ### Reference
 
 - [docs/ai_dev.md](docs/ai_dev.md) — Full architecture reference (deployment model, three-layer cascade, end-to-end lifecycle)
-- [docs/ai-dev-architecture.drawio](docs/ai-dev-architecture.drawio) — Visual architecture diagram (6 pages, including OpenCode execution model and model routing)
 - [CLAUDE.md](CLAUDE.md) — The root Claude Code instructions file
 - [install.sh](install.sh) — One-shot setup script for both tools
 - [OpenSpec documentation](https://openspec.dev)
