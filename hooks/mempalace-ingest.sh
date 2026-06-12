@@ -8,9 +8,8 @@
 
 set -uo pipefail
 
-INPUT=$(cat)  # consume stdin (PreCompact payload)
+cat >/dev/null  # consume stdin (PreCompact payload)
 SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
-TIMESTAMP=$(date -u +"%Y%m%dT%H%M%SZ")
 LOG_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}/.claude/logs"
 mkdir -p "$LOG_DIR"
 

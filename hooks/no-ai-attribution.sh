@@ -6,9 +6,9 @@
 # Exit 2 = block. Exit 0 = allow.
 
 set -euo pipefail
-INPUT=$(cat)
-TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+INPUT=$(cat || true)
+TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null || true)
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null || true)
 
 # Only gate Bash commands
 [[ "$TOOL" != "Bash" || -z "$COMMAND" ]] && exit 0

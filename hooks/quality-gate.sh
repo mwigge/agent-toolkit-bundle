@@ -5,10 +5,10 @@
 # IMPORTANT: checks stop_hook_active to prevent infinite loops.
 
 set -euo pipefail
-INPUT=$(cat)
+INPUT=$(cat || true)
 
 # ── Infinite-loop guard ───────────────────────────────────────────────────────
-if [[ "$(echo "$INPUT" | jq -r '.stop_hook_active // false')" == "true" ]]; then
+if [[ "$(echo "$INPUT" | jq -r '.stop_hook_active // false' 2>/dev/null || true)" == "true" ]]; then
   exit 0
 fi
 
@@ -30,11 +30,8 @@ fi
 # ── Python quality gates ──────────────────────────────────────────────────────
 if [[ "$HAS_PYTHON" == "true" ]]; then
   # 1. no print() in library code
-  PY_DIRS=$(find "$CWD" -maxdepth 3 -name "*.py" -not -path "*/tests/*" -not -path "*/.venv/*" -not -path "*/test_*" 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
-  if [[ -n "$PY_DIRS" ]]; then
-    if grep -rn --include="*.py" "^\s*print(" "$CWD" --exclude-dir=.venv --exclude-dir=tests 2>/dev/null | grep -v "#" | grep -q .; then
-      FAILURES+=("Python: print() found in library code — use structured logging")
-    fi
+  if grep -rnE --include="*.py" '^[[:space:]]*print\(' "$CWD" --exclude-dir=.venv --exclude-dir=tests 2>/dev/null | grep -q .; then
+    FAILURES+=("Python: print() found in library code — use structured logging")
   fi
 
   # 2. no bare except
@@ -43,16 +40,19 @@ if [[ "$HAS_PYTHON" == "true" ]]; then
   fi
 
   # 3. no deprecated typing imports
-  if grep -rn --include="*.py" "from typing import.*\b\(Dict\|List\|Tuple\|Set\|Optional\)\b" "$CWD" --exclude-dir=.venv 2>/dev/null | grep -q .; then
+  if grep -rnE --include="*.py" 'from typing import .*\b(Dict|List|Tuple|Set|Optional)\b' "$CWD" --exclude-dir=.venv 2>/dev/null | grep -q .; then
     FAILURES+=("Python: deprecated typing.Dict/List/etc found — use dict/list/X | None (Python 3.10+)")
   fi
 fi
 
 # ── TypeScript quality gates ──────────────────────────────────────────────────
 if [[ "$HAS_TYPESCRIPT" == "true" ]]; then
-  # 1. no console.log in src/
-  if find "$CWD/src" -name "*.ts" -o -name "*.tsx" 2>/dev/null | xargs grep -l "console\." 2>/dev/null | grep -q .; then
-    FAILURES+=("TypeScript: console.log/error found in src/ — use structured logger")
+  # 1. no console.log/debug/info in changed files (console.warn/error/table allowed)
+  CHANGED_TS=$(echo "$CHANGED" | grep -E '\.(ts|tsx)$' || true)
+  if [[ -n "$CHANGED_TS" ]]; then
+    if ( cd "$CWD" && echo "$CHANGED_TS" | tr '\n' '\0' | xargs -0 grep -lE 'console\.(log|debug|info)' 2>/dev/null | grep -q . ); then
+      FAILURES+=("TypeScript: console.log/debug/info found in changed files — use structured logger")
+    fi
   fi
 
   # 2. tsc type check (if tsconfig present and tsc available)

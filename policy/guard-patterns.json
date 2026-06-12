@@ -1,0 +1,57 @@
+{
+  "$comment": "Shared security/quality policy data for agent-toolkit-bundle. Consumed by hooks/*.sh (via jq -r) and plugins/*.ts (via readFileSync + JSON.parse + new RegExp(pattern, flags)). Every *_pattern / *_patterns / *_commands / *_files entry is ERE-compatible: the same string is valid for GNU grep -E and JavaScript RegExp. Joining an array with '|' produces a single alternation regex. destructive_commands and the egress-allowlist logic in security-guard.sh/.ts are best-effort tripwires, not a security boundary — see docs/hooks.md.",
+
+  "secret_pattern": "(api_key|secret_key|password|token)\\s*=\\s*[\"'][^$'{][^\"']{8,}",
+
+  "destructive_commands": [
+    "(sudo\\s+)?rm\\s+(-[a-zA-Z]*(r[a-zA-Z]*f[a-zA-Z]*|f[a-zA-Z]*r[a-zA-Z]*)|--recursive\\s+--force|--force\\s+--recursive)\\s+/",
+    "find\\s+/\\s+.*-delete",
+    "git\\s+push\\s+.*(-f\\b|--force(-with-lease)?).*(\\bmain\\b|\\bmaster\\b)",
+    "git\\s+push\\s+.*(\\bmain\\b|\\bmaster\\b).*(-f\\b|--force(-with-lease)?)",
+    "drop\\s+table",
+    "truncate\\s+table",
+    "format\\s+[cCdD]:"
+  ],
+
+  "protected_files": [
+    "\\.env$",
+    "\\.env\\.",
+    "migrations/.*\\.(sql|py)$",
+    "pdm\\.lock$",
+    "package-lock\\.json$",
+    "pnpm-lock\\.yaml$",
+    "\\.claude/settings.*\\.json$"
+  ],
+
+  "self_protect_files": [
+    "\\.claude/",
+    "\\.github/workflows/",
+    "hooks/.*\\.sh$",
+    "plugins/.*\\.ts$",
+    "settings.*\\.json$"
+  ],
+
+  "model_tier_map": {
+    "$comment": "Prefix-matched against modelID; consumers iterate in insertion order and return the first match, so more specific prefixes MUST be listed before the general ones they would otherwise be swallowed by (e.g. claude-opus-4-8 before claude-opus-4). cost_per_1m_out is USD per 1M output tokens; 0 = local/free. Anthropic prices verified against platform.claude.com/docs/en/about-claude/pricing as of 2026-06.",
+    "devstral":          { "tier": "primary",  "cost_per_1m_out": 0 },
+    "llama3.3":          { "tier": "primary",  "cost_per_1m_out": 0 },
+    "gemma4":            { "tier": "primary",  "cost_per_1m_out": 0 },
+    "qwen2.5-coder":     { "tier": "utility",  "cost_per_1m_out": 0 },
+    "claude-fable-5":    { "tier": "sign-off", "cost_per_1m_out": 50 },
+    "claude-mythos-5":   { "tier": "sign-off", "cost_per_1m_out": 50 },
+    "claude-opus-4-8":   { "tier": "sign-off", "cost_per_1m_out": 25 },
+    "claude-opus-4-7":   { "tier": "sign-off", "cost_per_1m_out": 25 },
+    "claude-opus-4-6":   { "tier": "sign-off", "cost_per_1m_out": 25 },
+    "claude-opus-4-5":   { "tier": "sign-off", "cost_per_1m_out": 25 },
+    "claude-opus-4":     { "tier": "sign-off", "cost_per_1m_out": 75 },
+    "claude-opus-3":     { "tier": "sign-off", "cost_per_1m_out": 75 },
+    "claude-sonnet-4":   { "tier": "sign-off", "cost_per_1m_out": 15 },
+    "claude-sonnet-3":   { "tier": "sign-off", "cost_per_1m_out": 15 },
+    "claude-haiku-4-5":  { "tier": "sign-off", "cost_per_1m_out": 5 },
+    "claude-haiku-3-5":  { "tier": "sign-off", "cost_per_1m_out": 4 },
+    "claude-haiku-3":    { "tier": "sign-off", "cost_per_1m_out": 1.25 },
+    "gpt-4o":            { "tier": "sign-off", "cost_per_1m_out": 15 },
+    "o3":                { "tier": "sign-off", "cost_per_1m_out": 60 },
+    "gemini-2.5-pro":    { "tier": "sign-off", "cost_per_1m_out": 10 }
+  }
+}

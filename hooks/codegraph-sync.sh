@@ -5,12 +5,12 @@
 # Exit 0 always — sync is never a blocker.
 
 set -euo pipefail
-INPUT=$(cat)
+INPUT=$(cat || true)
 
-TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty')
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null || true)
 [[ "$TOOL_NAME" != "Bash" ]] && exit 0
 
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null || true)
 [[ -z "$COMMAND" ]] && exit 0
 
 # Only trigger on git add commands

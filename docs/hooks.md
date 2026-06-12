@@ -30,9 +30,25 @@ Hooks are shell scripts that run at specific lifecycle events in Claude Code. Th
 
 | Code | Meaning |
 |------|---------|
-| `0` | Allow / approve — proceed normally |
-| `2` | Block / deny — stderr message is fed back to Claude as an error |
+| `0`, no stdout | No opinion — falls through to the normal permission flow (may still prompt the human) |
+| `0` + `hookSpecificOutput` JSON | Explicit decision — see below |
+| `2` | Block / deny — stderr message is fed back to Claude as an error, any stdout is ignored |
 | Other | Treated as allow (fail-open) |
+
+### Signaling an explicit allow/deny decision
+
+A hook can signal "allow" (or "deny"/"ask") on exit 0 by printing JSON to stdout. The
+`hookEventName` should echo the `hook_event_name` field from the hook's own input so the
+decision always matches the event the hook is registered under:
+
+```bash
+printf '{"hookSpecificOutput":{"hookEventName":"%s","permissionDecision":"allow","permissionDecisionReason":"%s"}}\n' \
+  "$HOOK_EVENT" "why this is safe"
+```
+
+`permission-autoapprove.sh` uses this to distinguish its GREEN/YELLOW "auto-approve" tiers
+(emit the JSON above) from its UNMATCHED tier (bare `exit 0`, no stdout — escalate to a human).
+A bare `exit 0` with no stdout is *not* the same as an allow decision.
 
 ### additionalContext
 
@@ -107,13 +123,48 @@ Only checks `git commit` and `gh pr create` commands. Scans for patterns like `C
 **Timeout**: 10 seconds
 **Purpose**: Blocks destructive commands and protects sensitive files.
 
-**Bash blocks**: `rm -rf /`, `git push --force main`, `DROP TABLE`, `TRUNCATE TABLE`
+**Bash blocks**: `rm -rf /`, force-pushes to `main`/`master`, `drop table`, `truncate table`, `format c:|d:` — see `policy/guard-patterns.json`'s `destructive_commands`.
 
-**File blocks**: Writing to `.env`, `.env.*`, `migrations/*.sql`, `pdm.lock`, `package-lock.json`, `.claude/settings.json`
+**File blocks**: `.env`, `.env.*`, `migrations/*.sql|py`, `pdm.lock`, `package-lock.json`, `pnpm-lock.yaml`, `.claude/settings*.json` — see `policy/guard-patterns.json`'s `protected_files`.
 
-**Secret detection**: Scans edited files for `api_key=`, `password=`, `token=` with literal values (8+ chars).
+**Secret detection**: Scans the *pending* content of an Edit/Write (not the file on disk) for `api_key=`, `secret_key=`, `password=`, `token=` with literal values (8+ chars) — see `policy/guard-patterns.json`'s `secret_pattern`.
 
 **Audit**: Logs every tool call to `.claude/audit.log` regardless of outcome.
+
+**Best-effort tripwires**: the regexes above catch common cases (`rm -rf /`, `git push --force ... main`) but are not exhaustive — variants like `rm -fr /`, `sudo rm -rf /`, or `find / -delete` can slip through. The permission system (`permission-autoapprove.sh` + human review on UNMATCHED) is the actual security boundary; treat these patterns as a cheap first filter, not a guarantee.
+
+---
+
+### Shared policy data: policy/guard-patterns.json
+
+`policy/guard-patterns.json` is the single source of truth for the regexes and
+data shared between the bash hooks and their OpenCode TS plugin twins:
+
+- `secret_pattern` — used by `security-guard.sh` and `security-guard.ts`
+- `destructive_commands` — used by `security-guard.sh`
+- `protected_files` / `self_protect_files` — used by `security-guard.sh`,
+  `permission-autoapprove.sh`, and `security-guard.ts`
+- `model_tier_map` — used by `model-usage.ts`, `model-usage-summary.sh`
+  (embedded Python), and documented for `model-report.py`
+
+Every `*_pattern` / `*_patterns` / `*_commands` / `*_files` entry is written
+in **ERE-compatible syntax** — the same string is valid for `grep -E` and as
+the source of a JS `RegExp`. Arrays are joined with `|` to form a single
+alternation. For `model_tier_map`, keys are prefix-matched against the model
+ID; **more specific prefixes must be listed before the general ones they
+would otherwise be swallowed by** (e.g. `claude-opus-4-8` before
+`claude-opus-4`).
+
+Each consumer resolves the file's path relative to its own (symlink-resolved)
+location — `<repo>/hooks/../policy/guard-patterns.json` or
+`<repo>/plugins/../policy/guard-patterns.json` — so it works whether run from
+the repo checkout or via the `install.sh` symlink tree. If the file is
+missing or unreadable, every consumer falls back to its previous hardcoded
+values rather than failing.
+
+Run `scripts/test-guard-patterns.sh` to check that all consumers still
+reference this file (drift check) and to run a fixture-based allow/deny suite
+against the bash hooks.
 
 ---
 
@@ -256,9 +307,16 @@ Writes one NDJSON line to `.claude/logs/events.ndjson` per event:
 | Tier | Examples | Action |
 |------|----------|--------|
 | **GREEN** | Read, Glob, Grep, `git status/log/diff`, `pytest`, `ruff`, `tsc` | Auto-approve silently |
-| **YELLOW** | `pip install`, `git commit`, `docker build`, editing `.py/.ts/.sql` | Auto-approve + audit log |
-| **RED** | `rm -rf /`, `git push --force main`, `DROP TABLE`, writing `.env` | Deny with explanation |
-| **Unmatched** | SSH to remote, production docker-compose, unknown egress | Escalate to human |
+| **YELLOW** | `pip install`/`npm install` (dependency changes, audited — see below), `git commit`, `docker build`, editing `.py/.ts/.sql` inside the project tree | Auto-approve + audit log |
+| **RED** | `rm -rf /`, `git push -f`/`--force`/`--force-with-lease` to `main`/`master`, `DROP TABLE`, writing `.env` or lock files | Deny with explanation |
+| **Self-protection** | Edit/Write to `.claude/`, `.github/workflows/`, `hooks/*.sh`, `plugins/*.ts`, `settings*.json` | Escalate to human (no decision) — an agent must not silently widen its own permissions |
+| **Unmatched** | SSH to remote, production docker-compose, unknown egress, edits outside the project tree | Escalate to human |
+
+**Dependency installs (`pip install`, `npm install`, etc.)** are a deliberate YELLOW: they're
+auto-approved (agents frequently need to add packages) but every invocation is written to
+`.claude/audit.log` so supply-chain changes are reviewable after the fact. If your threat model
+requires a human in the loop for every dependency change, move these patterns to the
+self-protection/escalation tier instead.
 
 See [permission-policy.md](../permission-policy.md) for the full policy definition.
 

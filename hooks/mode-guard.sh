@@ -9,10 +9,10 @@
 
 set -euo pipefail
 
-INPUT=$(cat)
-TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
-COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
-FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+INPUT=$(cat || true)
+TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null || true)
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null || true)
+FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null || true)
 
 MODE_FILE="$HOME/.claude/mode"
 MODE=$(cat "$MODE_FILE" 2>/dev/null || echo "company")

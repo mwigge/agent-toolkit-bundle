@@ -28,6 +28,15 @@ SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
 LOG_DIR="$CWD/.claude/logs"
 USAGE_LOG="$LOG_DIR/model-usage.ndjson"
 
+# policy/guard-patterns.json's model_tier_map is the single source of truth
+# (shared with plugins/model-usage.ts and tools/model-report.py). Resolve it
+# relative to this script's real location so it works via the install.sh
+# symlink tree too; the embedded Python below falls back to a hardcoded map
+# if the file is missing or unreadable.
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+command -v readlink &>/dev/null && SCRIPT_PATH="$(readlink -f "$SCRIPT_PATH" 2>/dev/null || echo "$SCRIPT_PATH")"
+POLICY_FILE="$(dirname "$SCRIPT_PATH")/../policy/guard-patterns.json"
+
 # ── Resolve Python binary ─────────────────────────────────────────────────────
 PYTHON="${MEMPALACE_PYTHON:-}"
 if [[ -z "$PYTHON" ]]; then
@@ -57,17 +66,21 @@ if [[ -n "$TRANSCRIPT" && -f "$TRANSCRIPT" ]]; then
 
 	# Python script: reads session jsonl, finds assistant messages not yet recorded,
 	# emits model-usage.ndjson entries. Idempotent — tracks by message uuid.
-	"$PYTHON" - "$TRANSCRIPT" "$USAGE_LOG" "$SESSION_ID" <<'PYEOF'
+	"$PYTHON" - "$TRANSCRIPT" "$USAGE_LOG" "$SESSION_ID" "$POLICY_FILE" <<'PYEOF'
 import sys, json, os
 from datetime import datetime, timezone
 
 transcript_path = sys.argv[1]
 usage_log       = sys.argv[2]
 session_id      = sys.argv[3]
+policy_file     = sys.argv[4]
 
-# ── Tier mapping — matches model-usage.ts TIER_MAP ───────────────────────────
-# Keys are prefix-matched against modelID (case-sensitive).
-TIER_MAP: dict[str, tuple[str, float]] = {
+# ── Tier mapping ──────────────────────────────────────────────────────────────
+# policy/guard-patterns.json's model_tier_map is the single source of truth
+# (shared with plugins/model-usage.ts and tools/model-report.py). Keys are
+# prefix-matched against modelID (case-sensitive); more specific prefixes
+# must be listed before the general ones they'd otherwise be swallowed by.
+FALLBACK_TIER_MAP: dict[str, tuple[str, float]] = {
     # Local — zero cost
     "devstral":              ("primary",  0.0),
     "llama3.3":              ("primary",  0.0),
@@ -84,6 +97,22 @@ TIER_MAP: dict[str, tuple[str, float]] = {
     "o3":                    ("sign-off", 60.0),
     "gemini-2.5-pro":        ("sign-off", 10.0),
 }
+
+def load_tier_map() -> dict[str, tuple[str, float]]:
+    try:
+        with open(policy_file, encoding="utf-8") as fh:
+            raw = json.load(fh).get("model_tier_map", {})
+        if not raw:
+            return FALLBACK_TIER_MAP
+        return {
+            k: (v["tier"], float(v["cost_per_1m_out"]))
+            for k, v in raw.items()
+            if not k.startswith("$")
+        }
+    except (OSError, ValueError, KeyError, TypeError):
+        return FALLBACK_TIER_MAP
+
+TIER_MAP = load_tier_map()
 
 def resolve_tier(model_id: str) -> tuple[str, float]:
     for prefix, entry in TIER_MAP.items():

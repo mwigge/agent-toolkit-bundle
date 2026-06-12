@@ -25,7 +25,6 @@ TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 # ── OTel tracing (via otel-cli) ──────────────────────────────────────────────
 OTEL_ENDPOINT="${OTEL_EXPORTER_OTLP_ENDPOINT:-http://localhost:4318}"
 OTEL_SERVICE="ai-agent"
-TRACE_FILE="$PROJECT/.claude/current-trace.json"
 OTEL_ENABLED=false
 if command -v otel-cli &>/dev/null; then
   OTEL_ENABLED=true

@@ -1,9 +1,10 @@
 import type { Plugin } from "@opencode-ai/plugin"
 import type { Event } from "@opencode-ai/sdk"
-import { appendFileSync, mkdirSync, readFileSync } from "fs"
-import { join } from "path"
+import { appendFileSync, mkdirSync, readFileSync, realpathSync } from "fs"
+import { join, dirname } from "path"
 import { execFile } from "child_process"
 import { homedir } from "os"
+import { fileURLToPath } from "url"
 
 // model-usage.ts — tiered model usage instrumentation
 // SPDX-License-Identifier: Apache-2.0
@@ -41,30 +42,51 @@ interface TierEntry {
   costPer1MOut: number
 }
 
-const TIER_MAP: Record<string, TierEntry> = {
-  // ── Local / primary tier — zero cost ────────────────────────────────────────
+// policy/guard-patterns.json's model_tier_map is the single source of truth
+// (shared with hooks/model-usage-summary.sh and tools/model-report.py). Fall
+// back to this previous hardcoded map if the file is missing or unreadable.
+const FALLBACK_TIER_MAP: Record<string, TierEntry> = {
   "devstral":              { tier: "primary",  costPer1MOut: 0 },
   "llama3.3":              { tier: "primary",  costPer1MOut: 0 },
   "gemma4":                { tier: "primary",  costPer1MOut: 0 },
   "qwen2.5-coder":         { tier: "utility",  costPer1MOut: 0 },
-  // ── Cloud / sign-off tier — prefix-matched, newest first ────────────────────
-  // Claude Opus (most expensive)
   "claude-opus-4":         { tier: "sign-off", costPer1MOut: 75 },
   "claude-opus-3":         { tier: "sign-off", costPer1MOut: 75 },
-  // Claude Sonnet
   "claude-sonnet-4":       { tier: "sign-off", costPer1MOut: 15 },
   "claude-sonnet-3":       { tier: "sign-off", costPer1MOut: 15 },
-  // Claude Haiku (cheap cloud)
   "claude-haiku-4":        { tier: "sign-off", costPer1MOut: 1.25 },
   "claude-haiku-3":        { tier: "sign-off", costPer1MOut: 1.25 },
-  // Other cloud
   "gpt-4o":                { tier: "sign-off", costPer1MOut: 15 },
   "o3":                    { tier: "sign-off", costPer1MOut: 60 },
   "gemini-2.5-pro":        { tier: "sign-off", costPer1MOut: 10 },
 }
 
+function loadTierMap(): Record<string, TierEntry> {
+  try {
+    const scriptPath = realpathSync(fileURLToPath(import.meta.url))
+    const policyPath = join(dirname(scriptPath), "..", "policy", "guard-patterns.json")
+    const raw = JSON.parse(readFileSync(policyPath, "utf8")) as {
+      model_tier_map?: Record<string, { tier: Tier; cost_per_1m_out: number }>
+    }
+    const map = raw.model_tier_map
+    if (!map) return FALLBACK_TIER_MAP
+
+    const result: Record<string, TierEntry> = {}
+    for (const [key, entry] of Object.entries(map)) {
+      if (key.startsWith("$")) continue
+      result[key] = { tier: entry.tier, costPer1MOut: entry.cost_per_1m_out }
+    }
+    return result
+  } catch {
+    return FALLBACK_TIER_MAP
+  }
+}
+
+const TIER_MAP: Record<string, TierEntry> = loadTierMap()
+
 function resolveTier(modelID: string): TierEntry {
   // Prefix-match: "claude-opus-4" matches "claude-opus-4-6", "claude-opus-4-5", etc.
+  // More specific prefixes must be listed before general ones in TIER_MAP.
   for (const [key, entry] of Object.entries(TIER_MAP)) {
     if (modelID.startsWith(key)) return entry
   }

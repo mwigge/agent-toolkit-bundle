@@ -15,7 +15,6 @@
 #   --agent       Agent name (required)
 #   --dir         Working directory (default: $PWD)
 #   --spec-file   Markdown spec file describing the full task (required)
-#   --unit-limit  Max files per sub-unit before splitting (default: 2)
 #   --attempts    Max delegate.sh attempts before giving up (default: 3)
 #   --timeout     Per-attempt timeout in seconds (default: 600)
 #   --stall-limit Seconds without commit before splitting (default: 240)
@@ -30,7 +29,6 @@ set -euo pipefail
 AGENT=""
 WORKDIR="$PWD"
 SPEC_FILE=""
-UNIT_LIMIT=2
 ATTEMPTS=3
 TIMEOUT=700
 STALL_LIMIT=450
@@ -40,7 +38,6 @@ while [[ $# -gt 0 ]]; do
 	--agent)      AGENT="$2";       shift 2 ;;
 	--dir)        WORKDIR="$2";     shift 2 ;;
 	--spec-file)  SPEC_FILE="$2";   shift 2 ;;
-	--unit-limit) UNIT_LIMIT="$2";  shift 2 ;;
 	--attempts)   ATTEMPTS="$2";    shift 2 ;;
 	--timeout)    TIMEOUT="$2";     shift 2 ;;
 	--stall-limit) STALL_LIMIT="$2"; shift 2 ;;

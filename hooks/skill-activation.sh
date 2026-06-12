@@ -32,7 +32,7 @@ while IFS= read -r line; do
 done < <(jq -c '.[]' "$RULES_FILE" 2>/dev/null || true)
 
 # Deduplicate
-UNIQUE=($(printf '%s\n' "${ACTIVATED[@]}" | sort -u))
+mapfile -t UNIQUE < <(printf '%s\n' "${ACTIVATED[@]}" | sort -u)
 
 if [[ ${#UNIQUE[@]} -gt 0 ]]; then
   NAMES=$(printf '%s, ' "${UNIQUE[@]}" | sed 's/, $//')

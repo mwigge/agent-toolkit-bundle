@@ -6,8 +6,8 @@
 
 set -euo pipefail
 
-INPUT=$(cat)
-TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty')
+INPUT=$(cat || true)
+TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null || true)
 
 PATTERNS_FILE="${HOME}/.claude/pii-patterns.json"
 ALLOWLIST_FILE="${HOME}/.claude/pii-guard-allowlist.txt"
@@ -23,19 +23,19 @@ esac
 TEXT=""
 case "$TOOL" in
   Bash)
-    TEXT=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+    TEXT=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null || true)
     ;;
   Agent)
-    TEXT=$(echo "$INPUT" | jq -r '.tool_input.prompt // .tool_input.description // empty')
+    TEXT=$(echo "$INPUT" | jq -r '.tool_input.prompt // .tool_input.description // empty' 2>/dev/null || true)
     ;;
 esac
 
-[ -z "$TEXT" ] && exit 0
-[ ! -f "$PATTERNS_FILE" ] && exit 0
+[[ -z "$TEXT" ]] && exit 0
+[[ ! -f "$PATTERNS_FILE" ]] && exit 0
 
 # Load allowlist entries (if file exists)
 ALLOWLIST=""
-if [ -f "$ALLOWLIST_FILE" ]; then
+if [[ -f "$ALLOWLIST_FILE" ]]; then
   ALLOWLIST=$(grep -v '^#' "$ALLOWLIST_FILE" | grep -v '^$' || true)
 fi
 
@@ -59,9 +59,9 @@ luhn_valid() {
 # ── Check if match is in the allowlist ───────────────────────────────────────
 is_allowlisted() {
   local match="$1"
-  if [ -n "$ALLOWLIST" ]; then
+  if [[ -n "$ALLOWLIST" ]]; then
     while IFS= read -r entry; do
-      [ -z "$entry" ] && continue
+      [[ -z "$entry" ]] && continue
       if [[ "$match" == *"$entry"* ]]; then
         return 0
       fi
@@ -113,12 +113,12 @@ for p in patterns:
 # No match
 " 2>/dev/null) || true
 
-if [ -n "$PATTERN_COUNT" ]; then
+if [[ -n "$PATTERN_COUNT" ]]; then
   PATTERN_NAME="${PATTERN_COUNT%%:*}"
   REDACTED="${PATTERN_COUNT#*:}"
 
   # Luhn check for PAN
-  if [ "$PATTERN_NAME" = "PAN" ]; then
+  if [[ "$PATTERN_NAME" == "PAN" ]]; then
     # Extract the full match to validate Luhn
     FULL_MATCH=$(echo "$TEXT" | python3 -c "
 import json, re, sys
@@ -130,7 +130,7 @@ if m:
     print(m.group())
 " 2>/dev/null) || true
 
-    if [ -n "$FULL_MATCH" ] && ! luhn_valid "$FULL_MATCH"; then
+    if [[ -n "$FULL_MATCH" ]] && ! luhn_valid "$FULL_MATCH"; then
       # Failed Luhn — not a real PAN, let it pass
       exit 0
     fi
