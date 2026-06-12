@@ -1,6 +1,6 @@
 {
   "name": "agent-toolkit-bundle-tools",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "OpenCode custom tools shipped by agent-toolkit-bundle.",
   "license": "Apache-2.0",
   "type": "module",
