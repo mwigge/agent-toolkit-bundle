@@ -1,3 +1,8 @@
+---
+name: chaostooling-standards
+description: Apply shared Python, TypeScript, testing, security, and observability standards across chaostooling repositories.
+---
+
 # Chaostooling Engineering Standards
 
 ## When to Activate

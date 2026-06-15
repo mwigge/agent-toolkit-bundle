@@ -1,3 +1,8 @@
+---
+name: presentation
+description: Structure technical presentations, stakeholder narratives, diagrams, demos, and concise engineering communication.
+---
+
 # Skill: Presentation & Technical Communication
 
 ## Diátaxis Framework

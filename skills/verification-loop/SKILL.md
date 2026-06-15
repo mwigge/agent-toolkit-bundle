@@ -1,3 +1,8 @@
+---
+name: verification-loop
+description: Run a structured build, type-check, test, lint, security, and release-readiness verification loop after code changes.
+---
+
 # 驗證循環技能
 
 Claude Code 工作階段的完整驗證系統。

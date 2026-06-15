@@ -1,3 +1,8 @@
+---
+name: oauth
+description: Design and review secure OAuth 2.1, OpenID Connect, PKCE, JWT, token lifecycle, and authorization integrations.
+---
+
 # Skill: OAuth 2.1 and JWT Authentication
 
 ## OAuth 2.1 (RFC 9207)

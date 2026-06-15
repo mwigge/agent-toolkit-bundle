@@ -1,3 +1,8 @@
+---
+name: data-engineer
+description: Design and review data pipelines, dbt models, orchestration DAGs, Spark jobs, data contracts, and quality checks.
+---
+
 # Skill: Data Engineer
 
 **Version**: 1.0.0 | **Updated**: 2026-04-05

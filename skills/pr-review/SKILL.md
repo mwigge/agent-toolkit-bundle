@@ -1,3 +1,8 @@
+---
+name: pr-review
+description: Review pull and merge requests for correctness, security, maintainability, performance, and test coverage.
+---
+
 # Skill: PR / MR Review
 
 ## The Four Reviewer Lenses

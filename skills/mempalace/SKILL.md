@@ -1,3 +1,8 @@
+---
+name: mempalace
+description: Populate, query, and troubleshoot MemPalace cross-session memory, OpenSpec artifacts, and agent diary entries.
+---
+
 # Skill: MemPalace
 
 **Version**: 1.0.0 | **Updated**: 2026-04-09

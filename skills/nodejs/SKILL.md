@@ -1,3 +1,8 @@
+---
+name: nodejs
+description: Build and review Node.js applications using modern ESM, Fastify, NestJS, streams, workers, testing, and observability.
+---
+
 # Skill: Node.js
 
 **Runtime**: Node 22 LTS | **Modules**: ES Modules only | **Frameworks**: Fastify v5, NestJS v10+

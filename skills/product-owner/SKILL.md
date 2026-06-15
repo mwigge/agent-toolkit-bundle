@@ -1,3 +1,8 @@
+---
+name: product-owner
+description: Write user stories, acceptance criteria, backlog priorities, OKRs, Jira tickets, and stakeholder communications.
+---
+
 # Skill: Product Owner
 
 **Version**: 1.0.0 | **Updated**: 2026-04-05

@@ -1,3 +1,8 @@
+---
+name: documentation
+description: Create and review technical documentation, ADRs, runbooks, API references, tutorials, and how-to guides.
+---
+
 # Skill: Documentation
 
 ## Diátaxis Framework — Mandatory

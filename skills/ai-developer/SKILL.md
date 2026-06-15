@@ -1,3 +1,8 @@
+---
+name: ai-developer
+description: Build LLM applications, RAG pipelines, MCP servers, evaluation systems, and Anthropic or OpenAI API integrations.
+---
+
 # Skill: AI Developer
 
 **Version**: 1.0.0 | **Updated**: 2026-04-05

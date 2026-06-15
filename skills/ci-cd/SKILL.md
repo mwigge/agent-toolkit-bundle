@@ -1,3 +1,8 @@
+---
+name: ci-cd
+description: Design and review CI/CD pipelines, container builds, security checks, release workflows, and deployments.
+---
+
 # Skill: CI/CD — Pipelines, Containers, and Deployment
 
 ## GitLab CI Structure
