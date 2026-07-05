@@ -1,3 +1,7 @@
+---
+description: Run a four-lens adversarial code review over all changes on the current branch relative to main.
+---
+
 # /review — Adversarial Code Review on Current Branch
 
 Run a full adversarial code review against all changes on the current branch relative to main.

@@ -1,3 +1,7 @@
+---
+description: Analyse the staged (or tracked) diff, draft a conventional commit message, validate it, and commit.
+---
+
 # /commit — Conventional Commit Creator
 
 Create a conventional commit for the current staged (or tracked) changes.

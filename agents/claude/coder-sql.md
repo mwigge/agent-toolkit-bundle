@@ -1,7 +1,7 @@
 ---
 name: coder-sql
 description: SQL and database implementation agent. Use for writing migrations, schema changes, query optimisation, RLS policies, and stored procedures. Always parameterised SQL. Invoke as @coder-sql with the schema change or query requirement.
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 # @coder-sql — SQL & Database Implementation Agent

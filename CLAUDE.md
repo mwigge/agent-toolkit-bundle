@@ -26,183 +26,34 @@ These are enforced by hooks — listed here for awareness only.
 
 ---
 
-## Code Standards — Load Skill for Full Guidance
+## Code Standards — Load Skills On Demand
 
-These standards apply to ALL development projects across all AI clients.
+These standards apply to ALL development projects across all AI clients. Skills are **not** enumerated in full here — listing ~150 skills every session defeats progressive disclosure. Load the one you need with `/skill-name`, or let the `skill-activation` hook auto-load it from a keyword match.
 
-### Software Engineering Principles
+- **Full catalogue** (every skill, by domain): [docs/skills.md](docs/skills.md)
+- **Auto-activation keyword → skill map**: [skill-rules.json](skill-rules.json)
 
-- `/solid` — SOLID principles, clean code, value objects, early return, methods < 10 lines
-- `/tdd-workflow` — Red-Green-Refactor, tests before code, coverage gates
-- `/verification-loop` — Verification discipline, quality loops
-- `/refactoring-specialist` — Code smell detection, safe transformations, tech debt
-- `/code-simplifier` — Clarity, consistency, maintainability, readability
-- `/property-based-testing` — Hypothesis, QuickCheck, invariant testing
+Skills are organised into these categories:
 
-### Architecture & Design
+- **Software Engineering Principles** — `/solid`, `/tdd-workflow`, `/verification-loop`, `/refactoring-specialist`, `/code-simplifier`, property-based testing
+- **Architecture & Design** — blueprint generation, microservices, cloud design patterns, API/interface design, ADRs, deprecation & migration, multi-tenancy
+- **Languages & Frameworks** — Python, TypeScript, Node.js, Rust, Go, Vue/Nuxt, frontend UI, PDM, TS libraries
+- **Database & Data** — schema/SQL/Postgres optimisation, MongoDB, Supabase, data engineering, data analysis, statistics, time series, visualisation
+- **Quality & Review** — code quality, PR review, differential & static analysis, bug finding, mutation testing, audit-context building
+- **Security & Compliance** — security review, GitHub Actions security, compliance (GDPR/DORA/PCI-DSS), OAuth
+- **Testing** — TDD, property-based, mutation, Playwright / webapp testing
+- **DevOps & Infrastructure** — Docker, Kubernetes, Terraform/IaC, CI/CD, GitHub Actions efficiency, rollout plans
+- **Git & Workflow** — conventional commits, branching, issues, releases, GitLab CLI
+- **Observability & SRE** — OTel, monitoring, Grafana, alerting, SLO/SLI/SLA, incident response, runbooks, on-call, capacity
+- **Cloud Platforms** — AWS, Azure, GCP (deploy, serverless, reliability, security, cost)
+- **Product & UX** — product owner, epic breakdown, web design guidelines, UX research
+- **AI/LLM Development** — AI developer, prompt engineering, workflow diagnostics
+- **Datadog** — APM, audit, logs, monitors
+- **Context & Memory** — `/codegraph`, `/mempalace`, `/context-map`
+- **Token Compression** — `/caveman` family
+- **Workflow** — OpenSpec `/openspec-*`
 
-- `/architecture-blueprint-generator` — Codebase analysis, pattern detection, diagrams
-- `/microservices-architect` — Service decomposition, API contracts, saga, CQRS
-- `/cloud-design-patterns` — 42 patterns: reliability, performance, messaging, security
-- `/api-and-interface-design` — REST/GraphQL endpoints, type contracts, module boundaries
-- `/api-designer` — OpenAPI 3.1, REST design, pagination, versioning
-- `/create-architectural-decision-record` — ADR documentation, AI-optimized decisions
-- `/deprecation-and-migration` — API sunset, migration strategies, feature removal
-- `/multi-tenancy` — Isolation models, RLS, tenant context propagation
-
-### Languages & Frameworks
-
-- `/python` — Type hints, pytest, 95% coverage, patterns, clean architecture
-- `/pdm-expert` — PDM package manager, Artifactory PyPI, lock file strategy
-- `/typescript` — Strict mode, Vitest, DI, Red-Green-Refactor, clean architecture
-- `/ts-library` — npm packages, tsdown/unbuild, dual CJS/ESM, publishing
-- `/vue-best-practices` — Composition API, `<script setup>`, TypeScript required
-- `/vue-testing-best-practices` — Vitest, Vue Test Utils, component testing, Playwright
-- `/vue-pinia-best-practices` — Pinia stores, state management, reactivity
-- `/vue-router-best-practices` — Vue Router 4, navigation guards, route params
-- `/vue-debug-guides` — Runtime errors, warnings, async failures, SSR/hydration
-- `/vue-jsx-best-practices` — JSX syntax in Vue, class vs className, plugin config
-- `/vueuse` — VueUse composables, reactive browser APIs
-- `/create-adaptable-composable` — MaybeRef/MaybeRefOrGetter, toValue()/toRef()
-- `/nuxt` — Server routes, middleware, Nuxt 4+ composables, h3 v1, nitropack v2
-- `/rust` — 179 rules, borrow checker, thiserror/anyhow, OTel instrumentation
-- `/golang-patterns` — Idiomatic Go, error handling, concurrency, interfaces
-- `/go-style-guide` — Go package design, CLI patterns, logging, benchmarks
-- `/nodejs` — Fastify, NestJS, Pino, TypeBox patterns
-- `/frontend-ui-engineering` — Production-quality UI, components, layouts, state
-
-### Database & Data
-
-- `/database` — Schema design, migrations, indexing, query optimization, RLS
-- `/sql-optimization` — Execution plans, pagination, batch operations, monitoring
-- `/postgresql-optimization` — JSONB, arrays, full-text search, window functions, extensions
-- `/mongodb-schema-design` — Embed vs reference, unbounded arrays, TTL, versioning
-- `/mongodb-connection` — Connection pools, timeouts, serverless patterns
-- `/mongodb-query-optimizer` — Index strategy, slow query diagnosis
-- `/data-engineer` — Pipelines, dbt, Spark, data contracts, idempotency
-- `/data-analyst` — EDA, pandas/NumPy, summary statistics, outlier detection
-- `/data-visualisation` — Chart selection, matplotlib/seaborn/plotly, dashboards
-- `/statistical-analysis` — Hypothesis testing, regression, confidence intervals
-- `/time-series` — ARIMA/GARCH, rolling windows, seasonality, forecasting
-- `/supabase-patterns` — Auth, RLS, Edge Functions, Realtime, Cron, Queues
-- `/supabase-postgres-best-practices` — Postgres performance from Supabase lens
-
-### Quality & Review
-
-- `/addy-code-quality` — Multi-axis review: correctness, readability, architecture, security, performance
-- `/health` — Code quality dashboard, codebase health check
-- `/pr-review` — Pre-merge review workflow, approval standards
-- `/differential-review` — Security-focused diff analysis, blast radius
-- `/code-review` (coderabbit) — Automated review, PR feedback application
-- `/find-bugs` — Bug detection, vulnerability scanning on local branch changes
-- `/static-analysis` — CodeQL, Semgrep, SARIF processing
-- `/audit-context-building` — Line-by-line analysis, deep architectural context
-- `/mutation-testing` — mewt/muton campaign configuration, coverage quality
-
-### Security & Compliance
-
-- `/security-review` — Vulnerability detection, OWASP, injection, XSS, auth
-- `/gha-security-review` — GitHub Actions exploitation, pwn requests, expression injection
-- `/compliance` — Regulatory requirements, evidence, audit trails
-- `/oauth` — PKCE, JWT, access/refresh tokens, authorization flows
-
-### Testing
-
-- `/tdd-workflow` — Test-driven development, Red-Green-Refactor
-- `/property-based-testing` — Invariant testing, fuzzing
-- `/mutation-testing` — Mutation campaign configuration
-- `/webapp-testing` — Playwright interaction, screenshots, browser logs
-- `/playwright-generate-test` — Test generation from user scenarios
-- `/playwright-explore-website` — Website exploration for testing
-
-### DevOps & Infrastructure
-
-- `/docker-expert` — Dockerfile optimization, multi-stage, security hardening
-- `/kubernetes-patterns` — Pod design, RBAC, GitOps, autoscaling, secret management
-- `/terraform-skill` — Modules, state, drift detection, policy-as-code, CI
-- `/iac-patterns` — Module design, environment promotion, secret management
-- `/ci-cd` — Pipeline design, deployment strategies, quality gates
-- `/github-actions-efficiency` — CI minutes optimization, caching, parallelism
-- `/devops-rollout-plan` — Preflight checks, step-by-step deployment, rollback
-
-### Git & Workflow
-
-- `/git-commit` — Conventional commits, intelligent staging, message generation
-- `/git-flow-branch-creator` — Branch naming, Git Flow model
-- `/github-issues` — Issue management, labels, milestones, dependencies
-- `/github-release` — SemVer versioning, Keep a Changelog formatting
-- `/gitlab-glab` — GitLab CLI operations, MRs, pipelines
-
-### Observability & SRE
-
-- `/observability` — OTel spans, trace propagation, metrics, structured logging
-- `/monitoring-expert` — Prometheus, dashboards, alerts, SLOs, runbooks
-- `/build-grafana-dashboards` — Panels, template variables, annotations, provisioning
-- `/configure-alerting-rules` — Alertmanager, routing trees, PagerDuty, Slack receivers
-- `/sre` — SLI/SLO, error budgets, burn rate, capacity planning, on-call
-- `/incident-response` — Severity classification, lifecycle, PagerDuty, escalation
-- `/write-incident-runbook` — Diagnostic steps, resolution procedures, escalation paths
-- `/define-slo-sli-sla` — Reliability targets, error budgets, burn rate alerts
-- `/design-on-call-rotation` — Balanced schedules, escalation policies, fatigue management
-- `/plan-capacity` — Historical metrics, growth models, headroom calculation
-- `/forecast-operational-metrics` — Prophet/statsmodels forecasting, proactive scaling
-- `/performance-engineer` — Load testing, profiling, benchmarking, latency optimization
-
-### Cloud Platforms
-
-- `/aws-deploy` — Optimal service selection, cost estimation, infrastructure generation
-- `/aws-lambda` — Serverless functions, event sources, cold starts
-- `/aws-cdk-development` — CDK stacks, constructs, TypeScript/Python, deployment
-- `/aws-serverless-eda` — Event-driven, Step Functions, EventBridge, SQS, SNS
-- `/aws-api-gateway` — REST/HTTP/WebSocket APIs, authorizers, throttling, CORS
-- `/aws-cost-operations` — Billing analysis, CloudWatch alarms, CloudTrail audit
-- `/azure-enterprise-infra-planner` — Landing zones, hub-spoke, Bicep, WAF alignment
-- `/azure-kubernetes` — AKS clusters, networking, security, autoscaling
-- `/azure-reliability` — Zone redundancy, multi-region failover, health probes
-- `/gcp-gke` — GKE Autopilot, Workload Identity, Gateway API, cost optimization
-- `/gcp-bigquery` — Datasets, BigQuery ML, Gemini integration, data analytics
-- `/gcp-cloud-run` — Services, jobs, worker pools, event-triggered tasks
-- `/gcp-reliability` — Well-Architected reliability guidance for GCP
-- `/gcp-security` — IAM, network security, data protection, operational security
-
-### Product & UX
-
-- `/product-owner` — Stories, INVEST, RICE, OKR, backlog management
-- `/breakdown-epic-arch` — Epic technical architecture from PRD
-- `/web-design-guidelines` — Interface Guidelines compliance, accessibility
-- `/replay-ux-research` — Session replay analysis, user journeys, pain points
-
-### AI/LLM Development
-
-- `/ai-developer` — LLM, RAG, MCP servers, vector stores, evaluations
-- `/prompt-engineer` — System prompts, few-shot, chain-of-thought, structured output
-- `/diagnose` — AI workflow diagnostic scan, 5-dimension quality assessment
-
-### Datadog
-
-- `/dd-apm` — APM setup, SSI instrumentation, traces, service dependencies
-- `/dd-audit` — Audit Trail investigations, compliance evidence, cost spikes
-- `/dd-logs` — Log management, archives, metrics, cost control
-- `/dd-monitors` — Monitor management, alerting best practices
-
-### Context & Memory
-
-- `/codegraph` — Symbol search, call graphs, impact analysis, blast radius
-- `/mempalace` — Cross-session persistent memory, wing/room/drawer API
-- `/context-map` — Pre-change file mapping, relevant file discovery
-
-### Token Compression
-
-- `/caveman` — ~75% token reduction, full technical accuracy preserved
-- `/caveman-commit` — Ultra-compressed conventional commit messages
-- `/caveman-review` — Compressed code review comments
-
-### Workflow
-
-- `/openspec-propose` — Spec-driven change proposals with design + tasks
-- `/openspec-apply-change` — Task implementation from OpenSpec change
-- `/openspec-explore` — Thinking mode, idea exploration, no implementation
-- `/openspec-archive-change` — Change archival after implementation
+The always-on engineering skills cited in the Non-Negotiable Rules above (`/solid`, `/tdd-workflow`) apply to every task regardless of keyword match.
 
 ---
 

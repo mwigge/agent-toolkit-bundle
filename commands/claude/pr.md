@@ -1,3 +1,7 @@
+---
+description: Validate the branch, push, fill the MR/PR template, and open a GitLab merge request or GitHub pull request.
+---
+
 # /pr — Create GitLab MR or GitHub PR
 
 Create a merge request or pull request from the current branch.

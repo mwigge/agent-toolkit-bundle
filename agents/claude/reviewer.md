@@ -3,11 +3,9 @@ name: reviewer
 description: Adversarial code review using four lenses. Invoke as @reviewer after implementation is complete, before MR creation.
 tools:
   - Read
-  - Write
-  - Edit
-  - Bash
-  - Glob
   - Grep
+  - Glob
+  - Bash
 ---
 
 # @reviewer — Adversarial Code Review Agent

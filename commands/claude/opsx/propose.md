@@ -1,8 +1,7 @@
 ---
-name: "OPSX: Propose"
-description: Propose a new change - create it and generate all artifacts in one step
-category: Workflow
-tags: [workflow, artifacts, experimental]
+name: opsx:propose
+description: OpenSpec — create a new change and generate all artifacts (proposal, design, specs, tasks) in one step.
+argument-hint: <change description>
 ---
 
 Propose a new change - create the change and generate all artifacts in one step.

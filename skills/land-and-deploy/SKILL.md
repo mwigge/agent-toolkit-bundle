@@ -2,7 +2,7 @@
 name: land-and-deploy
 preamble-tier: 4
 version: 1.0.0
-description: Land and deploy workflow. (gstack)
+description: Use when an approved change is ready to merge and ship — the land-then-deploy workflow covering merge, release, and rollout verification. (gstack)
 allowed-tools:
   - Bash
   - Read

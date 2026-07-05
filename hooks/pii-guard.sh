@@ -5,6 +5,9 @@
 # Exit 2 = block (stderr fed back to Claude). Exit 0 = allow.
 
 set -euo pipefail
+# fail-open: without jq/python3 the pattern scan cannot run
+command -v jq >/dev/null 2>&1 || exit 0
+command -v python3 >/dev/null 2>&1 || exit 0
 
 INPUT=$(cat || true)
 TOOL=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null || true)

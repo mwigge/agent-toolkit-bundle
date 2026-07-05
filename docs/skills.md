@@ -52,6 +52,10 @@ Type `/skill-name` in Claude Code to load a skill explicitly:
 
 ## Skill Catalogue
 
+The bundle ships **159 skill directories**: **152** are directly loadable (a top-level `SKILL.md`), and the remaining 7 are sub-skill families whose `SKILL.md` files live one level down. Counting nested sub-skills there are **187** `SKILL.md` files in total.
+
+The tables below are **curated highlights** by domain — not an exhaustive list. The authoritative, complete inventory is the [Full Skill Index](#full-skill-index) at the bottom of this page. Auto-activation keyword mappings live in [`skill-rules.json`](../skill-rules.json).
+
 ### Python
 
 | Skill | When to load | Key guidance |
@@ -164,6 +168,24 @@ Type `/skill-name` in Claude Code to load a skill explicitly:
 | `/openspec-apply-change` | Implementing a change | Picks next unchecked task, implements it |
 | `/openspec-explore` | Thinking mode | Explore ideas, investigate problems, no implementation |
 | `/openspec-archive-change` | Archiving a change | Promotes specs, moves to archive |
+
+---
+
+## Full Skill Index
+
+Every directly loadable skill (152 — each has a top-level `SKILL.md`, invoke with `/<name>`):
+
+`addy-code-quality` · `addy-performance` · `ai-developer` · `api-and-interface-design` · `api-designer` · `architecture-blueprint-generator` · `autofix` · `aws-api-gateway` · `aws-architecture-diagram` · `aws-cdk-development` · `aws-cost-operations` · `aws-deploy` · `aws-dsql` · `aws-lambda` · `aws-serverless-deployment` · `aws-serverless-eda` · `azure-enterprise-infra-planner` · `azure-kubernetes` · `azure-reliability` · `breakdown-epic-arch` · `build-grafana-dashboards` · `canary` · `caveman` · `caveman-commit` · `caveman-compress` · `caveman-help` · `caveman-review` · `chaos-engineer` · `chaostooling-standards` · `ci-cd` · `cloud-design-patterns` · `codegraph` · `coderabbit-code-review` · `code-simplifier` · `compliance` · `configure-alerting-rules` · `confluence` · `context-map` · `conventional-commit` · `create-adaptable-composable` · `create-architectural-decision-record` · `data-analyst` · `database` · `data-engineer` · `data-visualisation` · `dd-apm` · `dd-audit` · `dd-logs` · `dd-monitors` · `dd-pup` · `define-slo-sli-sla` · `deprecation-and-migration` · `design-on-call-rotation` · `devops-rollout-plan` · `diagnose` · `docker-expert` · `documentation` · `documentation-and-adrs` · `document-release` · `find-bugs` · `firewall-skill` · `forecast-operational-metrics` · `frontend-ui-engineering` · `gcp-bigquery` · `gcp-cloud-run` · `gcp-gke` · `gcp-operational-excellence` · `gcp-reliability` · `gcp-security` · `gha-security-review` · `git-commit` · `git-flow-branch-creator` · `github-actions-efficiency` · `github-issues` · `github-release` · `gitlab-glab` · `golang-patterns` · `go-style-guide` · `gstack-review` · `health` · `iac-patterns` · `incident-response` · `investigate` · `kubernetes-patterns` · `land-and-deploy` · `linux-kernel-skill` · `mempalace` · `microservices-architect` · `mongodb-connection` · `mongodb-query-optimizer` · `mongodb-schema-design` · `monitoring-expert` · `multi-tenancy` · `network-skill` · `nodejs` · `nuxt` · `nuxt-vitest` · `nuxt-vue` · `oauth` · `observability` · `openspec-apply-change` · `openspec-archive-change` · `openspec-explore` · `openspec-propose` · `pdm-expert` · `performance-engineer` · `plan-capacity` · `playwright-explore-website` · `playwright-generate-test` · `postgresql-optimization` · `presentation` · `product-owner` · `prompt-engineer` · `pr-review` · `python` · `python-patterns` · `refactoring-specialist` · `replay-ux-research` · `rng-skill` · `rust` · `security-review` · `sentry-code-review` · `sentry-security-review` · `ship` · `skill-development` · `solid` · `sql-optimization` · `sre` · `sred-project-organizer` · `sred-work-summary` · `statistical-analysis` · `supabase-patterns` · `supabase-postgres-best-practices` · `tdd-workflow` · `terraform-skill` · `time-series` · `triage-frontend-issues` · `ts-library` · `typescript` · `verification-loop` · `vue-best-practices` · `vue-debug-guides` · `vue-development` · `vue-jsx-best-practices` · `vue-options-api-best-practices` · `vue-pinia-best-practices` · `vue-router-best-practices` · `vue-testing-best-practices` · `vueuse` · `webapp-testing` · `web-design-guidelines` · `write-incident-runbook`
+
+**Sub-skill families** (7 directories whose `SKILL.md` files sit one level down — load a specific sub-skill):
+
+- `audit-context-building` — line-by-line analysis, deep architectural context
+- `dd-software-delivery` — `triage-flaky-test`, `unblock-pr`
+- `differential-review` — security-focused diff analysis, blast radius
+- `golang` — 9 sub-skills: `golang-code-style`, `golang-concurrency`, `golang-error-handling`, `golang-linter`, `golang-naming`, `golang-project-layout`, `golang-safety`, `golang-structs-interfaces`, `golang-testing` (the broad `golang` keyword in `skill-rules.json` maps to the loadable `/golang-patterns`)
+- `mutation-testing` — mutation campaign configuration, coverage quality
+- `property-based-testing` — invariant testing, generators, shrinking
+- `static-analysis` — `codeql`, `semgrep`, `sarif-parsing`
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: coder-rust
 description: Rust implementation agent. Use for writing new Rust features, fixing Rust bugs, or refactoring Rust code. Requires a spec or story. Always uses strict TDD. Invoke as @coder-rust with the story reference or spec text.
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 # @coder-rust — Rust Implementation Agent

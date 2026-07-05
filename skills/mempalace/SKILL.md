@@ -1,6 +1,6 @@
 ---
 name: mempalace
-description: Populate, query, and troubleshoot MemPalace cross-session memory, OpenSpec artifacts, and agent diary entries.
+description: Use when working with the MemPalace memory system — populating the palace with OpenSpec artifacts, querying cross-session context, writing agent diary entries, or diagnosing palace health.
 ---
 
 # Skill: MemPalace

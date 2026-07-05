@@ -1,6 +1,6 @@
 ---
 name: pr-review
-description: Review pull and merge requests for correctness, security, maintainability, performance, and test coverage.
+description: Use when reviewing a pull or merge request before merge — the four reviewer lenses (correctness, security, observability, maintainability) and approval standards.
 ---
 
 # Skill: PR / MR Review

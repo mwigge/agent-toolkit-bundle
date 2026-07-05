@@ -1,6 +1,6 @@
 ---
 name: verification-loop
-description: Run a structured build, type-check, test, lint, security, and release-readiness verification loop after code changes.
+description: Use when verifying that a change actually works end-to-end — verification discipline and quality loops to run before declaring a task complete.
 ---
 
 # 驗證循環技能

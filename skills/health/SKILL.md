@@ -2,7 +2,7 @@
 name: health
 preamble-tier: 2
 version: 1.0.0
-description: Code quality dashboard. (gstack)
+description: Use when you want a codebase-health snapshot — a quality dashboard across complexity, coverage, duplication, and hotspots. (gstack)
 triggers:
   - code health check
   - quality dashboard

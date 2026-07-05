@@ -3,11 +3,9 @@ name: security
 description: Security review — OWASP, secrets, auth, input validation, dependency audit. Invoke as @security for security-sensitive changes, auth implementation, or dependency updates.
 tools:
   - Read
-  - Write
-  - Edit
-  - Bash
-  - Glob
   - Grep
+  - Glob
+  - Bash
 ---
 
 # @security — Security Review Agent

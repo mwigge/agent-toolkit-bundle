@@ -1,8 +1,7 @@
 ---
-name: "OPSX: Archive"
-description: Archive a completed change in the experimental workflow
-category: Workflow
-tags: [workflow, archive, experimental]
+name: opsx:archive
+description: OpenSpec — promote specs and archive a completed change.
+argument-hint: "[change-name]"
 ---
 
 Archive a completed change in the experimental workflow.

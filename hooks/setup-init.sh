@@ -57,6 +57,7 @@ if [[ "$MEMORY_EXISTS" == "true" ]]; then
 fi
 MSG+="Apply conventional commits. No AI attribution. No hardcoded secrets."
 
-jq -n --arg ctx "$MSG" '{"additionalContext": $ctx}'
+# Emit the reminder only if jq is available; dir setup above always runs.
+command -v jq >/dev/null 2>&1 && jq -n --arg ctx "$MSG" '{"additionalContext": $ctx}'
 
 exit 0

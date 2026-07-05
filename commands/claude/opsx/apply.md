@@ -1,8 +1,7 @@
 ---
-name: "OPSX: Apply"
-description: Implement tasks from an OpenSpec change (Experimental)
-category: Workflow
-tags: [workflow, artifacts, experimental]
+name: opsx:apply
+description: OpenSpec — implement the next unchecked task from an OpenSpec change.
+argument-hint: "[change-name]"
 ---
 
 Implement tasks from an OpenSpec change.

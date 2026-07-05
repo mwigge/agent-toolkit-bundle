@@ -1,3 +1,7 @@
+---
+description: Scan the AI workspace, update the master docs index, and record session state in memory.md.
+---
+
 # /index — Update <your-docs-dir>/ Index and Memory After a Work Session
 
 Scan the AI workspace, update the master index, and record session state in memory.md.

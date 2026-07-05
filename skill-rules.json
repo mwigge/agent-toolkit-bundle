@@ -13,7 +13,7 @@
   { "pattern": "\\bdatabase\\b|\\bsql\\b|\\bpostgres\\b|\\bmysql\\b|\\bmigration\\b|\\bschema\\b|\\bdb\\s+index\\b|\\bsql\\s+index\\b", "skill": "database" },
   { "pattern": "\\bdocker\\b|\\bcontainer\\b|\\bdockerfile\\b|\\bcompose\\b", "skill": "docker-expert" },
   { "pattern": "\\bdocument(ation)?\\b|\\breadme\\b|\\bchangelog\\b|\\bwiki\\b", "skill": "documentation" },
-  { "pattern": "\\bgo(lang)?\\b|\\b\\.go\\b|\\bgoroutine\\b|\\bchan(nel)?\\b|\\bgo\\s+module\\b", "skill": "golang" },
+  { "pattern": "\\bgo(lang)?\\b|\\b\\.go\\b|\\bgoroutine\\b|\\bchan(nel)?\\b|\\bgo\\s+module\\b", "skill": "golang-patterns" },
   { "pattern": "\\bgo\\s+pattern|\\bidiomatic\\s+go\\b|\\bgo\\s+best\\s+practice\\b", "skill": "golang-patterns" },
   { "pattern": "\\bterraform\\b|\\bpulumi\\b|\\biac\\b|\\binfrastructure\\s+as\\s+code\\b|\\bcdk\\b", "skill": "iac-patterns" },
   { "pattern": "\\bincident\\b|\\bpostmortem\\b|\\bpage(d|r)?\\b|\\boncall\\b|\\brunbook\\b", "skill": "incident-response" },

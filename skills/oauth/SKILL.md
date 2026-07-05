@@ -1,6 +1,6 @@
 ---
 name: oauth
-description: Design and review secure OAuth 2.1, OpenID Connect, PKCE, JWT, token lifecycle, and authorization integrations.
+description: Use when implementing authentication or authorization with OAuth 2.1, OIDC, JWT, PKCE, access/refresh token flows, or SSO.
 ---
 
 # Skill: OAuth 2.1 and JWT Authentication

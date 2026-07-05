@@ -126,5 +126,5 @@ mkdir -p "$LOG_DIR"
 echo "{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"event\":\"SessionStart\",\"hook\":\"mempalace-wake-up\",\"session_id\":\"$SESSION_ID\",\"wing\":\"$PRIMARY_WING\",\"palace_ready\":$([ -n "$WAKE_UP_TEXT" ] && echo true || echo false)}" \
   >> "$LOG_DIR/events.ndjson" 2>/dev/null || true
 
-jq -n --arg ctx "$MSG" '{"additionalContext": $ctx}'
+command -v jq >/dev/null 2>&1 && jq -n --arg ctx "$MSG" '{"additionalContext": $ctx}'
 exit 0

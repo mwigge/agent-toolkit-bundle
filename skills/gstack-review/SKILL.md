@@ -2,7 +2,7 @@
 name: review
 preamble-tier: 4
 version: 1.0.0
-description: Pre-landing PR review. (gstack)
+description: Use before landing a PR — a pre-merge review pass over the branch diff for correctness, risk, and readiness to merge. (gstack)
 allowed-tools:
   - Bash
   - Read

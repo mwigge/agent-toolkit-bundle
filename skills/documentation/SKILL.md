@@ -1,6 +1,6 @@
 ---
 name: documentation
-description: Create and review technical documentation, ADRs, runbooks, API references, tutorials, and how-to guides.
+description: Use when writing or restructuring documentation — applies the Diátaxis framework (tutorial, how-to, reference, explanation) plus README and changelog standards.
 ---
 
 # Skill: Documentation

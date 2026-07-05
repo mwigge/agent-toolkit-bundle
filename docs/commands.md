@@ -91,20 +91,6 @@ Claude:
 
 ---
 
-### /spec
-
-**What**: Generate an OpenAPI 3.1 path entry for a new endpoint.
-
-**Flow**:
-1. Gather endpoint details: path, method, request/response shape, auth, scopes
-2. Generate OpenAPI 3.1 path entry with:
-   - Error responses (400, 401, 403, 404, 409, 500)
-   - Request/response examples
-   - `dry_run` parameter if chaos endpoint
-3. Output YAML ready to paste into an OpenAPI spec
-
----
-
 ### /index
 
 **What**: Update docs index and memory after a work session.
@@ -116,9 +102,11 @@ Claude:
 
 ---
 
-### /mine
+### /mempalace-mine (opt-in — MemPalace sub-package only)
 
-**What**: Mine OpenSpec artifacts and memory into MemPalace.
+**What**: Mine OpenSpec artifacts and memory into MemPalace. Ships in the MemPalace
+sub-package (`mempalace/commands/claude/mempalace-mine.md` and `.../opencode/`), installed
+only when you enable the `mempalace` component. There is no top-level `/mine` command.
 
 **Flow**:
 1. Resolve target (specific change name, path, or all recent changes)
@@ -128,9 +116,16 @@ Claude:
 
 **Usage**:
 ```
-/mine                           # all recently modified changes
-/mine early-adopter-onboarding  # specific change
+/mempalace-mine                           # all recently modified changes
+/mempalace-mine early-adopter-onboarding  # specific change
 ```
+
+---
+
+### /model-report (OpenCode only)
+
+**What**: Print a tiered model-usage / cost summary (utility / primary / sign-off) from the
+`model-usage.ndjson` log written by the `model-usage.ts` plugin.
 
 ---
 
@@ -178,21 +173,24 @@ OpenCode supports the same `/command` syntax as Claude Code. Command files live 
 `ai_local/opencode/commands/` — symlinked to `~/.config/opencode/commands/` (global).
 Edit files in `ai_local/opencode/commands/`; the change is live immediately via symlink.
 
-### All commands are ported
+### Command inventory per tool
 
-| Command | File (canonical) | Status |
+Claude Code ships **9** commands (`commands/claude/`); OpenCode ships **10** (`commands/opencode/`) — the same 9 plus the OpenCode-only `/model-report`.
+
+| Command | Claude Code | OpenCode |
 |---|---|---|
-| `/commit` | `ai_local/opencode/commands/commit.md` | ✅ |
-| `/pr` | `ai_local/opencode/commands/pr.md` | ✅ |
-| `/story` | `ai_local/opencode/commands/story.md` | ✅ |
-| `/review` | `ai_local/opencode/commands/review.md` | ✅ |
-| `/spec` | `ai_local/opencode/commands/spec.md` | ✅ |
-| `/index` | `ai_local/opencode/commands/index.md` | ✅ |
-| `/mine` | `ai_local/opencode/commands/mine.md` | ✅ |
-| `/opsx:propose` | `ai_local/opencode/commands/opsx/propose.md` | ✅ |
-| `/opsx:apply` | `ai_local/opencode/commands/opsx/apply.md` | ✅ |
-| `/opsx:explore` | `ai_local/opencode/commands/opsx/explore.md` | ✅ |
-| `/opsx:archive` | `ai_local/opencode/commands/opsx/archive.md` | ✅ |
+| `/commit` | ✅ | ✅ |
+| `/pr` | ✅ | ✅ |
+| `/story` | ✅ | ✅ |
+| `/review` | ✅ | ✅ |
+| `/index` | ✅ | ✅ |
+| `/opsx:propose` | ✅ | ✅ |
+| `/opsx:apply` | ✅ | ✅ |
+| `/opsx:explore` | ✅ | ✅ |
+| `/opsx:archive` | ✅ | ✅ |
+| `/model-report` | — | ✅ |
+
+`/mempalace-mine` ships separately in the opt-in MemPalace sub-package (`mempalace/commands/`).
 
 ### How to add a new command (OpenCode)
 
@@ -223,4 +221,4 @@ Instead, the Codex reference installation reuses the same command markdown files
 - follow its steps as the operating procedure
 - treat `/commit`, `/review`, `/opsx:*`, and similar names as user intent labels
 
-See `ai_local/codex/AGENTS.md` and [codex.md](codex.md) for the Codex-specific model.
+See [codex.md](codex.md) and the shared `templates/AGENTS.md.example` for the Codex-specific model.

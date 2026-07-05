@@ -71,9 +71,11 @@ PreToolUse on Bash|Edit|Write:
   1. mode-guard.sh      (5s timeout)    -- company/private path guard
   2. no-ai-attribution.sh (5s timeout)  -- blocks AI mentions in commits
   3. security-guard.sh   (10s timeout)  -- blocks destructive commands
+  4. pii-guard.sh        (10s timeout)  -- blocks PII (PAN/IBAN/national IDs)
+  5. check-alembic-sync.sh (5s timeout) -- SQL migration without Alembic version
 
 PreToolUse on all tools:
-  4. observe.sh          (async)        -- audit trail, never blocks
+  6. observe.sh          (async)        -- audit trail, never blocks
 
 PostToolUse on Edit|Write:
   1. format-on-save.sh   (30s timeout)  -- auto-format
@@ -165,6 +167,24 @@ values rather than failing.
 Run `scripts/test-guard-patterns.sh` to check that all consumers still
 reference this file (drift check) and to run a fixture-based allow/deny suite
 against the bash hooks.
+
+---
+
+### pii-guard.sh (PreToolUse, blocking)
+
+**Event**: PreToolUse on Bash, Agent
+**Purpose**: Blocks tool calls whose input contains PII.
+
+Scans command/prompt content for PANs, IBANs, emails, and national IDs using patterns from `~/.claude/pii-patterns.json`, with an allowlist at `~/.claude/pii-guard-allowlist.txt`. Blocks with exit 2 and logs every scan to `.claude/audit.log`. Fails open (exit 0) if `jq` or `python3` is unavailable. OpenCode twin: `pii-guard.ts`.
+
+---
+
+### check-alembic-sync.sh (PreToolUse, blocking)
+
+**Event**: PreToolUse on Bash
+**Purpose**: Keeps raw SQL migrations and Alembic version files in sync.
+
+Only fires on `git commit` in repos that have an `alembic/versions/` directory. If the commit stages a new `migrations/*.sql` file without a matching new `alembic/versions/*.py`, it blocks with exit 2 and lists the unmatched SQL files. OpenCode twin: `check-alembic-sync.ts`.
 
 ---
 
@@ -444,7 +464,9 @@ tool.execute.before:
   2. mode-guard.ts       company/private path guard
   3. no-ai-attribution.ts  blocks AI attribution in commits/PRs
   4. security-guard.ts   destructive commands, protected files, secret detection
-  5. observe.ts          NDJSON audit event (risk 0-3)
+  5. pii-guard.ts        blocks PII (PAN/IBAN/national IDs) in tool input
+  6. check-alembic-sync.ts  SQL migration without a matching Alembic version
+  7. observe.ts          NDJSON audit event (risk 0-3)
 
 tool.execute.after:
   1. format-on-save.ts   ruff/black/prettier/sqlfluff
@@ -470,6 +492,8 @@ experimental.session.compacting:
     "~/.config/opencode/plugins/mode-guard.ts",
     "~/.config/opencode/plugins/no-ai-attribution.ts",
     "~/.config/opencode/plugins/security-guard.ts",
+    "~/.config/opencode/plugins/pii-guard.ts",
+    "~/.config/opencode/plugins/check-alembic-sync.ts",
     "~/.config/opencode/plugins/format-on-save.ts",
     "~/.config/opencode/plugins/inline-quality.ts",
     "~/.config/opencode/plugins/codegraph-sync.ts",

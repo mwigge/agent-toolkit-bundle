@@ -1,6 +1,6 @@
 ---
 name: nodejs
-description: Build and review Node.js applications using modern ESM, Fastify, NestJS, streams, workers, testing, and observability.
+description: Use when building Node.js services with Fastify or NestJS — ES modules, Pino logging, TypeBox, dependency injection, and Node 22 LTS platform patterns.
 ---
 
 # Skill: Node.js

@@ -1,6 +1,6 @@
 ---
 name: product-owner
-description: Write user stories, acceptance criteria, backlog priorities, OKRs, Jira tickets, and stakeholder communications.
+description: Use when writing user stories, prioritising backlogs, defining OKRs, running sprint ceremonies, creating Jira tickets (project=CLS), or communicating with stakeholders.
 ---
 
 # Skill: Product Owner

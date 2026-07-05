@@ -1,3 +1,8 @@
+---
+description: Draft an INVEST-compliant user story with acceptance criteria from a feature description, then hand off to @jira-story.
+argument-hint: <feature description>
+---
+
 # /story — Draft a Jira Story
 
 Draft an INVEST-compliant user story from a feature description. Once approved, hand off to @jira-story for Jira creation.

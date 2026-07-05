@@ -1,0 +1,18 @@
+# Codex config — MCP wiring for the shared toolkit corpus.
+# CUSTOMISE: copy to `.codex/config.toml` (project) or `~/.codex/config.toml` (global),
+# then adjust the commands/paths to match your machine. `install.sh --templates`
+# copies this file to `<cwd>/.codex/config.toml` for you.
+
+# --- CodeGraph: structural code intelligence (symbols, call graphs, blast radius) ---
+[[mcp_servers]]
+name = "codegraph"
+command = "codegraph"
+args = ["serve", "--mcp"]
+
+# --- MemPalace: persistent cross-session memory (wings / rooms / halls / drawers) ---
+[[mcp_servers]]
+name = "mempalace"
+command = "python3"
+args = ["-m", "mempalace.mcp_server"]
+# If you use pyenv, point `command` at the full interpreter path, e.g.
+# command = "/home/you/.pyenv/versions/3.12.13/bin/python3"

@@ -1,7 +1,7 @@
 ---
 name: coder-tdd
 description: TDD discipline enforcer. Use when a story has unclear test strategy, when a codebase area lacks tests, or when a bug needs a failing test before a fix. Produces a test plan and the failing tests (Red phase only). Does NOT spawn other agents — outputs a handoff message telling the user which agent to invoke next for the Green phase.
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 # @coder-tdd — TDD Red Phase Agent

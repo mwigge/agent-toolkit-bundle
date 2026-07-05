@@ -1,0 +1,74 @@
+<!-- CUSTOMISE: replace placeholders below with your project details, then delete this line. -->
+# <your-project> — Gemini CLI Setup
+
+**Version**: 1.0.0 | **Updated**: <date>
+
+> **Status: agents-only / experimental.** This bundle ships 14 Gemini agent definitions in
+> `agents/gemini/` (frontmatter uses Gemini tool names: `read_file`, `write_file`, `replace`,
+> `glob`, `grep_search`, `run_shell_command`). There is no Gemini hook/plugin runtime here, so
+> the rules below are advisory context that Gemini reads — not deterministic enforcement.
+> Treat this file the way Claude Code reads `CLAUDE.md` and OpenCode reads `AGENTS.md`.
+
+---
+
+## Project
+
+<!-- CUSTOMISE: one-paragraph description of what this project is and does. -->
+<your-project> is <one-sentence purpose>. Primary language: <python|typescript|rust|go>.
+
+---
+
+## Stack Defaults
+
+Adjust to match what this project actually uses; delete rows that don't apply.
+
+| Concern | Python | TypeScript | Rust |
+|---------|--------|------------|------|
+| Runtime | Python 3.10+ | Node 22 LTS | stable toolchain |
+| Packages | PDM + `pdm.lock` | pnpm 9 | Cargo |
+| Lint / format | ruff + black | ESLint 9 flat + Prettier | `cargo fmt` + `cargo clippy` |
+| Types | mypy strict | tsc strict | native |
+| Tests | pytest + pytest-cov (≥95%) | Vitest (≥80%) | `cargo test --workspace` |
+| Observability | OpenTelemetry SDK | OpenTelemetry SDK | OpenTelemetry SDK |
+
+---
+
+## Non-Negotiable Rules
+
+Advisory reminders — Gemini has no blocking-hook runtime in this bundle, so discipline matters.
+
+- **No AI attribution anywhere** — never mention AI, Gemini, agent names, or TDD phases in
+  commits, PR descriptions, code comments, documentation, or any project artefact. No
+  `Co-Authored-By` trailers, no `Generated with` footers.
+- **No hardcoded secrets** — environment variables only; fail-fast if absent; never log secrets.
+- **No `print()` in library code** (Python) / **no `console.log` in `src/`** (TypeScript) —
+  structured logging only.
+- **No bare `except:`** (Python) — catch specific exceptions.
+- **Parameterised SQL only** — no string interpolation with user input.
+- **Coverage floors** — ≥95% Python, ≥80% TypeScript, on all changed files.
+
+---
+
+## Commit Standard (Conventional Commits)
+
+Format: `{type}({scope}): {description}` — types: `feat` `fix` `refactor` `test` `docs` `chore`.
+Breaking change: add `!` before `:`. Never mention TDD phases, agent names, or AI.
+
+---
+
+## Branch Rules
+
+**NEVER commit directly to `main` / `master`. Always use a feature branch.** One branch per
+logical unit of work; open a PR that passes CI before merging; delete the branch after merge.
+
+---
+
+## Agents
+
+Invoke agents with `@<name>`. The 14 shipped Gemini agents live in `agents/gemini/`:
+
+`ai-developer`, `architect`, `coder`, `coder-python`, `coder-sql`, `coder-tdd`,
+`coder-typescript`, `data-analyst`, `jira-story`, `observability`, `product-owner`,
+`reviewer`, `security`, `sre`.
+
+Skills are shared from `skills/` — read the relevant `SKILL.md` on demand.

@@ -10,6 +10,7 @@
 # Exit 0 always — never blocks a prompt.
 
 set -euo pipefail
+command -v jq >/dev/null 2>&1 || exit 0  # fail-open: no jq, no skill hints
 INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // ""' 2>/dev/null || true)
 

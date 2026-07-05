@@ -1,6 +1,6 @@
 ---
 name: incident-response
-description: Triage, coordinate, mitigate, communicate, and review production incidents using severity-based response practices.
+description: Use when triaging, managing, or writing up incidents — severity classification, incident lifecycle, paging and escalation, and postmortems.
 ---
 
 # Skill: Incident Response

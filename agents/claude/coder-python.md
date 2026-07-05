@@ -1,7 +1,7 @@
 ---
 name: coder-python
 description: Python implementation agent. Use for writing new Python features, fixing Python bugs, or refactoring Python code. Requires a spec or story. Always uses strict TDD. Invoke as @coder-python with the story reference or spec text.
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 # @coder-python — Python Implementation Agent

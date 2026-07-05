@@ -58,6 +58,30 @@ This is a hard architectural constraint. Agents output human-readable handoff me
 
 ---
 
+### @coder-go
+
+**Invoke when**: Implementing Go features, fixing Go bugs, or refactoring Go code. Requires a spec or story.
+
+**Skills loaded**: `/golang-patterns`, `/go-style-guide`
+
+**Produces**: Production Go code + tests. Always uses strict TDD.
+
+**Key rules**: Idiomatic error handling, table-driven tests, no naked returns in long functions, structured logging.
+
+---
+
+### @coder-rust
+
+**Invoke when**: Implementing Rust features, fixing Rust bugs, or refactoring Rust code. Requires a spec or story.
+
+**Skills loaded**: `/rust`
+
+**Produces**: Production Rust code + tests. Always uses strict TDD.
+
+**Key rules**: No `.unwrap()` in library code, `#[must_use]` on public `Result`-returning fns, `thiserror` for libs / `anyhow` for binaries, no blocking IO in `async`.
+
+---
+
 ### @coder-sql
 
 **Invoke when**: Writing migrations, schema changes, query optimisation, RLS policies, stored procedures.
@@ -256,7 +280,7 @@ Instead, the Codex reference installation reuses the existing OpenCode agent fil
 - optionally delegate using Codex sub-agents when that helps, but do not assume file-based
   agent registration exists
 
-See `ai_local/codex/AGENTS.md` and [codex.md](codex.md) for the Codex-specific behavior.
+See [codex.md](codex.md) and the shared `templates/AGENTS.md.example` for the Codex-specific behavior.
 
 Agent definitions live in `.claude/agents/`. Each is a markdown file that defines the agent's role, skills, constraints, and output format. Claude Code reads these when you invoke `@agent-name`.
 
@@ -267,10 +291,23 @@ Agent definitions live in `.claude/agents/`. Each is a markdown file that define
 OpenCode fully supports custom agent definitions. Agent files live in
 `~/.config/opencode/agents/` (global) or `<project>/.opencode/agents/` (project-scoped).
 
-### All 17 agents are ported
+### Agent inventory per tool
+
+| Tool | Count | Location | Notes |
+|------|-------|----------|-------|
+| Claude Code | 18 | `agents/claude/` | leaf nodes; human-triggered handoffs |
+| OpenCode | 20 | `agents/opencode/` | the 18 above **plus** two OpenCode-only agents: `opsx` (OpenSpec workflow driver) and `refactor` (safe incremental refactoring) |
+| Gemini | 14 | `agents/gemini/` | agents-only, experimental (see below) |
+
+The 18 shared roles: `architect`, `coder-go`, `coder-python`, `coder-rust`, `coder-sql`, `coder-tdd`, `coder-typescript`, `tester`, `reviewer`, `security`, `sre`, `observability`, `api`, `data-analyst`, `data-engineer`, `product-owner`, `ai-developer`, `jira-story`.
 
 Agent files live in `ai_local/opencode/agents/` — symlinked to `~/.config/opencode/agents/`.
 Edit files in `ai_local/opencode/agents/`; the symlink means the change is live immediately.
+
+**OpenCode-only agents:**
+
+- `@opsx` — drives the OpenSpec explore/propose/apply/archive workflow end to end.
+- `@refactor` — safe, incremental refactoring across Python, TypeScript, and SQL.
 
 Agent files: `ai_local/opencode/agents/<agent-name>.md` (canonical)
              `~/.config/opencode/agents/<agent-name>.md` (symlink)
@@ -322,5 +359,37 @@ permission:
   write: deny       # agent cannot write files
 ```
 
-The `permission` block in OpenCode agent files replaces the `allowedTools` and `disallowedTools`
-arrays in Claude Code `.claude/agents/*.md` files.
+The `permission` block in OpenCode agent files is the analogue of the `tools:` allowlist in
+Claude Code `agents/claude/*.md` files (see tool scoping below).
+
+---
+
+## Tool scoping (Claude Code)
+
+Claude Code subagents restrict tools with a `tools:` frontmatter allowlist (an agent with no
+`tools:` field inherits **all** tools). Read-only-by-design agents are scoped to least privilege:
+
+| Agent | `tools:` |
+|-------|----------|
+| `@architect` | `Read, Grep, Glob` (design only — no writes) |
+| `@reviewer` | `Read, Grep, Glob, Bash` (review only — no writes) |
+| `@security` | `Read, Grep, Glob, Bash` (audit only — no writes) |
+| coder / tester agents | `Read, Write, Edit, Bash, Glob, Grep` (implementation needs writes) |
+
+> The frontmatter field is `tools:`, not `allowed-tools:` — the latter is silently ignored by
+> Claude Code and leaves the agent with every tool.
+
+---
+
+## Gemini Agents
+
+The bundle ships **14 Gemini agent definitions** in `agents/gemini/`:
+`ai-developer`, `architect`, `coder`, `coder-python`, `coder-sql`, `coder-tdd`,
+`coder-typescript`, `data-analyst`, `jira-story`, `observability`, `product-owner`,
+`reviewer`, `security`, `sre`.
+
+Frontmatter uses Gemini's tool names (`read_file`, `write_file`, `replace`, `glob`,
+`grep_search`, `run_shell_command`) rather than Claude Code's `tools:` allowlist. This is an
+**agents-only, experimental** integration: there is no Gemini hook/plugin runtime here, and
+`install.sh` does not auto-symlink these agents. Use `templates/GEMINI.md.example` for project
+instructions; shared `skills/` are read on demand.

@@ -1,6 +1,6 @@
 ---
 name: presentation
-description: Structure technical presentations, stakeholder narratives, diagrams, demos, and concise engineering communication.
+description: Use when preparing slides, technical talks, decks, or stakeholder communication — structure, narrative, and Diátaxis-aware technical writing.
 ---
 
 # Skill: Presentation & Technical Communication

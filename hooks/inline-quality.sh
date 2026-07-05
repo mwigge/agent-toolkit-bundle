@@ -8,6 +8,7 @@
 #   { "additionalContext": "INLINE QUALITY FEEDBACK:\n..." }
 
 set -euo pipefail
+command -v jq >/dev/null 2>&1 || exit 0  # fail-open: no jq, no advisory
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null || true)
 

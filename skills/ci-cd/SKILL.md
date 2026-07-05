@@ -1,6 +1,6 @@
 ---
 name: ci-cd
-description: Design and review CI/CD pipelines, container builds, security checks, release workflows, and deployments.
+description: Use when designing CI/CD pipelines, GitLab CI or GitHub Actions workflows, build/container steps, deployment strategies, or pipeline quality gates.
 ---
 
 # Skill: CI/CD — Pipelines, Containers, and Deployment

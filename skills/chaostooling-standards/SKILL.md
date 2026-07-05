@@ -1,6 +1,6 @@
 ---
 name: chaostooling-standards
-description: Apply shared Python, TypeScript, testing, security, and observability standards across chaostooling repositories.
+description: Use when working on any chaostooling-* repository (chaostooling-generic, chaostooling-extension-*, chaostooling-otel) — engineering standards and conventions for chaos tooling.
 ---
 
 # Chaostooling Engineering Standards

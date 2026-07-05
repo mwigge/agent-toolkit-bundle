@@ -16,6 +16,7 @@
 # Never blocks — exit 0 in all code paths.
 
 set -euo pipefail
+command -v jq >/dev/null 2>&1 || exit 0  # fail-open: no jq, no usage summary
 INPUT=$(cat)
 
 # ── Infinite-loop guard ───────────────────────────────────────────────────────

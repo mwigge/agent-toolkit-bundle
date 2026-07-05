@@ -1,5 +1,5 @@
 ---
-name: API Designer
+name: api-designer
 description: Senior API architect specializing in REST and GraphQL design. Invoke for API design, OpenAPI specs, resource modeling, versioning, pagination, error handling. Keywords: API design, REST, OpenAPI, GraphQL, API architecture.
 triggers:
   - API design

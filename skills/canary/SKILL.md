@@ -2,7 +2,7 @@
 name: canary
 preamble-tier: 2
 version: 1.0.0
-description: Post-deploy canary monitoring. (gstack)
+description: Use immediately after a deploy to watch a canary release — error-rate, latency, and saturation checks that decide promote vs roll back. (gstack)
 allowed-tools:
   - Bash
   - Read

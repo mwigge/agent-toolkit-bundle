@@ -9,6 +9,7 @@
 #     "input_summary": "...", "outcome": "ok|blocked|error", "risk": 0-3 }
 
 set -euo pipefail
+command -v jq >/dev/null 2>&1 || exit 0  # fail-open: no jq, no audit event
 
 INPUT=$(cat)
 PROJECT="${CLAUDE_PROJECT_DIR:-$(pwd)}"

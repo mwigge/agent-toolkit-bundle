@@ -1,7 +1,7 @@
 ---
 name: coder-go
 description: Go implementation agent. Use for writing new Go features, fixing Go bugs, or refactoring Go code. Requires a spec or story. Always uses strict TDD. Invoke as @coder-go with the story reference or spec text.
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep
+tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
 # @coder-go — Go Implementation Agent

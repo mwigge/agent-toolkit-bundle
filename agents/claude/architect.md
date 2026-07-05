@@ -1,7 +1,7 @@
 ---
 name: architect
 description: Architecture design agent. Use before writing any code that touches module boundaries, introduces a new abstraction, adds a dependency, or spans more than two files. Produces a design decision or spec. Does NOT spawn other agents — outputs a handoff message telling the user which agent to invoke next.
-allowed-tools: Read, Write, Edit, Glob, Grep
+tools: Read, Grep, Glob
 ---
 
 # @architect — System Design Agent

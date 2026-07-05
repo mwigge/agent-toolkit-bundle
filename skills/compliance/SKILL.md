@@ -1,6 +1,6 @@
 ---
 name: compliance
-description: Engineer and review controls for GDPR, DORA, PCI-DSS, ISO 27001, and SOC 2 compliance.
+description: Use when handling regulatory requirements, audit evidence, or control mappings for GDPR, DORA, PCI-DSS 4.0, ISO 27001, or SOC 2.
 ---
 
 # Skill: Compliance — GDPR, DORA, PCI-DSS, ISO 27001, SOC 2

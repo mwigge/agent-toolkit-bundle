@@ -28,11 +28,18 @@ background references in the design; they are core parts of the Codex context st
 
 ## Installed Files
 
-Canonical source:
+There is no dedicated `codex/` install directory. Codex consumes the **shared** corpus via two
+starter templates:
 
-- `ai_local/codex/AGENTS.md`
-- `ai_local/codex/config.toml`
-- `ai_local/codex/install.sh`
+- `templates/AGENTS.md.example` — copy to your project `AGENTS.md` (Codex reads the same
+  instructions file as OpenCode).
+- `templates/codex.config.toml.example` — a documented starter that wires MemPalace and
+  CodeGraph as `[[mcp_servers]]`; copy it to `.codex/config.toml` (project) or
+  `~/.codex/config.toml` (global) and adjust the commands/paths for your machine.
+
+`./install.sh --templates` copies both into the current directory for you (`AGENTS.md` and
+`.codex/config.toml`). Everything else — skills, agent role prompts, command playbooks, hook
+policies — is read in place from the bundle.
 
 Project-level install target:
 

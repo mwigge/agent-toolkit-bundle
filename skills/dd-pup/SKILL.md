@@ -1,6 +1,6 @@
 ---
 name: dd-pup
-description: Datadog CLI (Rust). OAuth2 auth with token refresh.
+description: Use when working with the Datadog `pup` CLI (Rust) — OAuth2 authentication with token refresh and command workflows against the Datadog API.
 metadata:
   version: "1.0.1"
   author: datadog-labs
