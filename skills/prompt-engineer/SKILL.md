@@ -148,29 +148,7 @@ Then give your final assessment as:
 - Priority actions: [list]
 ```
 
-### CoT with structured output
-
-```python
-ANALYSIS_PROMPT = """Analyse the chaos experiment results.
-
-<thinking>
-Step 1: Identify the steady-state baseline metrics
-Step 2: Compare during-fault metrics to baseline
-Step 3: Evaluate recovery metrics
-Step 4: Determine if the hypothesis was validated
-</thinking>
-
-<result>
-{
-  "hypothesis_validated": true/false,
-  "baseline": {"p99_ms": N, "error_rate": N},
-  "during_fault": {"p99_ms": N, "error_rate": N},
-  "recovery": {"time_s": N, "metrics_restored": true/false},
-  "recommendations": ["..."]
-}
-</result>
-"""
-```
+For a CoT prompt that emits structured output alongside its reasoning, see the "CoT with structured output" example in `refs/prompt-patterns.md`.
 
 ---
 
@@ -201,27 +179,7 @@ Output schema:
 result = json.loads(response.content[0].text)
 ```
 
-### XML-delimited sections
-
-```
-<instructions>
-Extract the following fields from the incident report.
-</instructions>
-
-<schema>
-- service_name: string
-- incident_type: one of [outage, degradation, data_loss, security]
-- duration_minutes: integer
-- root_cause: string (one sentence)
-- action_items: list of strings
-</schema>
-
-<incident_report>
-{report_text}
-</incident_report>
-
-Respond with the extracted fields in JSON format.
-```
+For the XML-delimited extraction pattern (separating instructions, schema, and data with tags), see `refs/prompt-patterns.md`.
 
 ---
 
@@ -336,210 +294,11 @@ response = client.messages.create(
 
 ---
 
-## Common Prompt Patterns
+## Deep-Dive References
 
-### Classification
-
-```
-Classify the following log entry into one category: ERROR, WARNING, INFO, DEBUG.
-Respond with only the category name.
-
-Log: {log_entry}
-Category:
-```
-
-### Extraction
-
-```
-Extract structured data from the incident report below.
-
-<report>
-{incident_report}
-</report>
-
-Return JSON with these fields:
-- service: string
-- severity: "critical" | "high" | "medium" | "low"
-- duration_minutes: number
-- affected_users: number | null
-- root_cause: string
-```
-
-### Transformation
-
-```
-Convert the following Chaos Toolkit experiment JSON into a human-readable
-summary suitable for a non-technical stakeholder.
-
-Rules:
-- No technical jargon
-- Focus on business impact
-- Include duration and outcome
-- Maximum 3 paragraphs
-
-<experiment>
-{experiment_json}
-</experiment>
-```
-
-### Comparison / Analysis
-
-```
-Compare the two chaos experiment runs below and identify:
-1. What improved between runs
-2. What degraded between runs
-3. What remained unchanged
-4. Recommended next steps
-
-<run_1>
-{run_1_data}
-</run_1>
-
-<run_2>
-{run_2_data}
-</run_2>
-```
-
----
-
-## Evaluation Metrics — Comprehensive Framework
-
-Beyond format compliance and accuracy, measure prompts across multiple dimensions:
-
-| Metric | What it measures | How to measure | When it matters |
-|--------|-----------------|----------------|-----------------|
-| **Accuracy (exact match)** | Output matches expected answer exactly | `output.strip() == expected.strip()` | Classification, extraction with known answers |
-| **Accuracy (fuzzy match)** | Output is close enough to expected | Levenshtein distance, token overlap ratio | Extraction where phrasing may vary |
-| **Accuracy (semantic similarity)** | Output means the same thing as expected | Embedding cosine similarity > threshold | Open-ended generation, summarisation |
-| **Consistency** | Same input produces the same output class across runs | Run N times (N >= 10), measure agreement rate | Any task where determinism matters |
-| **Latency (time to first token)** | How fast the user sees the first response token | Measure TTFT from API response stream | Interactive / user-facing applications |
-| **Latency (total generation)** | Total time from request to complete response | End-to-end wall clock time | Batch processing, API pipelines |
-| **Token efficiency** | Quality of output per token spent | `quality_score / (input_tokens + output_tokens)` | Cost-sensitive production systems |
-| **Safety (refusal rate)** | Model refuses adversarial or harmful inputs | `refusals / adversarial_inputs` (target: > 95%) | Any user-facing system |
-| **Groundedness** | Output is supported by provided context | Claim-level verification against source | RAG, document Q&A |
-
-### Evaluation pipeline
-
-```python
-@dataclass
-class EvalSuite:
-    name: str
-    test_cases: list[PromptTestCase]
-    metrics: list[str]  # which metrics to compute
-
-    def run(self, prompt_fn, runs_per_case: int = 5) -> dict:
-        """Run all test cases multiple times and aggregate metrics."""
-        results: dict[str, list] = {m: [] for m in self.metrics}
-        for tc in self.test_cases:
-            for _ in range(runs_per_case):
-                output = prompt_fn(tc.input_text)
-                if "accuracy" in self.metrics:
-                    results["accuracy"].append(output.strip() == tc.expected_output)
-                if "consistency" in self.metrics:
-                    results["consistency"].append(output)
-        return results
-```
-
----
-
-## A/B Testing Prompts
-
-Prompts are code. Treat prompt changes with the same rigour as code changes.
-
-### Version control prompts
-
-- Store all prompts in version control (same repo as the application)
-- Each prompt has a version identifier (semantic version or commit hash)
-- Never edit prompts ad-hoc in production — always go through the change pipeline
-- Maintain a changelog for prompt changes alongside code changes
-
-### A/B test framework
-
-```python
-@dataclass
-class PromptVariant:
-    name: str           # e.g., "v2.1-concise-instructions"
-    prompt_text: str
-    version: str
-
-
-@dataclass
-class ABTestResult:
-    variant_a: str
-    variant_b: str
-    metric: str
-    a_score: float
-    b_score: float
-    p_value: float
-    significant: bool   # p < 0.05
-
-    @property
-    def winner(self) -> str | None:
-        if not self.significant:
-            return None
-        return self.variant_a if self.a_score > self.b_score else self.variant_b
-
-
-def ab_test_prompts(
-    variant_a: PromptVariant,
-    variant_b: PromptVariant,
-    test_inputs: list[str],
-    eval_fn,
-) -> list[ABTestResult]:
-    """Run the same inputs through both variants and compare."""
-    a_outputs = [eval_fn(variant_a.prompt_text, inp) for inp in test_inputs]
-    b_outputs = [eval_fn(variant_b.prompt_text, inp) for inp in test_inputs]
-    # Compare outputs using configured metrics
-    # Return statistical comparison
-    ...
-```
-
-### Rollout strategy
-
-1. **Test offline** — run eval suite on both variants with a fixed test set
-2. **Shadow mode** — run new variant in parallel, compare outputs, do not serve to users
-3. **Canary rollout** — serve new variant to 5% of traffic, monitor metrics
-4. **Gradual ramp** — increase to 25%, 50%, 100% if metrics hold
-5. **Rollback plan** — if any metric degrades beyond threshold, revert immediately
-
----
-
-## Token Optimisation
-
-Reduce cost and latency without sacrificing output quality.
-
-### Compression techniques
-
-| Technique | How | Savings |
-|-----------|-----|---------|
-| **Remove redundant instructions** | If the model handles a task well without an instruction, remove it | 10-30% input tokens |
-| **Use structured delimiters** | XML tags (`<context>...</context>`) over verbose prose ("The following is the context:") | 5-15% input tokens |
-| **Abbreviate few-shot examples** | Shorter examples that still demonstrate the pattern | 20-40% input tokens |
-| **Move stable instructions to system prompt** | System prompt is cacheable across requests; saves re-processing | 50-90% cost on repeated calls |
-| **Batch similar requests** | Send multiple items in one request instead of one-per-call | Reduces per-request overhead |
-
-### Model routing for cost efficiency
-
-Not every task needs the most capable model. Route by complexity:
-
-```python
-def select_model(task_complexity: str) -> str:
-    """Route to the appropriate model based on task complexity."""
-    routing = {
-        "simple": "smallest-capable-model",     # classification, extraction, formatting
-        "moderate": "mid-tier-model",            # summarisation, analysis, code review
-        "complex": "most-capable-model",         # multi-step reasoning, novel code generation
-    }
-    return routing.get(task_complexity, "mid-tier-model")
-```
-
-### Cost monitoring checklist
-
-- [ ] Track input and output tokens per request
-- [ ] Set budget alerts (daily, weekly, per-endpoint)
-- [ ] Log prompt version alongside token usage — correlate cost with prompt changes
-- [ ] Review high-token-count requests monthly — are they necessary?
-- [ ] Cache identical requests — do not re-run the same prompt + input combination
+- **Common prompt patterns** — copy-ready templates for classification, extraction, transformation, and comparison. See `refs/prompt-patterns.md`.
+- **Comprehensive evaluation and A/B testing** — the full multi-dimensional metrics framework, an evaluation pipeline, and a version-controlled A/B rollout workflow. See `refs/evaluation.md`.
+- **Token optimisation** — compression techniques, model routing for cost, and a cost-monitoring checklist. See `refs/token-optimisation.md`.
 
 ---
 
@@ -557,3 +316,7 @@ def select_model(task_complexity: str) -> str:
 | No error handling for malformed output | Parse with fallback; retry with clarifying prompt |
 | Hardcoded prompts without versioning | Store prompts in version control; treat as code |
 | Ignoring token costs in production | Monitor token usage; set budget alerts |
+
+## References
+
+- Reference: `refs/REFERENCES.md` — external documentation links for prompt engineering

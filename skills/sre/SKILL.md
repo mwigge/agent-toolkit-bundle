@@ -26,6 +26,18 @@ argument-hint: "[chaos action, probe, deployment scenario, or reliability concer
 
 ---
 
+## Reference Map
+
+Load the companion file for full code on demand:
+
+| Topic | Reference |
+|-------|-----------|
+| SLI/SLO, error budget, capacity, toil scoring code | `refs/frameworks.md` |
+| Reliability patterns (retry, circuit breaker, bulkhead, timeout, health checks, feature flags) | `refs/reliability-patterns.md` |
+| Chaos probes, actions, rollback, structured logging code | `refs/chaos-engineering.md` |
+
+---
+
 ## SLI / SLO Management Framework
 
 ### The four golden signals
@@ -39,61 +51,6 @@ Every service must measure:
 | **Error rate** | Ratio of 5xx to total requests | < 0.1% |
 | **Saturation** | CPU, memory, connection pool usage | < 80% sustained |
 
-### SLI specification pattern
-
-```python
-from dataclasses import dataclass
-from enum import Enum
-
-
-class SLICategory(str, Enum):
-    AVAILABILITY = "availability"
-    LATENCY = "latency"
-    ERROR_RATE = "error_rate"
-    SATURATION = "saturation"
-    FRESHNESS = "freshness"
-    CORRECTNESS = "correctness"
-    THROUGHPUT = "throughput"
-
-
-@dataclass(frozen=True)
-class SLISpec:
-    name: str
-    category: SLICategory
-    description: str
-    good_event_query: str     # numerator — what counts as "good"
-    total_event_query: str    # denominator — total events
-    unit: str                 # "ratio", "milliseconds", "percent"
-
-    def ratio_query(self, window: str = "5m") -> str:
-        return (
-            f"({self.good_event_query.replace('{{window}}', window)})"
-            f" / "
-            f"({self.total_event_query.replace('{{window}}', window)})"
-        )
-```
-
-### SLO defaults
-
-```python
-SLO_DEFAULTS = {
-    "availability":      0.999,   # 99.9% uptime
-    "p99_latency_ms":    500,     # 500ms at p99
-    "error_rate":        0.001,   # < 0.1% errors
-    "recovery_time_s":   30,      # MTTR under 30s after chaos
-    "saturation_ratio":  0.80,    # < 80% resource saturation
-}
-
-
-def evaluate_slo(metric_name: str, value: float) -> bool:
-    threshold = SLO_DEFAULTS.get(metric_name)
-    if threshold is None:
-        raise ValueError(f"Unknown SLI: {metric_name}")
-    if metric_name in ("p99_latency_ms", "error_rate", "recovery_time_s"):
-        return value <= threshold   # lower is better
-    return value >= threshold       # higher is better
-```
-
 ### SLO document checklist
 
 Every new service must have an SLO document covering:
@@ -106,50 +63,11 @@ Every new service must have an SLO document covering:
 - [ ] Escalation path: who gets paged vs. ticketed
 - [ ] Review cadence: monthly SLO review meeting
 
+See `refs/frameworks.md` for the `SLISpec` dataclass and `SLO_DEFAULTS` / `evaluate_slo` code.
+
 ---
 
 ## Error Budget Policy and Burn Rate Monitoring
-
-### Error budget calculation
-
-```python
-from dataclasses import dataclass
-
-
-@dataclass
-class ErrorBudget:
-    slo_target: float         # e.g., 0.999
-    window_days: int          # e.g., 28
-    total_requests: int       # total requests in window
-
-    @property
-    def budget_ratio(self) -> float:
-        """Fraction of requests allowed to fail."""
-        return 1.0 - self.slo_target
-
-    @property
-    def budget_requests(self) -> int:
-        """Absolute number of requests that can fail."""
-        return int(self.total_requests * self.budget_ratio)
-
-    def remaining(self, failures: int) -> float:
-        """Fraction of error budget remaining (0.0 to 1.0)."""
-        if self.budget_requests == 0:
-            return 0.0
-        return max(0.0, 1.0 - (failures / self.budget_requests))
-
-    def burn_rate(self, failures_in_window: int, window_hours: float) -> float:
-        """
-        How fast the budget is burning relative to sustainable rate.
-        burn_rate = 1.0 means budget will be exactly exhausted at window end.
-        burn_rate > 1.0 means budget will be exhausted before window end.
-        """
-        window_fraction = window_hours / (self.window_days * 24)
-        expected_failures = self.budget_requests * window_fraction
-        if expected_failures == 0:
-            return float("inf") if failures_in_window > 0 else 0.0
-        return failures_in_window / expected_failures
-```
 
 ### Burn rate alerting thresholds
 
@@ -169,6 +87,8 @@ class ErrorBudget:
 | 75-90% | Freeze all non-critical changes. Reliability-only sprints. |
 | 90-100% | Emergency stop. Incident review before any changes. |
 
+See `refs/frameworks.md` for the `ErrorBudget` calculation code (budget ratio, remaining, burn rate).
+
 ---
 
 ## Capacity Planning
@@ -181,39 +101,6 @@ class ErrorBudget:
 4. **Threshold**: define headroom requirement (typically 30-40% free)
 5. **Plan**: schedule scaling actions with lead time
 
-### Resource saturation model
-
-```python
-from dataclasses import dataclass
-
-
-@dataclass
-class CapacityModel:
-    resource_name: str        # e.g., "cpu", "memory", "connections"
-    current_usage: float      # current utilisation ratio (0.0 to 1.0)
-    growth_rate_monthly: float  # fractional monthly growth (e.g., 0.05 = 5%)
-    headroom_target: float    # minimum free capacity (e.g., 0.30 = 30%)
-    scaling_lead_days: int    # days needed to provision new capacity
-
-    @property
-    def ceiling(self) -> float:
-        return 1.0 - self.headroom_target
-
-    def months_until_ceiling(self) -> float:
-        """Months until current_usage hits ceiling at steady growth."""
-        if self.growth_rate_monthly <= 0:
-            return float("inf")
-        if self.current_usage >= self.ceiling:
-            return 0.0
-        import math
-        return math.log(self.ceiling / self.current_usage) / math.log(1 + self.growth_rate_monthly)
-
-    def needs_action(self) -> bool:
-        months = self.months_until_ceiling()
-        lead_months = self.scaling_lead_days / 30.0
-        return months <= lead_months + 1  # 1 month safety margin
-```
-
 ### Capacity planning checklist
 
 - [ ] Baseline metrics collected for all critical resources
@@ -224,11 +111,11 @@ class CapacityModel:
 - [ ] Alert on saturation > 70% sustained for > 15 minutes
 - [ ] Quarterly capacity review meeting scheduled
 
+See `refs/frameworks.md` for the `CapacityModel` saturation/forecast code.
+
 ---
 
 ## Toil Reduction Framework
-
-### Toil identification
 
 Toil is work that is manual, repetitive, automatable, tactical, devoid of lasting value, and scales linearly with service size.
 
@@ -249,26 +136,7 @@ Toil is work that is manual, repetitive, automatable, tactical, devoid of lastin
 - Prioritise automation that saves the most cumulative hours
 - Every sprint should include at least one toil reduction story
 
-### Toil scoring
-
-```python
-@dataclass
-class ToilItem:
-    name: str
-    frequency_per_week: float
-    minutes_per_occurrence: float
-    automation_effort_hours: float
-
-    @property
-    def weekly_cost_hours(self) -> float:
-        return (self.frequency_per_week * self.minutes_per_occurrence) / 60.0
-
-    @property
-    def payback_weeks(self) -> float:
-        if self.weekly_cost_hours == 0:
-            return float("inf")
-        return self.automation_effort_hours / self.weekly_cost_hours
-```
+See `refs/frameworks.md` for the `ToilItem` scoring code (weekly cost, payback weeks).
 
 ---
 
@@ -349,221 +217,9 @@ Before any service goes to production:
 
 ## Reliability Patterns
 
-### Retry with exponential backoff and jitter
+Implement retry with exponential backoff + jitter, circuit breakers, bulkheads, timeouts, health/readiness endpoints, graceful degradation, and feature-flagged progressive rollout.
 
-```python
-import random
-import time
-from typing import TypeVar, Callable
-
-T = TypeVar("T")
-
-
-def retry_with_backoff(
-    fn: Callable[[], T],
-    max_retries: int = 3,
-    base_delay: float = 1.0,
-    max_delay: float = 30.0,
-    retryable_exceptions: tuple[type[Exception], ...] = (ConnectionError, TimeoutError),
-) -> T:
-    for attempt in range(max_retries + 1):
-        try:
-            return fn()
-        except retryable_exceptions:
-            if attempt == max_retries:
-                raise
-            delay = min(base_delay * (2 ** attempt), max_delay)
-            jitter = random.uniform(0, delay * 0.5)
-            time.sleep(delay + jitter)
-    raise RuntimeError("Unreachable")
-```
-
-### Circuit breaker pattern
-
-```python
-from enum import Enum
-import time
-from threading import Lock
-
-
-class CircuitState(Enum):
-    CLOSED   = "closed"    # normal operation
-    OPEN     = "open"      # blocking calls
-    HALF_OPEN = "half_open" # testing recovery
-
-
-class CircuitBreaker:
-    def __init__(
-        self,
-        failure_threshold: int = 5,
-        recovery_timeout: float = 30.0,
-        half_open_max_calls: int = 1,
-    ):
-        self.failure_threshold  = failure_threshold
-        self.recovery_timeout   = recovery_timeout
-        self.half_open_max_calls = half_open_max_calls
-        self._state             = CircuitState.CLOSED
-        self._failure_count     = 0
-        self._last_failure_time: float = 0.0
-        self._lock              = Lock()
-
-    @property
-    def state(self) -> CircuitState:
-        with self._lock:
-            if self._state == CircuitState.OPEN:
-                if time.monotonic() - self._last_failure_time >= self.recovery_timeout:
-                    self._state = CircuitState.HALF_OPEN
-            return self._state
-
-    def record_success(self) -> None:
-        with self._lock:
-            self._failure_count = 0
-            self._state = CircuitState.CLOSED
-
-    def record_failure(self) -> None:
-        with self._lock:
-            self._failure_count += 1
-            self._last_failure_time = time.monotonic()
-            if self._failure_count >= self.failure_threshold:
-                self._state = CircuitState.OPEN
-```
-
-### Bulkhead pattern
-
-```python
-import asyncio
-from contextlib import asynccontextmanager
-from collections.abc import AsyncGenerator
-
-
-class Bulkhead:
-    """
-    Limits concurrent access to a resource to prevent cascading failure.
-    Each dependency gets its own bulkhead with an independent concurrency limit.
-    """
-
-    def __init__(self, name: str, max_concurrent: int = 10, max_wait: float = 5.0):
-        self.name = name
-        self.max_concurrent = max_concurrent
-        self.max_wait = max_wait
-        self._semaphore = asyncio.Semaphore(max_concurrent)
-
-    @asynccontextmanager
-    async def acquire(self) -> AsyncGenerator[None, None]:
-        try:
-            await asyncio.wait_for(self._semaphore.acquire(), timeout=self.max_wait)
-        except asyncio.TimeoutError:
-            raise RuntimeError(
-                f"Bulkhead '{self.name}' rejected: {self.max_concurrent} "
-                f"concurrent calls in flight, waited {self.max_wait}s"
-            )
-        try:
-            yield
-        finally:
-            self._semaphore.release()
-```
-
-### Timeout pattern
-
-```python
-import asyncio
-from typing import TypeVar, Callable, Awaitable
-
-T = TypeVar("T")
-
-
-async def with_timeout(
-    coro: Awaitable[T],
-    timeout_seconds: float,
-    fallback: Callable[[], T] | None = None,
-) -> T:
-    """
-    Execute a coroutine with a timeout.
-    Returns fallback value if timeout and fallback is provided.
-    Raises asyncio.TimeoutError if no fallback.
-    """
-    try:
-        return await asyncio.wait_for(coro, timeout=timeout_seconds)
-    except asyncio.TimeoutError:
-        if fallback is not None:
-            return fallback()
-        raise
-```
-
-### Health check endpoints
-
-```python
-from dataclasses import dataclass
-
-
-@dataclass
-class HealthStatus:
-    status: str               # "healthy", "degraded", "unhealthy"
-    checks: dict[str, bool]   # per-dependency check results
-    version: str              # application version
-
-    def is_healthy(self) -> bool:
-        return self.status == "healthy"
-
-    def is_ready(self) -> bool:
-        """Ready to serve traffic (all critical deps available)."""
-        return all(self.checks.values())
-
-
-def liveness_check() -> dict:
-    """GET /health — is the process alive?"""
-    return {"status": "ok"}
-
-
-def readiness_check(deps: dict[str, Callable[[], bool]]) -> dict:
-    """GET /ready — can we serve traffic?"""
-    results = {}
-    for name, check_fn in deps.items():
-        try:
-            results[name] = check_fn()
-        except Exception:
-            results[name] = False
-    all_ok = all(results.values())
-    return {"ready": all_ok, "checks": results}
-```
-
-### Graceful degradation
-
-Prioritise core functionality when dependencies fail:
-
-| Dependency state | Behaviour |
-|-----------------|-----------|
-| All healthy | Full functionality |
-| Cache unavailable | Serve from database (slower, acceptable) |
-| Recommendations service down | Show default/popular items |
-| Analytics pipeline down | Queue events, do not block user flow |
-| Auth service degraded | Use cached tokens with short grace period |
-
-### Feature flags for progressive rollout
-
-```python
-from dataclasses import dataclass
-
-
-@dataclass(frozen=True)
-class FeatureFlag:
-    name: str
-    rollout_percentage: float  # 0.0 to 100.0
-    enabled_for_internal: bool = True
-
-    def is_enabled(self, user_id: str, is_internal: bool = False) -> bool:
-        if is_internal and self.enabled_for_internal:
-            return True
-        # Deterministic hash-based rollout
-        bucket = hash(f"{self.name}:{user_id}") % 100
-        return bucket < self.rollout_percentage
-```
-
-Progressive rollout stages:
-1. **Internal** (0%): enabled for team only via feature flag
-2. **Canary** (1-5%): small percentage of production traffic
-3. **Early access** (10-25%): broader validation
-4. **General availability** (100%): full rollout, remove flag
+See `refs/reliability-patterns.md` for the full implementation of each pattern plus the graceful-degradation matrix and progressive-rollout stages.
 
 ---
 
@@ -577,65 +233,7 @@ Every probe must:
 3. Be idempotent — safe to call repeatedly
 4. Have a timeout <= 10s
 
-```python
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any
-
-
-class ProbeStatus(str, Enum):
-    OK      = "ok"
-    FAILED  = "failed"
-    TIMEOUT = "timeout"
-    UNKNOWN = "unknown"
-
-
-@dataclass
-class ProbeResult:
-    status:     ProbeStatus
-    value:      Any
-    message:    str
-    probe_name: str
-    timestamp:  datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    duration_ms: float = 0.0
-
-    def passed(self) -> bool:
-        return self.status == ProbeStatus.OK
-```
-
-### HTTP probe pattern
-
-```python
-import httpx
-import time
-from chaoslib.types import Configuration, Secrets
-
-
-def probe_http_healthy(
-    url: str,
-    timeout: int = 5,
-    expected_status: int = 200,
-    configuration: Configuration | None = None,
-    secrets: Secrets | None = None,
-) -> ProbeResult:
-    start = time.monotonic()
-    try:
-        resp = httpx.get(url, timeout=timeout, follow_redirects=True)
-        duration = (time.monotonic() - start) * 1000
-        ok = resp.status_code == expected_status
-        return ProbeResult(
-            status=ProbeStatus.OK if ok else ProbeStatus.FAILED,
-            value=resp.status_code,
-            message=f"HTTP {resp.status_code} from {url}",
-            probe_name="http_healthy",
-            duration_ms=duration,
-        )
-    except httpx.TimeoutException:
-        return ProbeResult(ProbeStatus.TIMEOUT, None, f"Timeout after {timeout}s", "http_healthy")
-    except Exception as exc:
-        return ProbeResult(ProbeStatus.FAILED, None, str(exc), "http_healthy")
-```
+See `refs/chaos-engineering.md` for the `ProbeResult` type and the HTTP probe pattern.
 
 ---
 
@@ -649,23 +247,7 @@ Every chaos action must:
 3. Have a corresponding rollback action (or be self-healing)
 4. Define `blast_radius` in its docstring or experiment JSON
 
-```python
-def inject_latency(
-    target_service: str,
-    delay_ms: int,
-    duration_s: int,
-    configuration: Configuration | None = None,
-    secrets: Secrets | None = None,
-) -> dict:
-    """
-    Inject artificial latency into target_service for duration_s seconds.
-
-    blast_radius: single service, upstream callers may timeout
-    rollback: remove_latency(target_service)
-    """
-    # implementation ...
-    return {"status": "ok", "output": f"Injected {delay_ms}ms on {target_service}", "duration_ms": 0.0}
-```
+See `refs/chaos-engineering.md` for the `inject_latency` action example.
 
 ---
 
@@ -686,62 +268,15 @@ Before any chaos experiment:
 
 ## Rollback Patterns
 
-```python
-from contextlib import contextmanager
-from typing import Callable
+Wrap chaos execution in a scope that automatically rolls back on exception or threshold breach, and always verify steady state afterwards.
 
-
-@contextmanager
-def chaos_scope(rollback_fn: Callable[[], None], abort_threshold: float = 0.05):
-    """
-    Context manager for safe chaos execution.
-    Automatically rolls back on exception or threshold breach.
-    """
-    try:
-        yield
-    except Exception as exc:
-        rollback_fn()
-        raise RuntimeError(f"Chaos aborted, rollback triggered: {exc}") from exc
-    finally:
-        # Always verify steady state after experiment
-        pass
-```
+See `refs/chaos-engineering.md` for the `chaos_scope` context manager.
 
 ---
 
 ## Structured Logging (Python)
 
-```python
-import logging
-import structlog
-
-
-def configure_structlog() -> None:
-    structlog.configure(
-        processors=[
-            structlog.contextvars.merge_contextvars,
-            structlog.processors.add_log_level,
-            structlog.processors.TimeStamper(fmt="iso", utc=True),
-            structlog.processors.StackInfoRenderer(),
-            structlog.processors.JSONRenderer(),
-        ],
-        wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
-        context_class=dict,
-        logger_factory=structlog.PrintLoggerFactory(),
-    )
-
-# Usage — never print(), always logger
-logger = structlog.get_logger(__name__)
-
-def run_experiment(experiment_id: str) -> None:
-    logger.info("experiment.start", experiment_id=experiment_id)
-    try:
-        # ...
-        logger.info("experiment.complete", experiment_id=experiment_id, status="ok")
-    except Exception as exc:
-        logger.error("experiment.failed", experiment_id=experiment_id, error=str(exc))
-        raise
-```
+Use `structlog` with JSON rendering — never `print()`. See `refs/chaos-engineering.md` for the `configure_structlog` setup and usage.
 
 ---
 
@@ -769,3 +304,7 @@ def run_experiment(experiment_id: str) -> None:
 | Same SLO for all tiers | Critical services need tighter SLOs |
 | No error budget policy | Define actions at 25/50/75/90% burn |
 | Toil exceeding 50% of team time | Automate; track toil hours weekly |
+
+## References
+
+- Reference: `refs/REFERENCES.md` — external documentation links for SRE practices and tooling
