@@ -91,6 +91,68 @@ Claude:
 
 ---
 
+### /test
+
+**What**: Generate meaningful tests for a target (file, function, module) and run them to green, closing coverage gaps.
+
+**Skills**: `/tdd-workflow`, `/property-based-testing`
+
+**Flow**:
+1. Read the target; enumerate branches, boundaries, error paths, and invariants
+2. Detect the stack and existing test conventions (pytest / Vitest)
+3. Write behaviour-focused tests (AAA, mock only at I/O boundaries, parametrise boundaries, property tests for invariants)
+4. Run with coverage; add tests until the gate passes (≥95% Python / ≥80% TypeScript on changed files)
+5. Report added tests, result, coverage delta, remaining risk
+
+---
+
+### /debug
+
+**What**: Kick off systematic root-cause debugging on an error or failing behaviour.
+
+**Skills**: `/systematic-debugging` (orchestrates `/find-bugs`, `/investigate`, `/diagnose`, `/triage-frontend-issues`)
+
+**Flow**:
+1. Reproduce (minimal, reliable repro)
+2. Gather evidence (real error, stack trace, logs, values)
+3. Form ONE falsifiable hypothesis
+4. Design a minimal confirm/refute test
+5. Confirm or refute — refuted returns to evidence; confirmed = root cause
+6. Stop gate after ~3 failed attempts — verify assumptions directly, question the architecture
+7. Fix the cause (not the symptom), add a regression test, verify the original repro passes
+
+---
+
+### /refactor
+
+**What**: Safely refactor a target without changing behaviour, one verified transformation at a time.
+
+**Skills**: `/refactoring-specialist`, `/solid`
+
+**Flow**:
+1. Establish a safety net first (existing tests green, or write characterisation tests)
+2. Name the specific smell / goal
+3. Apply one transformation at a time; run tests green after each
+4. Final verification (full suite + lint + type check)
+5. Report transformations, unchanged behaviour, complexity delta
+
+---
+
+### /docs
+
+**What**: Generate or update documentation for a target — README, reference, docstrings, or ADR — matching the repo's style.
+
+**Skills**: `/documentation`
+
+**Flow**:
+1. Determine doc type and audience (Diataxis: tutorial / how-to / reference / explanation / ADR)
+2. Read the source of truth (code wins over stale docs)
+3. Match existing repo conventions
+4. Write; keep examples copy-pasteable and correct
+5. Verify examples run and every symbol/path/link resolves
+
+---
+
 ### /index
 
 **What**: Update docs index and memory after a work session.
@@ -175,7 +237,7 @@ Edit files in `ai_local/opencode/commands/`; the change is live immediately via 
 
 ### Command inventory per tool
 
-Claude Code ships **9** commands (`commands/claude/`); OpenCode ships **10** (`commands/opencode/`) — the same 9 plus the OpenCode-only `/model-report`.
+Claude Code ships **13** commands (`commands/claude/`); OpenCode ships **14** (`commands/opencode/`) — the same 13 plus the OpenCode-only `/model-report`.
 
 | Command | Claude Code | OpenCode |
 |---|---|---|
@@ -183,6 +245,10 @@ Claude Code ships **9** commands (`commands/claude/`); OpenCode ships **10** (`c
 | `/pr` | ✅ | ✅ |
 | `/story` | ✅ | ✅ |
 | `/review` | ✅ | ✅ |
+| `/test` | ✅ | ✅ |
+| `/debug` | ✅ | ✅ |
+| `/refactor` | ✅ | ✅ |
+| `/docs` | ✅ | ✅ |
 | `/index` | ✅ | ✅ |
 | `/opsx:propose` | ✅ | ✅ |
 | `/opsx:apply` | ✅ | ✅ |

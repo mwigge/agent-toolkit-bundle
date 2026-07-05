@@ -24,14 +24,14 @@ Most agent-asset collections are a pile of advisory skills. This one is a govern
 
 | Asset | Count | Location |
 |-------|-------|----------|
-| **Skills** | 159 skill directories (152 top-level loadable `SKILL.md` + nested sub-skills; **187** `SKILL.md` files total) | `skills/` |
-| **Agents — Claude Code** | 18 | `agents/claude/` |
-| **Agents — OpenCode** | 20 (the 18 + `opsx`, `refactor`) | `agents/opencode/` |
-| **Agents — Gemini** | 14 (agents-only, experimental) | `agents/gemini/` |
+| **Skills** | 166 skill directories (159 top-level loadable `SKILL.md` + nested sub-skills; **194** `SKILL.md` files total) | `skills/` |
+| **Agents — Claude Code** | 19 | `agents/claude/` |
+| **Agents — OpenCode** | 21 (the 19 + `opsx`, `refactor`) | `agents/opencode/` |
+| **Agents — Gemini** | 15 (agents-only, experimental) | `agents/gemini/` |
 | **Hooks (shell)** | 18 | `hooks/` |
 | **Plugins (TypeScript)** | 13 | `plugins/` |
-| **Commands — Claude Code** | 9 | `commands/claude/` |
-| **Commands — OpenCode** | 10 (the 9 + `model-report`) | `commands/opencode/` |
+| **Commands — Claude Code** | 13 | `commands/claude/` |
+| **Commands — OpenCode** | 14 (the 13 + `model-report`) | `commands/opencode/` |
 | **Shared policy data** | guard patterns, model-tier map | `policy/` |
 | **MCP sub-packages** | MemPalace, CodeGraph, OpenSpec | `mempalace/`, `codegraph/`, `openspec/` |
 
@@ -44,16 +44,16 @@ The exhaustive, categorised skill catalogue lives in **[docs/skills.md](docs/ski
 | | Claude Code | OpenCode | Codex | Gemini |
 |---|---|---|---|---|
 | Instructions file | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` | `GEMINI.md` |
-| Agents | 18 (`agents/claude/`) | 20 (`agents/opencode/`) | reused as role prompts | 14 (`agents/gemini/`) |
+| Agents | 19 (`agents/claude/`) | 21 (`agents/opencode/`) | reused as role prompts | 15 (`agents/gemini/`) |
 | Enforcement | 18 blocking shell hooks | 13 TypeScript plugins | advisory (no native hook runtime) | advisory (no native hook runtime) |
-| Commands | 9 native slash commands | 10 native slash commands | markdown playbooks | reused as playbooks |
+| Commands | 13 native slash commands | 14 native slash commands | markdown playbooks | reused as playbooks |
 | Skills | shared from `skills/` | shared from `skills/` | shared from `skills/` | shared from `skills/` |
 | Memory / code intel | MemPalace + CodeGraph (MCP) | MemPalace + CodeGraph (MCP) | MemPalace + CodeGraph (MCP) | via MCP where supported |
 | Install | `install.sh` symlinks | `install.sh` symlinks | starter templates (below) | agent files + `GEMINI.md` template |
 
 **Codex** consumes the shared corpus directly: use `templates/AGENTS.md.example` as your project `AGENTS.md`, and create a `config.toml` from `templates/codex.config.toml.example` (which wires MemPalace and CodeGraph as `[[mcp_servers]]`). Codex has no native hook/plugin runtime here, so the hooks and plugins act as documented policy rather than deterministic enforcement — see **[docs/codex.md](docs/codex.md)**.
 
-**Gemini** ships **14 agent definitions** in `agents/gemini/` (frontmatter uses Gemini tool names: `read_file`, `write_file`, `replace`, `glob`, `grep_search`, `run_shell_command`). It is **agents-only and experimental** — there is no Gemini hook/plugin runtime and the installer does not auto-symlink Gemini. Use `templates/GEMINI.md.example` for project instructions and read shared `skills/` on demand.
+**Gemini** ships **15 agent definitions** in `agents/gemini/` (frontmatter uses Gemini tool names: `read_file`, `write_file`, `replace`, `glob`, `grep_search`, `run_shell_command`). It is **agents-only and experimental** — there is no Gemini hook/plugin runtime and the installer does not auto-symlink Gemini. Use `templates/GEMINI.md.example` for project instructions and read shared `skills/` on demand.
 
 ---
 
@@ -87,6 +87,10 @@ Native in Claude Code (`commands/claude/`) and OpenCode (`commands/opencode/`):
 | `/pr` | Validate branch, push, fill the MR/PR template, open the request |
 | `/story` | INVEST check, draft a user story with ACs, hand off to `@jira-story` |
 | `/review` | Four-lens adversarial review of the current branch |
+| `/test` | Generate and run tests for a target, closing coverage gaps |
+| `/debug` | Systematic root-cause debugging of an error (reproduce -> isolate -> fix -> verify) |
+| `/refactor` | Safe, behaviour-preserving refactor of a target, one verified step at a time |
+| `/docs` | Generate or update docs (README, reference, docstrings, ADR) for a target |
 | `/index` | Update the docs index and `memory.md` after a work session |
 | `/opsx:propose` | OpenSpec — create a change with proposal, design, specs, tasks |
 | `/opsx:explore` | OpenSpec — thinking mode, no implementation |
@@ -100,7 +104,7 @@ MemPalace ships an opt-in `/mempalace-mine` command in its sub-package (`mempala
 
 ## Agents
 
-18 Claude Code agents, 20 in OpenCode (adds `opsx` and `refactor`), 14 in Gemini. Read-only-by-design agents are scoped to least privilege: `@architect` gets `Read, Grep, Glob`; `@reviewer` and `@security` get `Read, Grep, Glob, Bash` (no write); coder/tester agents keep their write tools. In Claude Code agents are leaf nodes (human-triggered handoffs); in OpenCode the orchestrator can spawn `mode: subagent` agents autonomously. Full inventory and collaboration flow: **[docs/agents.md](docs/agents.md)**. Per-agent model routing for OpenCode: **[docs/model-tier.md](docs/model-tier.md)** and **[docs/local-models.md](docs/local-models.md)**.
+19 Claude Code agents, 21 in OpenCode (adds `opsx` and `refactor`), 15 in Gemini. Read-only-by-design agents are scoped to least privilege: `@architect` gets `Read, Grep, Glob`; `@debugger`, `@reviewer`, and `@security` get `Read, Grep, Glob, Bash` (no write); coder/tester agents keep their write tools. In Claude Code agents are leaf nodes (human-triggered handoffs); in OpenCode the orchestrator can spawn `mode: subagent` agents autonomously. Full inventory and collaboration flow: **[docs/agents.md](docs/agents.md)**. Per-agent model routing for OpenCode: **[docs/model-tier.md](docs/model-tier.md)** and **[docs/local-models.md](docs/local-models.md)**.
 
 ---
 

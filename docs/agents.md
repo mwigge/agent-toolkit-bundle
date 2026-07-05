@@ -118,6 +118,18 @@ This is a hard architectural constraint. Agents output human-readable handoff me
 
 ---
 
+### @debugger
+
+**Invoke when**: A bug's cause is unknown, a fix is not holding, behaviour is intermittent, or the same fix has been tried twice.
+
+**Skills loaded**: `/systematic-debugging` (orchestrates `/find-bugs`, `/investigate`, `/diagnose`, `/triage-frontend-issues`)
+
+**Produces**: A root-cause writeup — reproduction, evidence trail, the confirmed cause, a recommended fix, and a regression test. Runs repros and tests but does **not** write features (read-mostly: `Read, Grep, Glob, Bash`).
+
+**Key rules**: Reproduce before diagnosing; one hypothesis at a time; no symptom patching; hard stop-and-rethink gate after ~3 failed attempts. Hands the code fix to the relevant coder agent.
+
+---
+
 ### @reviewer
 
 **Invoke when**: After implementation is complete, before MR creation.
@@ -295,11 +307,11 @@ OpenCode fully supports custom agent definitions. Agent files live in
 
 | Tool | Count | Location | Notes |
 |------|-------|----------|-------|
-| Claude Code | 18 | `agents/claude/` | leaf nodes; human-triggered handoffs |
-| OpenCode | 20 | `agents/opencode/` | the 18 above **plus** two OpenCode-only agents: `opsx` (OpenSpec workflow driver) and `refactor` (safe incremental refactoring) |
-| Gemini | 14 | `agents/gemini/` | agents-only, experimental (see below) |
+| Claude Code | 19 | `agents/claude/` | leaf nodes; human-triggered handoffs |
+| OpenCode | 21 | `agents/opencode/` | the 19 above **plus** two OpenCode-only agents: `opsx` (OpenSpec workflow driver) and `refactor` (safe incremental refactoring) |
+| Gemini | 15 | `agents/gemini/` | agents-only, experimental (see below) |
 
-The 18 shared roles: `architect`, `coder-go`, `coder-python`, `coder-rust`, `coder-sql`, `coder-tdd`, `coder-typescript`, `tester`, `reviewer`, `security`, `sre`, `observability`, `api`, `data-analyst`, `data-engineer`, `product-owner`, `ai-developer`, `jira-story`.
+The 19 shared roles: `architect`, `coder-go`, `coder-python`, `coder-rust`, `coder-sql`, `coder-tdd`, `coder-typescript`, `debugger`, `tester`, `reviewer`, `security`, `sre`, `observability`, `api`, `data-analyst`, `data-engineer`, `product-owner`, `ai-developer`, `jira-story`.
 
 Agent files live in `ai_local/opencode/agents/` — symlinked to `~/.config/opencode/agents/`.
 Edit files in `ai_local/opencode/agents/`; the symlink means the change is live immediately.
@@ -372,6 +384,7 @@ Claude Code subagents restrict tools with a `tools:` frontmatter allowlist (an a
 | Agent | `tools:` |
 |-------|----------|
 | `@architect` | `Read, Grep, Glob` (design only — no writes) |
+| `@debugger` | `Read, Grep, Glob, Bash` (investigate + run tests — no writes) |
 | `@reviewer` | `Read, Grep, Glob, Bash` (review only — no writes) |
 | `@security` | `Read, Grep, Glob, Bash` (audit only — no writes) |
 | coder / tester agents | `Read, Write, Edit, Bash, Glob, Grep` (implementation needs writes) |
@@ -383,9 +396,9 @@ Claude Code subagents restrict tools with a `tools:` frontmatter allowlist (an a
 
 ## Gemini Agents
 
-The bundle ships **14 Gemini agent definitions** in `agents/gemini/`:
+The bundle ships **15 Gemini agent definitions** in `agents/gemini/`:
 `ai-developer`, `architect`, `coder`, `coder-python`, `coder-sql`, `coder-tdd`,
-`coder-typescript`, `data-analyst`, `jira-story`, `observability`, `product-owner`,
+`coder-typescript`, `data-analyst`, `debugger`, `jira-story`, `observability`, `product-owner`,
 `reviewer`, `security`, `sre`.
 
 Frontmatter uses Gemini's tool names (`read_file`, `write_file`, `replace`, `glob`,

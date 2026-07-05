@@ -35,9 +35,10 @@ These standards apply to ALL development projects across all AI clients. Skills 
 
 Skills are organised into these categories:
 
-- **Software Engineering Principles** — `/solid`, `/tdd-workflow`, `/verification-loop`, `/refactoring-specialist`, `/code-simplifier`, property-based testing
+- **Software Engineering Principles** — `/solid`, `/tdd-workflow`, `/verification-loop`, `/refactoring-specialist`, `/code-simplifier`, `/systematic-debugging`, property-based testing
 - **Architecture & Design** — blueprint generation, microservices, cloud design patterns, API/interface design, ADRs, deprecation & migration, multi-tenancy
-- **Languages & Frameworks** — Python, TypeScript, Node.js, Rust, Go, Vue/Nuxt, frontend UI, PDM, TS libraries
+- **Languages & Frameworks** — Python, TypeScript, Node.js, Rust, Go, React/Next.js, Vue/Nuxt, frontend UI, PDM, TS libraries
+- **Document Generation** — `/pdf`, `/docx`, `/pptx`, `/xlsx` (read, extract, and create office formats)
 - **Database & Data** — schema/SQL/Postgres optimisation, MongoDB, Supabase, data engineering, data analysis, statistics, time series, visualisation
 - **Quality & Review** — code quality, PR review, differential & static analysis, bug finding, mutation testing, audit-context building
 - **Security & Compliance** — security review, GitHub Actions security, compliance (GDPR/DORA/PCI-DSS), OAuth

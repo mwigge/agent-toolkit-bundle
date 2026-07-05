@@ -52,7 +52,7 @@ Type `/skill-name` in Claude Code to load a skill explicitly:
 
 ## Skill Catalogue
 
-The bundle ships **159 skill directories**: **152** are directly loadable (a top-level `SKILL.md`), and the remaining 7 are sub-skill families whose `SKILL.md` files live one level down. Counting nested sub-skills there are **187** `SKILL.md` files in total.
+The bundle ships **166 skill directories**: **159** are directly loadable (a top-level `SKILL.md`), and the remaining 7 are sub-skill families whose `SKILL.md` files live one level down. Counting nested sub-skills there are **194** `SKILL.md` files in total.
 
 The tables below are **curated highlights** by domain — not an exhaustive list. The authoritative, complete inventory is the [Full Skill Index](#full-skill-index) at the bottom of this page. Auto-activation keyword mappings live in [`skill-rules.json`](../skill-rules.json).
 
@@ -73,6 +73,23 @@ The tables below are **curated highlights** by domain — not an exhaustive list
 | Skill | When to load | Key guidance |
 |-------|-------------|-------------|
 | `/nodejs` | Node.js services | Core platform, Fastify, NestJS. Detailed content in refs/: `core-platform.md`, `fastify.md`, `nestjs.md` |
+
+### Frontend Frameworks
+
+| Skill | When to load | Key guidance |
+|-------|-------------|-------------|
+| `/react` | Any React work (React 18/19, JSX/TSX, hooks) | Function components + hooks, Rules of Hooks, state selection, `useEffect` restraint, performance (memo/useMemo/useCallback, keys, code-split), RTL + Vitest testing, TypeScript |
+| `/nextjs` | Any Next.js / App Router work | Server Components by default, Server Actions, data fetching + caching/ISR, rendering strategies (SSG/SSR/ISR/streaming), routing conventions, deployment |
+| `/vue-best-practices` | Any Vue work | Composition API + `<script setup lang="ts">`, reactivity, SFC structure, component data flow, composables (plus the `vue-*` and `nuxt` family) |
+
+### Documents
+
+| Skill | When to load | Key guidance |
+|-------|-------------|-------------|
+| `/pdf` | Read/extract/create a `.pdf` | Text/table extraction (pypdf, pdfplumber), page split/merge, AcroForm filling, creation (reportlab); OCR fallback for scanned PDFs |
+| `/docx` | Read/create/edit a `.docx` | python-docx model: paragraphs/tables, runs and styles, headings, images, `docxtpl` templating |
+| `/pptx` | Read/create/edit a `.pptx` | python-pptx: slide layouts, placeholders, tables/native charts/images, branded template reuse |
+| `/xlsx` | Read/create/edit a `.xlsx` | pandas vs openpyxl choice, cell/formula/formatting control, multi-sheet, formulas are not auto-evaluated |
 
 ### Data (5 skills)
 
@@ -131,10 +148,11 @@ The tables below are **curated highlights** by domain — not an exhaustive list
 | `/ai-developer` | LLM features, RAG, MCP | APIs, RAG pipeline, MCP server development, LLM serving patterns, eval suites |
 | `/prompt-engineer` | Prompt design, evaluation | System prompts, few-shot, CoT, structured output, A/B testing, token optimisation, eval frameworks |
 
-### Process / Quality (7 skills)
+### Process / Quality (8 skills)
 
 | Skill | When to load | Key guidance |
 |-------|-------------|-------------|
+| `/systematic-debugging` | Unknown root cause, a fix that will not hold, intermittent/flaky bugs | Reproduce -> evidence -> one hypothesis -> minimal test -> confirm/refute -> fix -> verify; hard stop-and-rethink gate after ~3 failed attempts; orchestrates `find-bugs`, `investigate`, `diagnose`, `triage-frontend-issues` |
 | `/tdd-workflow` | TDD coaching | Red-Green-Refactor, quality metrics (defect density, shift-left, mutation testing) |
 | `/verification-loop` | Pre-MR quality check | Full lint/typecheck/test/security sweep, pre-MR checklist |
 | `/pr-review` | Code review | 4-lens framework, blast radius, BLOCKING vs nit, approval criteria |
@@ -173,9 +191,9 @@ The tables below are **curated highlights** by domain — not an exhaustive list
 
 ## Full Skill Index
 
-Every directly loadable skill (152 — each has a top-level `SKILL.md`, invoke with `/<name>`):
+Every directly loadable skill (159 — each has a top-level `SKILL.md`, invoke with `/<name>`):
 
-`addy-code-quality` · `addy-performance` · `ai-developer` · `api-and-interface-design` · `api-designer` · `architecture-blueprint-generator` · `autofix` · `aws-api-gateway` · `aws-architecture-diagram` · `aws-cdk-development` · `aws-cost-operations` · `aws-deploy` · `aws-dsql` · `aws-lambda` · `aws-serverless-deployment` · `aws-serverless-eda` · `azure-enterprise-infra-planner` · `azure-kubernetes` · `azure-reliability` · `breakdown-epic-arch` · `build-grafana-dashboards` · `canary` · `caveman` · `caveman-commit` · `caveman-compress` · `caveman-help` · `caveman-review` · `chaos-engineer` · `chaostooling-standards` · `ci-cd` · `cloud-design-patterns` · `codegraph` · `coderabbit-code-review` · `code-simplifier` · `compliance` · `configure-alerting-rules` · `confluence` · `context-map` · `conventional-commit` · `create-adaptable-composable` · `create-architectural-decision-record` · `data-analyst` · `database` · `data-engineer` · `data-visualisation` · `dd-apm` · `dd-audit` · `dd-logs` · `dd-monitors` · `dd-pup` · `define-slo-sli-sla` · `deprecation-and-migration` · `design-on-call-rotation` · `devops-rollout-plan` · `diagnose` · `docker-expert` · `documentation` · `documentation-and-adrs` · `document-release` · `find-bugs` · `firewall-skill` · `forecast-operational-metrics` · `frontend-ui-engineering` · `gcp-bigquery` · `gcp-cloud-run` · `gcp-gke` · `gcp-operational-excellence` · `gcp-reliability` · `gcp-security` · `gha-security-review` · `git-commit` · `git-flow-branch-creator` · `github-actions-efficiency` · `github-issues` · `github-release` · `gitlab-glab` · `golang-patterns` · `go-style-guide` · `gstack-review` · `health` · `iac-patterns` · `incident-response` · `investigate` · `kubernetes-patterns` · `land-and-deploy` · `linux-kernel-skill` · `mempalace` · `microservices-architect` · `mongodb-connection` · `mongodb-query-optimizer` · `mongodb-schema-design` · `monitoring-expert` · `multi-tenancy` · `network-skill` · `nodejs` · `nuxt` · `nuxt-vitest` · `nuxt-vue` · `oauth` · `observability` · `openspec-apply-change` · `openspec-archive-change` · `openspec-explore` · `openspec-propose` · `pdm-expert` · `performance-engineer` · `plan-capacity` · `playwright-explore-website` · `playwright-generate-test` · `postgresql-optimization` · `presentation` · `product-owner` · `prompt-engineer` · `pr-review` · `python` · `python-patterns` · `refactoring-specialist` · `replay-ux-research` · `rng-skill` · `rust` · `security-review` · `sentry-code-review` · `sentry-security-review` · `ship` · `skill-development` · `solid` · `sql-optimization` · `sre` · `sred-project-organizer` · `sred-work-summary` · `statistical-analysis` · `supabase-patterns` · `supabase-postgres-best-practices` · `tdd-workflow` · `terraform-skill` · `time-series` · `triage-frontend-issues` · `ts-library` · `typescript` · `verification-loop` · `vue-best-practices` · `vue-debug-guides` · `vue-development` · `vue-jsx-best-practices` · `vue-options-api-best-practices` · `vue-pinia-best-practices` · `vue-router-best-practices` · `vue-testing-best-practices` · `vueuse` · `webapp-testing` · `web-design-guidelines` · `write-incident-runbook`
+`addy-code-quality` · `addy-performance` · `ai-developer` · `api-and-interface-design` · `api-designer` · `architecture-blueprint-generator` · `autofix` · `aws-api-gateway` · `aws-architecture-diagram` · `aws-cdk-development` · `aws-cost-operations` · `aws-deploy` · `aws-dsql` · `aws-lambda` · `aws-serverless-deployment` · `aws-serverless-eda` · `azure-enterprise-infra-planner` · `azure-kubernetes` · `azure-reliability` · `breakdown-epic-arch` · `build-grafana-dashboards` · `canary` · `caveman` · `caveman-commit` · `caveman-compress` · `caveman-help` · `caveman-review` · `chaos-engineer` · `chaostooling-standards` · `ci-cd` · `cloud-design-patterns` · `codegraph` · `coderabbit-code-review` · `code-simplifier` · `compliance` · `configure-alerting-rules` · `confluence` · `context-map` · `conventional-commit` · `create-adaptable-composable` · `create-architectural-decision-record` · `data-analyst` · `database` · `data-engineer` · `data-visualisation` · `dd-apm` · `dd-audit` · `dd-logs` · `dd-monitors` · `dd-pup` · `define-slo-sli-sla` · `deprecation-and-migration` · `design-on-call-rotation` · `devops-rollout-plan` · `diagnose` · `docker-expert` · `documentation` · `documentation-and-adrs` · `document-release` · `docx` · `find-bugs` · `firewall-skill` · `forecast-operational-metrics` · `frontend-ui-engineering` · `gcp-bigquery` · `gcp-cloud-run` · `gcp-gke` · `gcp-operational-excellence` · `gcp-reliability` · `gcp-security` · `gha-security-review` · `git-commit` · `git-flow-branch-creator` · `github-actions-efficiency` · `github-issues` · `github-release` · `gitlab-glab` · `golang-patterns` · `go-style-guide` · `gstack-review` · `health` · `iac-patterns` · `incident-response` · `investigate` · `kubernetes-patterns` · `land-and-deploy` · `linux-kernel-skill` · `mempalace` · `microservices-architect` · `mongodb-connection` · `mongodb-query-optimizer` · `mongodb-schema-design` · `monitoring-expert` · `multi-tenancy` · `network-skill` · `nextjs` · `nodejs` · `nuxt` · `nuxt-vitest` · `nuxt-vue` · `oauth` · `observability` · `openspec-apply-change` · `openspec-archive-change` · `openspec-explore` · `openspec-propose` · `pdf` · `pdm-expert` · `performance-engineer` · `plan-capacity` · `playwright-explore-website` · `playwright-generate-test` · `postgresql-optimization` · `pptx` · `presentation` · `product-owner` · `prompt-engineer` · `pr-review` · `python` · `python-patterns` · `react` · `refactoring-specialist` · `replay-ux-research` · `rng-skill` · `rust` · `security-review` · `sentry-code-review` · `sentry-security-review` · `ship` · `skill-development` · `solid` · `sql-optimization` · `sre` · `sred-project-organizer` · `sred-work-summary` · `statistical-analysis` · `supabase-patterns` · `supabase-postgres-best-practices` · `systematic-debugging` · `tdd-workflow` · `terraform-skill` · `time-series` · `triage-frontend-issues` · `ts-library` · `typescript` · `verification-loop` · `vue-best-practices` · `vue-debug-guides` · `vue-development` · `vue-jsx-best-practices` · `vue-options-api-best-practices` · `vue-pinia-best-practices` · `vue-router-best-practices` · `vue-testing-best-practices` · `vueuse` · `webapp-testing` · `web-design-guidelines` · `write-incident-runbook` · `xlsx`
 
 **Sub-skill families** (7 directories whose `SKILL.md` files sit one level down — load a specific sub-skill):
 
@@ -233,6 +251,13 @@ keywords below, load the corresponding skill before responding:
 | `dataclass`, `pydantic`, `type hint`, `mypy`, `protocol` | `/python` |
 | `typescript`, `interface`, `generic`, `union type` | `/typescript` |
 | `vitest`, `jest`, `describe`, `spy`, `stub` | `/typescript` |
+| `react`, `jsx`, `tsx`, `useState`, `useEffect`, `hook` | `/react` |
+| `next.js`, `app router`, `server component`, `server action`, `RSC` | `/nextjs` |
+| `debug`, `root cause`, `not reproducing`, `stack trace`, `flaky`, `fix isn't holding` | `/systematic-debugging` |
+| `.pdf`, `pypdf`, `pdfplumber`, `reportlab` | `/pdf` |
+| `.docx`, `word document`, `python-docx` | `/docx` |
+| `.pptx`, `powerpoint`, `python-pptx`, `slide deck` | `/pptx` |
+| `.xlsx`, `excel`, `spreadsheet`, `openpyxl` | `/xlsx` |
 | `postgres`, `SQL`, `query`, `index`, `migration`, `schema` | `/database` |
 | `REST`, `GraphQL`, `OpenAPI`, `endpoint`, `HTTP` | `/api-designer` |
 | `OTel`, `span`, `trace`, `metric`, `observability` | `/observability` |
